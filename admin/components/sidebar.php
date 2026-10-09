@@ -43,6 +43,12 @@
               <span>Data User</span>
             </a>
           </li>
+          <li class="sidebar-menu-item">
+            <a href="/e-ticket-bus/admin/index.php?page=sopir" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'sopir' ? ' active' : '' ?>" title="Data Sopir">
+              <i class="bi bi-person-badge-fill"></i>
+              <span>Data Sopir</span>
+            </a>
+          </li>
         </ul>
       </div>
 

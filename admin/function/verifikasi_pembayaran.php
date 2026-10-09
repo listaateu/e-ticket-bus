@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../login/auth.php';
+wajibRole(['admin']);   // hanya admin yang boleh masuk
+
 // admin/function/verifikasi_pembayaran.php
 // Proses verifikasi pembayaran: setujui atau tolak.
 // Hanya menerima POST supaya status tidak berubah hanya karena link dibuka/di-prefetch.

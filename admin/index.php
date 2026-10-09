@@ -9,7 +9,7 @@
 //                                                 atau data_pemesanan_detail.php (dua-duanya boleh)
 
 // Daftar menu yang diizinkan. Menu baru tinggal ditambah di sini.
-$menu_boleh = ['dashboard', 'bus', 'jadwal_dan_rute', 'user', 'verifikasi_pembayaran', 'data_pemesanan'];
+$menu_boleh = ['dashboard', 'bus', 'jadwal_dan_rute', 'user', 'sopir', 'verifikasi_pembayaran', 'data_pemesanan'];
 
 $page = $_GET['page'] ?? 'dashboard';
 $aksi = $_GET['aksi'] ?? '';

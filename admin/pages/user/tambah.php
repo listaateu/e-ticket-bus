@@ -1,15 +1,29 @@
 <?php
 // admin/pages/user/tambah.php
-// Form tambah user (bagian C = Create dari CRUD).
-// Form ini TIDAK menyimpan sendiri; datanya dikirim ke function/user.php?aksi=simpan.
+// Form tambah penumpang (bagian C = Create dari CRUD).
+// Role 'penumpang' otomatis diisi oleh registrasiPenumpang().
 
-$pesan = $_GET['pesan'] ?? '';
+include_once __DIR__ . '/../../database/koneksi.php';
+require_once __DIR__ . '/../../function/registrasi.php';
+
+$kembali = '/e-ticket-bus/admin/index.php?page=user';
+$error   = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $hasil = registrasiPenumpang($koneksi, $_POST);
+    if ($hasil === true) {
+        // pakai JS karena header() sudah tidak bisa di sini (HTML sudah mulai tampil)
+        echo '<script>window.location.href = "' . $kembali . '&pesan=tambah_ok";</script>';
+        return;
+    }
+    $error = $hasil;
+}
 ?>
 <!-- page header -->
 <div class="page-header">
   <div>
     <h1 class="page-title">Tambah User</h1>
-    <p class="page-subtitle">Buat akun baru untuk admin, kondektur, atau penumpang.</p>
+    <p class="page-subtitle">Buat akun baru untuk penumpang.</p>
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
@@ -21,10 +35,8 @@ $pesan = $_GET['pesan'] ?? '';
 </div>
 <!-- page header -->
 
-<?php if ($pesan === 'email_ada') : ?>
-  <div class="alert alert-danger">Email itu sudah terdaftar. Pakai email lain.</div>
-<?php elseif ($pesan === 'tidak_valid') : ?>
-  <div class="alert alert-danger">Data belum benar. Cek nama, format email, role, dan password (minimal 6 karakter).</div>
+<?php if ($error !== '') : ?>
+  <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
 <!-- form -->
@@ -33,34 +45,40 @@ $pesan = $_GET['pesan'] ?? '';
     <div class="card border-light shadow-sm p-4">
       <h5 class="card-title mb-4">Data User</h5>
 
-      <form action="/e-ticket-bus/admin/function/user.php?aksi=simpan" method="post">
+      <form action="" method="post">
 
         <div class="mb-3">
           <label for="nama" class="form-label-custom">Nama</label>
           <input type="text" class="form-control-custom" id="nama" name="nama"
-            placeholder="Nama lengkap" maxlength="100" required>
+            placeholder="Nama lengkap" maxlength="150"
+            value="<?= htmlspecialchars($_POST['nama'] ?? '') ?>" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="username" class="form-label-custom">Username</label>
+          <input type="text" class="form-control-custom" id="username" name="username"
+            placeholder="Untuk login, tanpa spasi" pattern="[a-zA-Z0-9_]{4,20}" maxlength="20"
+            value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" required>
         </div>
 
         <div class="mb-3">
           <label for="email" class="form-label-custom">Email</label>
           <input type="email" class="form-control-custom" id="email" name="email"
-            placeholder="contoh@email.com" maxlength="100" required>
+            placeholder="contoh@email.com" maxlength="150"
+            value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" required>
         </div>
 
         <div class="mb-3">
-          <label for="password" class="form-label-custom">Password</label>
-          <input type="password" class="form-control-custom" id="password" name="password"
-            placeholder="Minimal 6 karakter" minlength="6" required>
+          <label for="no_hp" class="form-label-custom">No. HP</label>
+          <input type="text" class="form-control-custom" id="no_hp" name="no_hp"
+            placeholder="08xxxxxxxxxx" maxlength="20"
+            value="<?= htmlspecialchars($_POST['no_hp'] ?? '') ?>" required>
         </div>
 
         <div class="mb-4">
-          <label for="role" class="form-label-custom">Role</label>
-          <select class="form-select-custom" id="role" name="role" required>
-            <option value="" selected disabled>Pilih role...</option>
-            <option value="admin">Admin</option>
-            <option value="kondektur">Kondektur</option>
-            <option value="penumpang">Penumpang</option>
-          </select>
+          <label for="password" class="form-label-custom">Password</label>
+          <input type="password" class="form-control-custom" id="password" name="password"
+            placeholder="Minimal 6 karakter" minlength="6" required>
         </div>
 
         <div class="d-flex gap-2">

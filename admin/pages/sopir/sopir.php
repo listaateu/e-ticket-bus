@@ -1,22 +1,22 @@
 <?php
-// admin/pages/user/user.php
-// Tabel penumpang (bagian R = Read dari CRUD).
+// admin/pages/sopir/sopir.php
+// Tabel sopir (bagian R = Read dari CRUD).
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
 
-$role = 'penumpang';
+$role = 'kondektur';
 
-// Hitung total penumpang, lalu ambil 10 baris untuk halaman yang dibuka
+// Hitung total sopir, lalu ambil 10 baris untuk halaman yang dibuka
 $hitung = $koneksi->prepare("SELECT COUNT(*) AS t FROM users WHERE role = ?");
 $hitung->bind_param('s', $role);
 $hitung->execute();
 $total = (int) $hitung->get_result()->fetch_assoc()['t'];
 [$per_halaman, $offset] = paginasi($total);
 
-// Ambil hanya user dengan role 'penumpang', yang terbaru di atas
+// Ambil hanya user dengan role 'kondektur', yang terbaru di atas
 $ambil = $koneksi->prepare(
-    "SELECT id, nama, username, email, no_hp FROM users WHERE role = ? ORDER BY id DESC LIMIT $per_halaman OFFSET $offset"
+    "SELECT id, nama, email FROM users WHERE role = ? ORDER BY id DESC LIMIT $per_halaman OFFSET $offset"
 );
 $ambil->bind_param('s', $role);
 $ambil->execute();
@@ -27,27 +27,27 @@ $pesan = $_GET['pesan'] ?? '';
 <!-- page header -->
 <div class="page-header">
   <div>
-    <h1 class="page-title">Data User</h1>
-    <p class="page-subtitle">Kelola akun penumpang yang memesan tiket.</p>
+    <h1 class="page-title">Data Sopir</h1>
+    <p class="page-subtitle">Kelola akun sopir/kondektur yang memeriksa dan memvalidasi tiket.</p>
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item text-muted-green">Master Data</li>
-      <li class="breadcrumb-item active text-main" aria-current="page">Data User</li>
+      <li class="breadcrumb-item active text-main" aria-current="page">Data Sopir</li>
     </ol>
   </nav>
 </div>
 <!-- page header -->
 
 <?php if ($pesan === 'tambah_ok') : ?>
-  <div class="alert alert-success">User baru berhasil ditambahkan.</div>
+  <div class="alert alert-success">Sopir baru berhasil ditambahkan.</div>
 <?php elseif ($pesan === 'update_ok') : ?>
-  <div class="alert alert-success">Data penumpang berhasil diubah.</div>
+  <div class="alert alert-success">Data sopir berhasil diubah.</div>
 <?php elseif ($pesan === 'hapus_ok') : ?>
-  <div class="alert alert-success">User berhasil dihapus.</div>
+  <div class="alert alert-success">Sopir berhasil dihapus.</div>
 <?php elseif ($pesan === 'dipakai') : ?>
-  <div class="alert alert-danger">User tidak bisa dihapus karena sudah punya data pemesanan tiket.</div>
+  <div class="alert alert-danger">Sopir tidak bisa dihapus karena akunnya masih dipakai data lain.</div>
 <?php endif; ?>
 
 <!-- kartu tabel -->
@@ -55,10 +55,10 @@ $pesan = $_GET['pesan'] ?? '';
 
   <!-- bar atas tabel -->
   <div class="table-header-control">
-    <div class="table-pagination-info">Total: <strong><?= $total ?></strong> penumpang</div>
+    <div class="table-pagination-info">Total: <strong><?= $total ?></strong> sopir</div>
     <div class="table-filter-group">
-      <a href="/e-ticket-bus/admin/index.php?page=user&aksi=tambah" class="btn-table-action">
-        <i class="bi bi-plus-lg"></i> Tambah User
+      <a href="/e-ticket-bus/admin/index.php?page=sopir&aksi=tambah" class="btn-table-action">
+        <i class="bi bi-plus-lg"></i> Tambah Sopir
       </a>
     </div>
   </div>
@@ -70,16 +70,14 @@ $pesan = $_GET['pesan'] ?? '';
         <tr>
           <th>No</th>
           <th>Nama</th>
-          <th>Username</th>
           <th>Email</th>
-          <th>No. HP</th>
           <th class="text-center">Aksi</th>
         </tr>
       </thead>
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="6" class="text-center">Belum ada data penumpang.</td>
+            <td colspan="4" class="text-center">Belum ada data sopir.</td>
           </tr>
         <?php endif; ?>
 
@@ -87,13 +85,11 @@ $pesan = $_GET['pesan'] ?? '';
           <tr>
             <td><?= $no++ ?></td>
             <td class="table-order-id"><?= htmlspecialchars($u['nama']) ?></td>
-            <td><?= htmlspecialchars($u['username']) ?></td>
             <td><?= htmlspecialchars($u['email']) ?></td>
-            <td><?= htmlspecialchars($u['no_hp'] ?? '-') ?></td>
             <td>
               <div class="d-flex justify-content-center gap-1">
-                <a href="/e-ticket-bus/admin/index.php?page=user&aksi=update&id=<?= (int) $u['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
-                <a href="/e-ticket-bus/admin/function/user.php?aksi=hapus&id=<?= (int) $u['id'] ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus penumpang ini?')"><i class="bi bi-trash"></i></a>
+                <a href="/e-ticket-bus/admin/index.php?page=sopir&aksi=update&id=<?= (int) $u['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
+                <a href="/e-ticket-bus/admin/function/sopir.php?aksi=hapus&id=<?= (int) $u['id'] ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus sopir ini?')"><i class="bi bi-trash"></i></a>
               </div>
             </td>
           </tr>

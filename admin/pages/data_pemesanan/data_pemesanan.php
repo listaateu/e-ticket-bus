@@ -3,6 +3,7 @@
 // Tabel Data Pemesanan (Read): semua booking + status pembayarannya, dengan filter & pencarian.
 
 include_once __DIR__ . '/../../database/koneksi.php';
+include_once __DIR__ . '/../../components/pagination.php';
 
 // ===== Status pembayaran (sama dengan payments.status). 'belum' = booking belum punya data pembayaran =====
 $STATUS = [
@@ -38,30 +39,40 @@ while ($r = $q->fetch_assoc()) {
     if ($r['st'] === 'lunas') { $pendapatan = (int) $r['rupiah']; }
 }
 
-// ---------- Tabel (filter + cari) ----------
-$sql    = "SELECT b.id, b.kode_booking, b.nomor_kursi,
-                  u.nama, s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
-                  bs.plat_nomor, bs.kelas,
-                  p.metode_pembayaran, $status_sql AS status_bayar
-           $dari WHERE 1=1";
-$tipe   = '';
-$param  = [];
+// ---------- Syarat filter + cari (dipakai untuk COUNT dan untuk tabel) ----------
+$where = " WHERE 1=1";
+$tipe  = '';
+$param = [];
 if ($filter !== '') {
-    $sql .= " AND $status_sql = ?";
+    $where .= " AND $status_sql = ?";
     $tipe .= 's'; $param[] = $filter;
 }
 if ($cari !== '') {
-    $sql .= " AND (b.kode_booking LIKE ? OR u.nama LIKE ? OR s.kota_asal LIKE ? OR s.kota_tujuan LIKE ?)";
+    $where .= " AND (b.kode_booking LIKE ? OR u.nama LIKE ? OR s.kota_asal LIKE ? OR s.kota_tujuan LIKE ?)";
     $like = '%' . $cari . '%';
     $tipe .= 'ssss'; array_push($param, $like, $like, $like, $like);
 }
-$sql .= " ORDER BY b.id DESC";
+
+// ---------- Hitung total hasil (ikut filter & cari) untuk pagination ----------
+$stmt_total = $koneksi->prepare("SELECT COUNT(*) AS t $dari $where");
+if ($tipe !== '') { $stmt_total->bind_param($tipe, ...$param); }
+$stmt_total->execute();
+$total = (int) $stmt_total->get_result()->fetch_assoc()['t'];
+[$per_halaman, $offset] = paginasi($total);
+
+// ---------- Tabel: ambil 10 baris untuk halaman yang dibuka ----------
+$sql = "SELECT b.id, b.kode_booking, b.nomor_kursi,
+               u.nama, s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
+               bs.plat_nomor, bs.kelas,
+               p.metode_pembayaran, $status_sql AS status_bayar
+        $dari $where
+        ORDER BY b.id DESC
+        LIMIT $per_halaman OFFSET $offset";
 
 $stmt = $koneksi->prepare($sql);
 if ($tipe !== '') { $stmt->bind_param($tipe, ...$param); }
 $stmt->execute();
 $hasil = $stmt->get_result();
-$total = $hasil->num_rows;
 
 $pesan = $_GET['pesan'] ?? '';
 $url   = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
@@ -169,7 +180,7 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
           </tr>
         <?php endif; ?>
 
-        <?php $no = 1; while ($b = $hasil->fetch_assoc()) :
+        <?php $no = $offset + 1; while ($b = $hasil->fetch_assoc()) :
           $info = $STATUS[$b['status_bayar']] ?? ['label' => $b['status_bayar'], 'badge' => 'pending'];
         ?>
           <tr>
@@ -199,5 +210,9 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
       </tbody>
     </table>
   </div>
+
+  <!-- tombol halaman (muncul hanya kalau data lebih dari 10) -->
+  <?php render_pagination($total); ?>
+
 </div>
 <!-- kartu tabel -->

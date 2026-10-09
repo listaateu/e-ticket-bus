@@ -3,6 +3,7 @@
 // Tabel daftar pembayaran + filter status.
 
 include_once __DIR__ . '/../../database/koneksi.php';
+include_once __DIR__ . '/../../components/pagination.php';
 
 // ===== Nilai status di kolom payments.status (SESUAIKAN dengan databasemu) =====
 $STATUS = [
@@ -26,6 +27,10 @@ while ($r = $q->fetch_assoc()) {
     $hitung[''] += (int) $r['jml'];
 }
 
+// Total data yang sedang ditampilkan (ikut filter), dipakai untuk pagination
+$total = $hitung[$filter];
+[$per_halaman, $offset] = paginasi($total);
+
 $sql = "SELECT p.id, p.metode_pembayaran, p.status,
                b.kode_booking, b.nomor_kursi,
                u.nama,
@@ -35,15 +40,14 @@ $sql = "SELECT p.id, p.metode_pembayaran, p.status,
         JOIN users     u ON u.id = b.user_id
         JOIN schedules s ON s.id = b.schedule_id";
 if ($filter !== '') {
-    $stmt = $koneksi->prepare($sql . " WHERE p.status = ? ORDER BY p.id DESC");
+    $stmt = $koneksi->prepare($sql . " WHERE p.status = ? ORDER BY p.id DESC LIMIT $per_halaman OFFSET $offset");
     $stmt->bind_param('s', $filter);
     $stmt->execute();
     $hasil = $stmt->get_result();
 } else {
     // Yang menunggu ditaruh paling atas supaya cepat terlihat
-    $hasil = $koneksi->query($sql . " ORDER BY (p.status = 'pending') DESC, p.id DESC");
+    $hasil = $koneksi->query($sql . " ORDER BY (p.status = 'pending') DESC, p.id DESC LIMIT $per_halaman OFFSET $offset");
 }
-$total = $hasil->num_rows;
 
 $pesan = $_GET['pesan'] ?? '';
 $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
@@ -109,7 +113,7 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
           </tr>
         <?php endif; ?>
 
-        <?php $no = 1; while ($p = $hasil->fetch_assoc()) :
+        <?php $no = $offset + 1; while ($p = $hasil->fetch_assoc()) :
           $info = $STATUS[$p['status']] ?? ['label' => $p['status'], 'badge' => 'pending'];
         ?>
           <tr>
@@ -131,5 +135,9 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
       </tbody>
     </table>
   </div>
+
+  <!-- tombol halaman (muncul hanya kalau data lebih dari 10) -->
+  <?php render_pagination($total); ?>
+
 </div>
 <!-- kartu tabel -->

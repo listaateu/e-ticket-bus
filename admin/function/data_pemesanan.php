@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../login/auth.php';
+wajibRole(['admin']);   // hanya admin yang boleh masuk
+
 // admin/function/data_pemesanan.php
 // Proses data pemesanan: hapus / batalkan pemesanan.
 // Hanya menerima POST supaya data tidak terhapus hanya karena link dibuka.

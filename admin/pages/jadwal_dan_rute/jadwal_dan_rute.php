@@ -3,18 +3,48 @@
 // Tabel jadwal & rute (bagian R = Read dari CRUD).
 
 include_once __DIR__ . '/../../database/koneksi.php';
+include_once __DIR__ . '/../../components/pagination.php';
 
-// Gabungkan dengan tabel buses supaya plat nomor & kelas bisa ditampilkan
+// Hitung total data dulu, lalu ambil 10 baris untuk halaman yang dibuka
+$total = (int) $koneksi->query("SELECT COUNT(*) AS t FROM schedules")->fetch_assoc()['t'];
+[$per_halaman, $offset] = paginasi($total);
+
+// Gabungkan dengan tabel buses supaya nama bus, plat nomor & kelas bisa ditampilkan
+// ASC = jadwal keberangkatan paling awal di paling atas
 $hasil = $koneksi->query(
-    "SELECT s.*, b.plat_nomor, b.kelas
+    "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas
      FROM schedules s
      JOIN buses b ON b.id = s.bus_id
-     ORDER BY s.jam_berangkat DESC"
+     ORDER BY s.jam_berangkat ASC
+     LIMIT $per_halaman OFFSET $offset"
 );
-$total = $hasil->num_rows;
 
 $pesan = $_GET['pesan'] ?? '';
 ?>
+<!-- warna badge kelas bus: tiap kelas punya warna sendiri -->
+<style>
+  .badge-kelas {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  /* titik kecil di depan tulisan, warnanya ikut warna teks */
+  .badge-kelas::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .kelas-ekonomi  { background: #dcfce7; color: #15803d; } /* hijau */
+  .kelas-bisnis   { background: #dbeafe; color: #1d4ed8; } /* biru */
+  .kelas-eksekutif { background: #fef3c7; color: #b45309; } /* emas */
+</style>
 <!-- page header -->
 <div class="page-header">
   <div>
@@ -62,6 +92,7 @@ $pesan = $_GET['pesan'] ?? '';
           <th>No</th>
           <th>Rute</th>
           <th>Bus</th>
+          <th>Sopir</th>
           <th>Jam Berangkat</th>
           <th>Harga</th>
           <th class="text-center">Aksi</th>
@@ -70,11 +101,11 @@ $pesan = $_GET['pesan'] ?? '';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="6" class="text-center">Belum ada data jadwal.</td>
+            <td colspan="7" class="text-center">Belum ada data jadwal.</td>
           </tr>
         <?php endif; ?>
 
-        <?php $no = 1; while ($j = $hasil->fetch_assoc()) : ?>
+        <?php $no = $offset + 1; while ($j = $hasil->fetch_assoc()) : ?>
           <tr>
             <td><?= $no++ ?></td>
             <td class="table-order-id">
@@ -83,9 +114,11 @@ $pesan = $_GET['pesan'] ?? '';
               <?= htmlspecialchars($j['kota_tujuan']) ?>
             </td>
             <td>
-              <?= htmlspecialchars($j['plat_nomor']) ?>
-              <span class="badge-table success"><?= htmlspecialchars($j['kelas']) ?></span>
+              <?= htmlspecialchars($j['nama_bus']) ?>
+              <small class="text-muted">(<?= htmlspecialchars($j['plat_nomor']) ?>)</small>
+              <span class="badge-kelas kelas-<?= strtolower($j['kelas']) ?>"><?= htmlspecialchars($j['kelas']) ?></span>
             </td>
+            <td><?= $j['sopir'] !== '' ? htmlspecialchars($j['sopir']) : '-' ?></td>
             <td><?= date('d M Y, H:i', strtotime($j['jam_berangkat'])) ?></td>
             <td>Rp <?= number_format((int) $j['harga'], 0, ',', '.') ?></td>
             <td>
@@ -99,5 +132,9 @@ $pesan = $_GET['pesan'] ?? '';
       </tbody>
     </table>
   </div>
+
+  <!-- tombol halaman (muncul hanya kalau data lebih dari 10) -->
+  <?php render_pagination($total); ?>
+
 </div>
 <!-- kartu tabel -->

@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../login/auth.php';
+wajibRole(['admin']);   // hanya admin yang boleh masuk
+
 // admin/function/bus.php
 
 include_once __DIR__ . '/../database/koneksi.php';
@@ -8,9 +11,16 @@ $kembali = '/e-ticket-bus/admin/index.php?page=bus';
 
 // ---------- TAMBAH ----------
 if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $plat  = strtoupper(trim($_POST['plat_nomor']));
-    $kursi = (int) $_POST['kapasitas_kursi'];
-    $kelas = $_POST['kelas'];
+    $nama  = trim($_POST['nama_bus'] ?? '');
+    $plat  = strtoupper(trim($_POST['plat_nomor'] ?? ''));
+    $kursi = (int) ($_POST['kapasitas_kursi'] ?? 0);
+    $kelas = $_POST['kelas'] ?? '';
+
+    // Cek isiannya masuk akal (nama_bus tidak boleh kosong)
+    if ($nama === '' || $plat === '' || $kursi < 1 || $kursi > 60 || !in_array($kelas, ['Ekonomi', 'Bisnis', 'Eksekutif'], true)) {
+        header("Location: $kembali&aksi=tambah&pesan=tidak_valid");
+        exit;
+    }
 
     // Cek plat sudah dipakai atau belum
     $cek = $koneksi->prepare("SELECT id FROM buses WHERE plat_nomor = ?");
@@ -21,9 +31,9 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Simpan
-    $simpan = $koneksi->prepare("INSERT INTO buses (plat_nomor, kapasitas_kursi, kelas) VALUES (?, ?, ?)");
-    $simpan->bind_param('sis', $plat, $kursi, $kelas);
+    // Simpan (sekarang ada 4 kolom: nama_bus, plat_nomor, kapasitas_kursi, kelas)
+    $simpan = $koneksi->prepare("INSERT INTO buses (nama_bus, plat_nomor, kapasitas_kursi, kelas) VALUES (?, ?, ?, ?)");
+    $simpan->bind_param('ssis', $nama, $plat, $kursi, $kelas);
     $simpan->execute();
 
     header("Location: $kembali&pesan=tambah_ok");

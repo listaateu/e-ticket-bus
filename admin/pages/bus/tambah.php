@@ -24,7 +24,7 @@ $pesan = $_GET['pesan'] ?? '';
 <?php if ($pesan === 'plat_ada') : ?>
   <div class="alert alert-danger">Plat nomor itu sudah terdaftar. Pakai plat nomor lain.</div>
 <?php elseif ($pesan === 'tidak_valid') : ?>
-  <div class="alert alert-danger">Data belum benar. Cek lagi plat nomor, kapasitas kursi, dan kelas.</div>
+  <div class="alert alert-danger">Data belum benar. Cek lagi nama bus, plat nomor, kapasitas kursi, dan kelas.</div>
 <?php endif; ?>
 
 <!-- form -->
@@ -34,6 +34,12 @@ $pesan = $_GET['pesan'] ?? '';
       <h5 class="card-title mb-4">Data Bus</h5>
 
       <form action="/e-ticket-bus/admin/function/bus.php?aksi=simpan" method="post">
+
+        <div class="mb-3">
+          <label for="nama_bus" class="form-label-custom">Nama Bus</label>
+          <input type="text" class="form-control-custom" id="nama_bus" name="nama_bus"
+            placeholder="Contoh: Sinar Jaya 01" maxlength="255" required>
+        </div>
 
         <div class="mb-3">
           <label for="plat_nomor" class="form-label-custom">Plat Nomor</label>

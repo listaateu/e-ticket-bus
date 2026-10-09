@@ -18,4 +18,17 @@
 
   <!-- Main Design System & Custom Stylesheet -->
   <link rel="stylesheet" href="/e-ticket-bus/admin/assets/css/main.css">
+
+  <style>
+  /* sembunyikan panah atas-bawah di input angka */
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+    appearance: textfield;
+  }
+</style>
 </head>

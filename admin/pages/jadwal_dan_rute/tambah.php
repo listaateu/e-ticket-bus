@@ -5,7 +5,12 @@
 
 include_once __DIR__ . '/../../database/koneksi.php';
 
-$daftar_bus = $koneksi->query("SELECT id, plat_nomor, kelas FROM buses ORDER BY plat_nomor");
+// Daftar bus untuk dropdown (ikut ambil nama_bus)
+$daftar_bus = $koneksi->query("SELECT id, nama_bus, plat_nomor, kelas FROM buses ORDER BY nama_bus");
+
+// Daftar sopir untuk dropdown
+$daftar_sopir = $koneksi->query("SELECT nama FROM users WHERE role = 'kondektur' ORDER BY nama");
+
 $pesan = $_GET['pesan'] ?? '';
 ?>
 <!-- page header -->
@@ -25,7 +30,7 @@ $pesan = $_GET['pesan'] ?? '';
 <!-- page header -->
 
 <?php if ($pesan === 'tidak_valid') : ?>
-  <div class="alert alert-danger">Data belum benar. Pastikan kota asal berbeda dengan kota tujuan, jam terisi, dan harga lebih dari 0.</div>
+  <div class="alert alert-danger">Data belum benar. Pastikan nama sopir terisi, kota asal berbeda dengan kota tujuan, jam terisi, dan harga lebih dari 0.</div>
 <?php endif; ?>
 
 <!-- form -->
@@ -41,7 +46,21 @@ $pesan = $_GET['pesan'] ?? '';
           <select class="form-select-custom" id="bus_id" name="bus_id" required>
             <option value="" selected disabled>Pilih bus...</option>
             <?php while ($b = $daftar_bus->fetch_assoc()) : ?>
-              <option value="<?= (int) $b['id'] ?>"><?= htmlspecialchars($b['plat_nomor']) ?> (<?= htmlspecialchars($b['kelas']) ?>)</option>
+              <option value="<?= (int) $b['id'] ?>">
+                <?= htmlspecialchars($b['nama_bus']) ?> - <?= htmlspecialchars($b['plat_nomor']) ?> (<?= htmlspecialchars($b['kelas']) ?>)
+              </option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="sopir" class="form-label-custom">Nama Sopir</label>
+          <select class="form-select-custom" id="sopir" name="sopir" required>
+            <option value="" selected disabled>Pilih sopir...</option>
+            <?php while ($s = $daftar_sopir->fetch_assoc()) : ?>
+              <option value="<?= htmlspecialchars($s['nama']) ?>">
+                <?= htmlspecialchars($s['nama']) ?>
+              </option>
             <?php endwhile; ?>
           </select>
         </div>
@@ -65,8 +84,8 @@ $pesan = $_GET['pesan'] ?? '';
 
         <div class="mb-4">
           <label for="harga" class="form-label-custom">Harga (Rp)</label>
-          <input type="number" class="form-control-custom" id="harga" name="harga"
-            placeholder="Contoh: 150000" min="1" required>
+          <input type="text" inputmode="numeric" autocomplete="off" class="form-control-custom" id="harga" name="harga"
+            placeholder="Contoh: 150.000" required>
         </div>
 
         <div class="d-flex gap-2">
@@ -81,3 +100,18 @@ $pesan = $_GET['pesan'] ?? '';
   </div>
 </div>
 <!-- form -->
+
+<script>
+  // Format ribuan otomatis di kolom Harga: 150000 -> 150.000
+  const inputHarga = document.getElementById('harga');
+
+  function formatRibuan() {
+    // 1. buang semua yang bukan angka (huruf, titik, spasi)
+    const angka = inputHarga.value.replace(/\D/g, '');
+    // 2. sisipkan titik tiap 3 angka dari belakang
+    inputHarga.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  inputHarga.addEventListener('input', formatRibuan); // jalan tiap kali mengetik
+  formatRibuan(); // jalan sekali saat halaman dibuka (untuk nilai lama di form ubah)
+</script>
