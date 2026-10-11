@@ -10,6 +10,10 @@ include_once __DIR__ . '/../database/koneksi.php';
 
 $aksi    = $_GET['aksi'] ?? '';
 $kembali = '/e-ticket-bus/admin/index.php?page=jadwal_dan_rute';
+$kelas_filter = $_GET['kelas'] ?? '';
+if ($aksi === 'hapus' && in_array($kelas_filter, ['Eksekutif', 'Bisnis', 'Ekonomi'], true)) {
+    $kembali .= '&kelas=' . urlencode($kelas_filter);
+}
 
 // Ambil & rapikan data dari form (dipakai oleh simpan)
 function ambil_data_form()
@@ -19,6 +23,7 @@ function ambil_data_form()
     $asal   = trim($_POST['kota_asal'] ?? '');
     $tujuan = trim($_POST['kota_tujuan'] ?? '');
     $jam    = trim($_POST['jam_berangkat'] ?? '');
+    $tiba   = trim($_POST['jam_tiba'] ?? '');
 
     // harga dikirim dalam bentuk "150.000" -> buang semua selain angka -> 150000
     $harga  = (int) preg_replace('/\D/', '', $_POST['harga'] ?? '');
@@ -28,20 +33,26 @@ function ambil_data_form()
     if (strlen($jam) === 16) {
         $jam .= ':00';
     }
+    $tiba = str_replace('T', ' ', $tiba);
+    if (strlen($tiba) === 16) {
+        $tiba .= ':00';
+    }
 
     $valid = $bus_id > 0
         && $sopir !== ''                          // sopir wajib dipilih
         && $asal !== '' && $tujuan !== ''
         && strcasecmp($asal, $tujuan) !== 0      // asal tidak boleh sama dengan tujuan
         && strtotime($jam) !== false
+        && strtotime($tiba) !== false
+        && strtotime($tiba) > strtotime($jam)    // jam tiba harus SETELAH jam berangkat
         && $harga > 0;
 
-    return [$valid, $bus_id, $sopir, $asal, $tujuan, $jam, $harga];
+    return [$valid, $bus_id, $sopir, $asal, $tujuan, $jam, $tiba, $harga];
 }
 
 // ---------- TAMBAH ----------
 if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    [$valid, $bus_id, $sopir, $asal, $tujuan, $jam, $harga] = ambil_data_form();
+    [$valid, $bus_id, $sopir, $asal, $tujuan, $jam, $tiba, $harga] = ambil_data_form();
 
     if (!$valid) {
         header("Location: $kembali&aksi=tambah&pesan=tidak_valid");
@@ -49,9 +60,9 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $simpan = $koneksi->prepare(
-        "INSERT INTO schedules (bus_id, sopir, kota_asal, kota_tujuan, jam_berangkat, harga) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT INTO schedules (bus_id, sopir, kota_asal, kota_tujuan, jam_berangkat, jam_tiba, harga) VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
-    $simpan->bind_param('issssi', $bus_id, $sopir, $asal, $tujuan, $jam, $harga);
+    $simpan->bind_param('isssssi', $bus_id, $sopir, $asal, $tujuan, $jam, $tiba, $harga);
     $simpan->execute();
 
     header("Location: $kembali&pesan=tambah_ok");

@@ -27,14 +27,14 @@ $pesan = $_GET['pesan'] ?? '';
 <!-- page header -->
 <div class="page-header">
   <div>
-    <h1 class="page-title">Data User</h1>
+    <h1 class="page-title">Data Penumpang</h1>
     <p class="page-subtitle">Kelola akun penumpang yang memesan tiket.</p>
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
-      <li class="breadcrumb-item text-muted-green">Master Data</li>
-      <li class="breadcrumb-item active text-main" aria-current="page">Data User</li>
+      <li class="breadcrumb-item text-muted-green">Data User</li>
+      <li class="breadcrumb-item active text-main" aria-current="page">Data Penumpang</li>
     </ol>
   </nav>
 </div>
@@ -58,7 +58,7 @@ $pesan = $_GET['pesan'] ?? '';
     <div class="table-pagination-info">Total: <strong><?= $total ?></strong> penumpang</div>
     <div class="table-filter-group">
       <a href="/e-ticket-bus/admin/index.php?page=user&aksi=tambah" class="btn-table-action">
-        <i class="bi bi-plus-lg"></i> Tambah User
+        <i class="bi bi-plus-lg"></i> Tambah Penumpang
       </a>
     </div>
   </div>

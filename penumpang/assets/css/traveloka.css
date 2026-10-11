@@ -1,0 +1,371 @@
+/* ==========================================================
+ FILE     : penumpang/assets/css/traveloka.css
+ FUNGSI   : Tampilan ala Traveloka (navbar putih, kartu cari, hasil jadwal + filter).
+ DIPANGGIL DARI: partials/head.php (dimuat SETELAH penumpang.css)
+ ========================================================== */
+
+:root {
+  --tv-blue: #0194f3;
+  --tv-blue-dark: #0770cd;
+  --tv-blue-soft: #e5f2fc;
+  --tv-orange: #ff5e1f;
+  --tv-orange-dark: #e0480a;
+  --tv-text: #03121a;
+  --tv-muted: #687176;
+  --tv-line: #e3e5e6;
+  --tv-line-strong: #cdd0d2;
+  --tv-bg: #f2f3f3;
+}
+
+/* ---------- Navbar putih ---------- */
+.header {
+  --nav-color: var(--tv-text);
+  --nav-hover-color: var(--tv-blue);
+  --heading-color: var(--tv-blue);
+  background: #fff !important;
+  height: 68px;
+  padding: 0 !important;
+  box-shadow: 0 1px 6px rgba(3, 18, 26, .12);
+}
+.header .logo h1 { font-size: 22px; font-weight: 700; color: var(--tv-blue); }
+.header .navmenu a.active { color: var(--tv-blue) !important; font-weight: 600; }
+.header .btn-getstarted,
+.header .btn-getstarted:focus {
+  background: var(--tv-blue);
+  color: #fff;
+  border: 1px solid var(--tv-blue);
+  border-radius: 8px;
+  padding: 9px 20px;
+  margin: 0 0 0 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.header .btn-getstarted:hover { background: var(--tv-blue-dark); border-color: var(--tv-blue-dark); color: #fff; }
+.header .btn-getstarted.btn-masuk,
+.header .btn-getstarted.btn-masuk:focus { background: #fff; color: var(--tv-blue); }
+.header .btn-getstarted.btn-masuk:hover { background: var(--tv-blue-soft); color: var(--tv-blue-dark); }
+
+/* Header sekarang punya latar putih, jadi isi halaman mulai di bawahnya */
+.main { padding-top: 68px; }
+.main .page-title { padding: 52px 0 44px; }
+
+/* ---------- Hero beranda ---------- */
+.tv-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 56px 0 120px;
+  color: #fff;
+  background: linear-gradient(135deg, #0770cd 0%, #0194f3 55%, #3fb6f7 100%);
+}
+.tv-hero::before,
+.tv-hero::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .08); }
+.tv-hero::before { width: 380px; height: 380px; right: -90px; top: -130px; }
+.tv-hero::after { width: 240px; height: 240px; right: 190px; bottom: -150px; }
+.tv-hero .container { position: relative; z-index: 1; }
+.tv-hero h2 { color: #fff; font-size: 34px; font-weight: 700; margin-bottom: 8px; }
+.tv-hero p { color: rgba(255, 255, 255, .92); font-size: 16px; margin: 0; max-width: 560px; }
+
+/* ---------- Kartu pencarian ---------- */
+.tv-search-wrap { position: relative; z-index: 2; margin-top: -78px; }
+.tv-search-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 24px 24px;
+  box-shadow: 0 8px 30px rgba(3, 18, 26, .14);
+}
+.tv-tabs { display: flex; gap: 8px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--tv-line); }
+.tv-tab {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 22px; border-radius: 14px;
+  font-weight: 600; color: var(--tv-muted);
+}
+.tv-tab.active { background: var(--tv-blue); color: #fff; }
+
+.tv-cari-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+.tv-col { position: relative; }
+.tv-col label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; color: var(--tv-text); }
+.tv-input {
+  display: flex; align-items: center; height: 60px; padding: 0 14px;
+  border: 1px solid var(--tv-line-strong); border-radius: 12px; background: #fff;
+  transition: border-color .15s, box-shadow .15s;
+}
+.tv-input:focus-within { border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(1, 148, 243, .15); }
+.tv-input > i { color: var(--tv-blue); font-size: 20px; margin-right: 10px; }
+.tv-input input {
+  border: 0; outline: 0; width: 100%; height: 100%; background: transparent;
+  font-size: 16px; font-weight: 500; color: var(--tv-text);
+}
+.tv-input input::placeholder { color: #9aa3a8; font-weight: 400; }
+.tv-swap {
+  position: absolute; right: -26px; bottom: 10px; z-index: 3;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--tv-line-strong); background: #fff; color: var(--tv-blue);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: transform .25s, background .15s;
+}
+.tv-swap:hover { background: var(--tv-blue-soft); transform: rotate(180deg); }
+.tv-go {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 60px; padding: 0 30px; border: 0; border-radius: 12px;
+  background: var(--tv-blue); color: #fff; font-weight: 700; font-size: 16px;
+  transition: background .15s;
+}
+.tv-go:hover { background: var(--tv-blue-dark); }
+
+.tv-trusted {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 40px;
+  margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--tv-line);
+  color: var(--tv-muted); font-size: 14px;
+}
+.tv-trusted strong { color: var(--tv-blue-dark); font-size: 18px; font-family: var(--heading-font); margin-right: 6px; }
+
+/* ---------- Bagian umum beranda ---------- */
+.tv-section { padding: 48px 0; }
+.tv-bg { background: var(--tv-bg); }
+.tv-section-title { font-weight: 700; font-size: 24px; margin-bottom: 4px; color: var(--tv-text); }
+.tv-section-sub { color: var(--tv-muted); margin-bottom: 24px; }
+.tv-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.tv-step { background: #fff; border: 1px solid var(--tv-line); border-radius: 14px; padding: 20px; }
+.tv-step .ikon {
+  width: 48px; height: 48px; border-radius: 12px; margin-bottom: 12px;
+  background: var(--tv-blue-soft); color: var(--tv-blue);
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.tv-step h4 { font-size: 16px; font-weight: 600; margin: 0 0 4px; color: var(--tv-text); }
+.tv-step p { font-size: 14px; color: var(--tv-muted); margin: 0; }
+.tv-btn-outline {
+  display: inline-block; padding: 11px 28px; border-radius: 10px;
+  border: 1px solid var(--tv-blue); color: var(--tv-blue); font-weight: 700; background: #fff;
+}
+.tv-btn-outline:hover { background: var(--tv-blue-soft); color: var(--tv-blue-dark); }
+
+/* ---------- Halaman hasil: banner biru + tab tanggal ---------- */
+.tv-result-head { background: var(--tv-blue); color: #fff; padding: 22px 0 0; }
+.tv-result-head h1 { color: #fff; font-size: 24px; font-weight: 700; margin: 0; }
+.tv-result-head h1 i { margin: 0 6px; font-size: 20px; }
+.tv-result-head .tv-meta { color: rgba(255, 255, 255, .9); font-size: 14px; margin-top: 4px; }
+.tv-edit {
+  background: rgba(255, 255, 255, .2); color: #fff; border: 0; border-radius: 999px;
+  padding: 8px 18px; font-weight: 600; font-size: 14px; white-space: nowrap;
+}
+.tv-edit:hover { background: rgba(255, 255, 255, .32); }
+.tv-edit-card { background: #fff; border-radius: 14px; padding: 18px 20px; margin-top: 16px; }
+.tv-dates { display: flex; gap: 4px; margin-top: 18px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.tv-dates::-webkit-scrollbar { display: none; }
+.tv-date {
+  flex: 0 0 auto; padding: 14px 20px; color: #fff; font-weight: 600; font-size: 15px;
+  border-radius: 10px 10px 0 0;
+}
+.tv-date:hover { background: rgba(255, 255, 255, .14); color: #fff; }
+.tv-date.active { background: var(--tv-blue-dark); color: #fff; }
+
+.tv-summary { background: #fff; border-bottom: 1px solid var(--tv-line); }
+.tv-summary .in {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 6px 18px; padding: 16px 0; font-size: 15px; color: var(--tv-text);
+}
+.tv-summary i { color: var(--tv-blue); font-size: 22px; }
+.tv-summary b { color: var(--tv-blue); }
+
+.tv-page { background: var(--tv-bg); padding: 24px 0 56px; min-height: 60vh; }
+
+/* ---------- Filter samping ---------- */
+.tv-filter { background: #fff; border-radius: 14px; box-shadow: 0 1px 6px rgba(3, 18, 26, .08); overflow: hidden; }
+.tv-filter-head { padding: 18px 20px; border-bottom: 1px solid var(--tv-line); }
+.tv-filter-head .judul { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tv-filter-head h5 { margin: 0; font-size: 18px; font-weight: 700; color: var(--tv-text); }
+.tv-filter-head a { font-size: 14px; font-weight: 600; color: var(--tv-blue); }
+.tv-filter-head p { margin: 6px 0 0; font-size: 13px; color: var(--tv-muted); }
+.tv-fgroup { border-bottom: 1px solid var(--tv-line); }
+.tv-fgroup:last-child { border-bottom: 0; }
+.tv-fgroup-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: none; border: 0; padding: 16px 20px;
+  font-weight: 700; font-size: 15px; color: var(--tv-text); text-align: left;
+}
+.tv-fgroup-btn i { color: var(--tv-blue); transition: transform .25s; }
+.tv-fgroup-btn[aria-expanded="true"] i { transform: rotate(180deg); }
+.tv-fgroup-body { padding: 0 20px 14px; }
+.tv-fgroup-body .form-check { display: flex; align-items: center; gap: 10px; padding-left: 0; margin-bottom: 10px; }
+.tv-fgroup-body .form-check-input {
+  float: none; margin: 0; width: 18px; height: 18px; flex-shrink: 0;
+  border-color: var(--tv-line-strong); cursor: pointer;
+}
+.tv-fgroup-body .form-check-input:checked { background-color: var(--tv-blue); border-color: var(--tv-blue); }
+.tv-fgroup-body .form-check-label { flex: 1; display: flex; justify-content: space-between; gap: 8px; font-size: 14px; cursor: pointer; }
+.tv-fgroup-body .jml { color: var(--tv-muted); }
+
+/* ---------- Bar urutkan ---------- */
+.tv-sortbar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  background: #fff; border-radius: 14px; padding: 14px 20px; margin-bottom: 16px;
+  box-shadow: 0 1px 6px rgba(3, 18, 26, .08);
+}
+.tv-sortbar select {
+  border: 1px solid var(--tv-line-strong); border-radius: 999px;
+  padding: 8px 16px; font-weight: 600; color: var(--tv-blue); background-color: #fff;
+}
+
+/* ---------- Kartu hasil jadwal ---------- */
+.tv-card {
+  background: #fff; border-radius: 14px; margin-bottom: 16px;
+  box-shadow: 0 1px 6px rgba(3, 18, 26, .08); transition: box-shadow .2s;
+}
+.tv-card:hover { box-shadow: 0 6px 20px rgba(3, 18, 26, .14); }
+.tv-card-body { display: flex; }
+.tv-card-info { flex: 1; min-width: 0; padding: 20px 24px; }
+.tv-card-price {
+  width: 250px; flex-shrink: 0; padding: 20px 24px; border-left: 1px solid var(--tv-line);
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-end;
+  text-align: right; gap: 12px;
+}
+.tv-po { font-size: 20px; font-weight: 700; color: var(--tv-text); font-family: var(--heading-font); }
+.tv-sub { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; font-size: 13px; color: var(--tv-muted); }
+.tv-kelas {
+  display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 6px;
+  font-size: 12px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase;
+  background: var(--tv-blue-soft); color: var(--tv-blue-dark);
+}
+.tv-kelas.ekonomi { background: #dcfce7; color: #15803d; }
+.tv-kelas.bisnis { background: #dbeafe; color: #1d4ed8; }
+.tv-kelas.eksekutif { background: #fef3c7; color: #b45309; }
+.tv-trip { display: flex; align-items: center; gap: 22px; margin: 18px 0 14px; }
+.tv-trip .waktu strong { display: block; font-size: 22px; font-weight: 700; color: var(--tv-text); font-family: var(--heading-font); line-height: 1.2; }
+.tv-trip .waktu span { font-size: 14px; color: var(--tv-muted); }
+.tv-trip .panah { color: var(--tv-muted); font-size: 22px; }
+.tv-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.tv-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border: 1px solid var(--tv-line); border-radius: 999px; background: #fff;
+  font-size: 13px; color: var(--tv-muted);
+}
+.tv-chip i { color: var(--tv-blue); }
+.tv-chip.sedikit { color: #b45309; border-color: #fcd9a8; background: #fff8ec; }
+.tv-chip.sedikit i { color: #e67e00; }
+.tv-chip.penuh { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
+.tv-chip.penuh i { color: #dc2626; }
+.tv-harga { font-size: 24px; font-weight: 700; color: var(--tv-orange); font-family: var(--heading-font); line-height: 1; }
+.tv-harga small { font-size: 14px; font-weight: 400; color: var(--tv-muted); }
+.tv-pesan {
+  display: block; width: 100%; text-align: center; border: 0; border-radius: 8px;
+  padding: 11px 18px; background: var(--tv-orange); color: #fff; font-weight: 700;
+}
+.tv-pesan:hover { background: var(--tv-orange-dark); color: #fff; }
+.tv-pesan.disabled { background: var(--tv-line-strong); pointer-events: none; }
+
+/* ---------- Responsif ---------- */
+@media (max-width: 991px) {
+  .tv-cari-grid { grid-template-columns: 1fr 1fr; }
+  .tv-go { grid-column: 1 / -1; }
+  .tv-steps { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 767px) {
+  .tv-hero { padding: 40px 0 110px; }
+  .tv-hero h2 { font-size: 26px; }
+  .tv-card-body { flex-direction: column; }
+  .tv-card-price {
+    width: auto; border-left: 0; border-top: 1px dashed var(--tv-line-strong);
+    flex-direction: row; align-items: center; justify-content: space-between; text-align: left;
+  }
+  .tv-pesan { width: auto; }
+}
+@media (max-width: 575px) {
+  .tv-cari-grid { grid-template-columns: 1fr; }
+  .tv-swap { right: 16px; bottom: -26px; }
+  .tv-swap i { transform: rotate(90deg); }
+  .tv-steps { grid-template-columns: 1fr; }
+  .tv-search-card { padding: 16px; }
+}
+/* ---------- Jam tiba & durasi perjalanan ---------- */
+.tv-trip .tengah { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 84px; }
+.tv-trip .durasi { font-size: 13px; font-weight: 700; color: var(--tv-text); }
+.tv-trip .tengah .panah { line-height: 1; }
+.tv-trip .waktu strong small { font-size: 12px; font-weight: 700; color: var(--tv-orange); margin-left: 2px; vertical-align: super; }
+.tv-trip .waktu strong.belum { color: #9aa3a8; }
+/* ---------- Foto, fasilitas & tombol detail di kartu ---------- */
+.tv-card-foto {
+  width: 220px; flex-shrink: 0; overflow: hidden;
+  border-radius: 14px 0 0 14px; background: var(--tv-blue-soft);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--tv-blue); font-size: 44px;
+}
+.tv-card-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tv-card-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.tv-fasil {
+  display: inline-flex; align-items: center; gap: 14px; padding: 7px 16px;
+  border: 1px solid var(--tv-line); border-radius: 999px; color: var(--tv-text); font-size: 14px;
+}
+.tv-fasil .lainnya { font-size: 12px; font-weight: 600; color: var(--tv-muted); }
+.tv-detail-link {
+  margin-left: auto; background: none; border: 0; padding: 0;
+  color: var(--tv-blue); font-weight: 700; font-size: 15px;
+}
+.tv-detail-link:hover { color: var(--tv-blue-dark); text-decoration: underline; }
+
+/* ---------- Jendela Detail Bus ---------- */
+.tv-modal .modal-content { border: 0; border-radius: 16px; }
+.tv-modal .modal-header { padding: 22px 28px 0; border: 0; }
+.tv-modal .modal-title { font-size: 26px; font-weight: 700; color: var(--tv-text); }
+.tv-modal .modal-body { padding: 8px 28px 28px; }
+.tv-dtabs { display: flex; gap: 8px; border-bottom: 1px solid var(--tv-line); margin-bottom: 22px; }
+.tv-dtabs .nav-link {
+  border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: none;
+  padding: 12px 16px; color: var(--tv-blue); font-weight: 700;
+}
+.tv-dtabs .nav-link:hover { color: var(--tv-blue-dark); }
+.tv-dtabs .nav-link.active { color: var(--tv-blue); border-bottom-color: var(--tv-blue); background: none; }
+.tv-dtitle { font-size: 16px; font-weight: 700; color: var(--tv-text); margin-bottom: 12px; }
+
+.tv-spek { border: 1px solid var(--tv-line); border-radius: 12px; padding: 18px 20px; }
+.tv-spek p { margin: 0 0 10px; font-size: 15px; color: var(--tv-text); }
+.tv-fasil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
+.tv-fasil-grid div { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+.tv-fasil-grid i { width: 22px; text-align: center; color: var(--tv-blue); }
+.tv-foto-besar {
+  border: 1px solid var(--tv-line); border-radius: 12px; overflow: hidden;
+  background: var(--tv-blue-soft); min-height: 220px; height: 100%;
+  display: flex; align-items: center; justify-content: center; color: var(--tv-blue);
+}
+.tv-foto-besar img { width: 100%; height: 100%; max-height: 340px; object-fit: cover; display: block; }
+.tv-foto-besar .kosong-foto { text-align: center; padding: 30px; }
+.tv-foto-besar .kosong-foto i { display: block; font-size: 46px; margin-bottom: 8px; }
+.tv-manfaat { list-style: none; padding: 0; margin: 0; }
+.tv-manfaat li { display: flex; gap: 12px; margin-bottom: 14px; }
+.tv-manfaat i { color: var(--tv-blue); font-size: 20px; margin-top: 2px; }
+.tv-manfaat strong { display: block; color: var(--tv-text); }
+.tv-manfaat span { color: var(--tv-muted); font-size: 14px; }
+
+/* garis waktu rute */
+.tv-tl { list-style: none; margin: 0; padding: 0; }
+.tv-tl li { position: relative; padding: 0 0 30px 40px; }
+.tv-tl li:last-child { padding-bottom: 0; }
+.tv-tl li::before {
+  content: ""; position: absolute; left: 4px; top: 6px; width: 14px; height: 14px;
+  border-radius: 50%; border: 2px solid var(--tv-blue); background: #fff;
+}
+.tv-tl li.akhir::before { background: var(--tv-blue); }
+.tv-tl li:not(.akhir)::after {
+  content: ""; position: absolute; left: 10px; top: 24px; bottom: 4px;
+  border-left: 2px dotted var(--tv-line-strong);
+}
+.tv-tl .baris { display: flex; gap: 20px; }
+.tv-tl .waktu-col { width: 70px; flex-shrink: 0; }
+.tv-tl .jam { font-size: 18px; font-weight: 700; color: var(--tv-text); line-height: 1.2; }
+.tv-tl .tgl { font-size: 13px; color: var(--tv-muted); }
+.tv-tl .kota { font-size: 17px; font-weight: 600; color: var(--tv-text); }
+.tv-tl .ket { font-size: 13px; color: var(--tv-muted); }
+.tv-tl .durasi { margin-top: 14px; font-size: 14px; font-weight: 600; color: var(--tv-muted); }
+
+/* tab Tiket */
+.tv-info h5 { font-size: 20px; font-weight: 700; color: var(--tv-text); margin: 0 0 12px; }
+.tv-info ul { padding-left: 20px; margin: 0; }
+.tv-info li { margin-bottom: 8px; color: var(--tv-text); }
+
+@media (max-width: 767px) {
+  .tv-card-foto { width: auto; height: 180px; border-radius: 14px 14px 0 0; }
+}
+@media (max-width: 575px) {
+  .tv-fasil-grid { grid-template-columns: 1fr; }
+  .tv-modal .modal-header { padding: 18px 18px 0; }
+  .tv-modal .modal-body { padding: 8px 18px 22px; }
+}

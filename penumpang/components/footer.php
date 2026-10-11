@@ -1,59 +1,64 @@
-<footer id="footer" class="footer dark-background">
+<?php
+/**
+ * ============================================================
+ * FILE         : penumpang/components/footer.php
+ * FUNGSI       : Penutup </main>, footer, tombol scroll-top, dan preloader.
+ * DIPANGGIL DARI: index.php
+ * ============================================================
+ */
+?>
+  </main>
+
+  <footer id="footer" class="footer dark-background">
 
     <div class="container footer-top">
       <div class="row gy-4">
         <div class="col-lg-5 col-md-12 footer-about">
-          <a href="/e-ticket-bus/index.php" class="logo d-flex align-items-center">
-            <span class="sitename">Logis</span>
+          <a href="<?= url('beranda') ?>" class="logo d-flex align-items-center">
+            <span class="sitename">E-Ticket Bus</span>
           </a>
-          <p>Cras fermentum odio eu feugiat lide par naso tierra. Justo eget nada terra videa magna derita valies darta donna mare fermentum iaculis eu non diam phasellus.</p>
+          <p>Pesan tiket bus interkota tanpa antre. Pilih rute, pilih kursi, bayar online, lalu tunjukkan e-ticket kepada kondektur saat naik.</p>
           <div class="social-links d-flex mt-4">
-            <a href=""><i class="bi bi-twitter-x"></i></a>
-            <a href=""><i class="bi bi-facebook"></i></a>
-            <a href=""><i class="bi bi-instagram"></i></a>
-            <a href=""><i class="bi bi-linkedin"></i></a>
+            <a href="#"><i class="bi bi-instagram"></i></a>
+            <a href="#"><i class="bi bi-facebook"></i></a>
+            <a href="#"><i class="bi bi-whatsapp"></i></a>
           </div>
         </div>
 
-        <div class="col-lg-2 col-6 footer-links">
-          <h4>Useful Links</h4>
+        <div class="col-lg-3 col-6 footer-links">
+          <h4>Menu</h4>
           <ul>
-            <li><a href="/e-ticket-bus/index.php">Home</a></li>
-            <li><a href="#about">About us</a></li>
-            <li><a href="#services">Services</a></li>
-            <li><a href="#">Terms of service</a></li>
-            <li><a href="#">Privacy policy</a></li>
+            <li><a href="<?= url('beranda') ?>">Beranda</a></li>
+            <li><a href="<?= url('jadwal') ?>">Cari Jadwal</a></li>
+            <?php if (!empty($sudah_login)): ?>
+            <li><a href="<?= url('tiket-saya') ?>">Tiket Saya</a></li>
+            <li><a href="<?= url('profil') ?>">Profil</a></li>
+            <?php endif; ?>
           </ul>
         </div>
 
-        <div class="col-lg-2 col-6 footer-links">
-          <h4>Our Services</h4>
-          <ul>
-            <li><a href="#">Web Design</a></li>
-            <li><a href="#">Web Development</a></li>
-            <li><a href="#">Product Management</a></li>
-            <li><a href="#">Marketing</a></li>
-            <li><a href="#">Graphic Design</a></li>
-          </ul>
+        <div class="col-lg-4 col-md-12 footer-contact text-center text-md-start">
+          <h4>Kontak</h4>
+          <p>Terminal Tidar, Magelang</p>
+          <p>Jawa Tengah, Indonesia</p>
+          <p class="mt-4"><strong>Telepon:</strong> <span>0812-0000-0000</span></p>
+          <p><strong>Email:</strong> <span>cs@eticketbus.test</span></p>
         </div>
-
-        <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
-          <h4>Contact Us</h4>
-          <p>A108 Adam Street</p>
-          <p>New York, NY 535022</p>
-          <p>United States</p>
-          <p class="mt-4"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
-          <p><strong>Email:</strong> <span>info@example.com</span></p>
-        </div>
-
       </div>
     </div>
 
     <div class="container copyright text-center mt-4">
-      <p>© <span>Copyright</span> <strong class="px-1 sitename">Logis</strong> <span>All Rights Reserved</span></p>
+      <p>© <span>Copyright</span> <strong class="px-1 sitename">E-Ticket Bus</strong> <span>All Rights Reserved</span></p>
       <div class="credits">
-        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> | <a href="https://bootstrapmade.com/tools/">DevTools</a>
+        <!-- Kredit template (jangan dihapus jika memakai versi gratis) -->
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
       </div>
     </div>
 
   </footer>
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>

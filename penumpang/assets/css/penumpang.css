@@ -1,0 +1,117 @@
+/* ==========================================================
+ FILE     : penumpang/assets/css/penumpang.css
+ FUNGSI    : Gaya tambahan penumpang (kartu jadwal, denah kursi, e-ticket) di atas main.css template.
+ DIPANGGIL DARI: partials/head.php
+ ========================================================== */
+/* =========================================================
+   CSS tambahan halaman penumpang (di atas assets/css/main.css)
+   Memakai variabel warna template: --accent-color, --heading-color, dll.
+   ========================================================= */
+
+/* Header sudah fixed-top; beri ruang pada halaman tanpa hero */
+.section { scroll-margin-top: 90px; }
+
+/* ---------- Form cari ---------- */
+.form-cari .form-label { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.form-cari .form-control { height: 46px; border-radius: 8px; }
+.form-cari .btn { height: 46px; border-radius: 8px; }
+.form-cari-hero { background: rgba(255, 255, 255, .08); padding: 16px; border-radius: 12px; backdrop-filter: blur(4px); }
+.form-cari-hero .form-label { color: #fff; }
+.box-cari { background: var(--surface-color); padding: 20px; border-radius: 12px; box-shadow: 0 2px 20px rgba(0, 0, 0, .07); margin-bottom: 28px; }
+
+/* ---------- Kartu jadwal & tiket ---------- */
+.card-jadwal, .card-tiket {
+  background: var(--surface-color);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, .06);
+  border-left: 4px solid var(--accent-color);
+  transition: transform .2s, box-shadow .2s;
+}
+.card-jadwal:hover, .card-tiket:hover { transform: translateY(-2px); box-shadow: 0 6px 26px rgba(13, 66, 255, .13); }
+.card-jadwal .jam { font-size: 24px; font-weight: 700; color: var(--heading-color); font-family: var(--heading-font); line-height: 1.1; }
+.card-jadwal .kota { font-size: 14px; color: #555; }
+.card-jadwal .garis { position: relative; border-top: 2px dashed #b7c4ff; height: 0; text-align: center; }
+.card-jadwal .garis i { position: relative; top: -10px; background: var(--surface-color); padding: 0 8px; color: var(--accent-color); }
+.card-jadwal .harga { font-size: 20px; font-weight: 700; color: var(--accent-color); font-family: var(--heading-font); }
+.card-tiket .kode { font-family: monospace; font-weight: 700; color: var(--accent-color); letter-spacing: .5px; }
+.status-badge { font-weight: 500; padding: 6px 10px; }
+
+/* ---------- Panel umum ---------- */
+.panel { background: var(--surface-color); border-radius: 12px; padding: 24px; box-shadow: 0 2px 20px rgba(0, 0, 0, .07); }
+.panel h5 { color: var(--heading-color); font-family: var(--heading-font); font-weight: 600; }
+.detail-list { display: grid; grid-template-columns: 130px 1fr; gap: 8px 12px; margin-bottom: 20px; }
+.detail-list dt { color: #777; font-weight: 400; }
+.detail-list dd { margin: 0; }
+.total-bayar { font-size: 24px; font-weight: 700; color: var(--accent-color); font-family: var(--heading-font); }
+.ringkasan { position: sticky; top: 100px; }
+.status-ikon { font-size: 56px; }
+
+.kosong { padding: 50px 20px; background: var(--surface-color); border-radius: 12px; }
+.kosong > i { font-size: 48px; color: #b7c4ff; margin-bottom: 12px; }
+
+.tab-status .nav-link { color: var(--heading-color); border-radius: 50px; padding: 8px 18px; font-size: 14px; }
+.tab-status .nav-link.active { background: var(--accent-color); color: #fff; }
+
+/* ---------- Denah kursi ---------- */
+.legend { font-size: 14px; }
+.legend .kotak { display: inline-block; width: 18px; height: 18px; border-radius: 4px; vertical-align: -3px; margin-right: 4px; border: 1px solid #b7c4ff; }
+.kotak.kosong { background: #fff; }
+.kotak.dipilih { background: var(--accent-color); border-color: var(--accent-color); }
+.kotak.terisi { background: #d9dde6; border-color: #d9dde6; }
+
+.bus-body {
+  max-width: 340px; margin: 0 auto; padding: 18px 22px 22px;
+  background: #f4f6fb; border: 3px solid #cfd8ff; border-radius: 36px 36px 14px 14px;
+}
+.bus-depan { display: flex; justify-content: flex-end; align-items: center; gap: 8px; color: #666; font-size: 13px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 2px dashed #cfd8ff; }
+.seat-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 10px; }
+.seat-row .lorong { width: 28px; }
+.seat {
+  width: 48px; height: 48px; border-radius: 10px 10px 6px 6px;
+  border: 2px solid #b7c4ff; background: #fff; color: var(--heading-color);
+  font-weight: 600; font-size: 14px; cursor: pointer; transition: all .15s;
+}
+.seat:hover:not(:disabled) { border-color: var(--accent-color); transform: translateY(-2px); }
+.seat.dipilih { background: var(--accent-color); border-color: var(--accent-color); color: #fff; }
+.seat.terisi, .seat:disabled { background: #d9dde6; border-color: #d9dde6; color: #8b93a3; cursor: not-allowed; }
+
+/* ---------- Pembayaran ---------- */
+.metode-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.metode { border: 2px solid #e1e6f5; border-radius: 10px; padding: 12px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all .15s; }
+.metode input { accent-color: var(--accent-color); }
+.metode:has(input:checked) { border-color: var(--accent-color); background: #eef2ff; }
+.info-rek { background: #eef2ff; border-radius: 10px; padding: 14px 16px; }
+.preview-bukti { max-height: 220px; margin-top: 10px; border-radius: 8px; border: 1px solid #dde3f5; }
+
+/* ---------- E-Ticket ---------- */
+.ticket { max-width: 460px; background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 40px rgba(13, 66, 255, .15); }
+.ticket-atas { background: linear-gradient(135deg, #0e1d34, #0d42ff); color: #fff; padding: 22px 26px; }
+.ticket-atas .merek { font-family: var(--heading-font); font-weight: 600; }
+.rute-besar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.rute-besar small { display: block; opacity: .7; font-size: 12px; }
+.rute-besar strong { font-size: 22px; font-family: var(--heading-font); }
+.ticket-tengah { padding: 22px 26px; position: relative; border-bottom: 2px dashed #cfd8ff; }
+.ticket-tengah::before, .ticket-tengah::after {
+  content: ""; position: absolute; bottom: -12px; width: 22px; height: 22px; border-radius: 50%; background: #f7f9fc;
+}
+.ticket-tengah::before { left: -11px; }
+.ticket-tengah::after { right: -11px; }
+.ticket-tengah small { color: #888; }
+.ticket-tengah .nilai { font-weight: 600; color: var(--heading-color); }
+.ticket-bawah { padding: 24px; }
+#qrcode { display: inline-block; padding: 10px; background: #fff; border: 1px solid #e1e6f5; border-radius: 12px; }
+.kode-booking { font-family: monospace; font-size: 20px; font-weight: 700; letter-spacing: 1px; margin: 10px 0 4px; color: var(--heading-color); }
+
+@media (max-width: 575px) {
+  .card-jadwal, .card-tiket { padding: 16px; }
+  .detail-list { grid-template-columns: 105px 1fr; }
+  .seat { width: 42px; height: 42px; }
+}
+
+@media print {
+  #header, #footer, .page-title, .scroll-top, #preloader { display: none !important; }
+  body { background: #fff; }
+  .ticket { box-shadow: none; border: 1px solid #ccc; }
+}

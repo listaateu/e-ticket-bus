@@ -3,11 +3,18 @@ require_once __DIR__ . '/../login/auth.php';
 wajibRole(['admin']);   // hanya admin yang boleh masuk
 
 // admin/function/bus.php
+// Proses data bus: simpan (Create) dan hapus (Delete).
+// Proses ubah (Update) ada di pages/bus/update.php.
 
 include_once __DIR__ . '/../database/koneksi.php';
+require_once __DIR__ . '/../../includes/bus_helper.php';
 
 $aksi    = $_GET['aksi'] ?? '';
 $kembali = '/e-ticket-bus/admin/index.php?page=bus';
+$kelas_filter = $_GET['kelas'] ?? '';
+if ($aksi === 'hapus' && in_array($kelas_filter, ['Eksekutif', 'Bisnis', 'Ekonomi'], true)) {
+    $kembali .= '&kelas=' . urlencode($kelas_filter);
+}
 
 // ---------- TAMBAH ----------
 if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -15,6 +22,11 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $plat  = strtoupper(trim($_POST['plat_nomor'] ?? ''));
     $kursi = (int) ($_POST['kapasitas_kursi'] ?? 0);
     $kelas = $_POST['kelas'] ?? '';
+
+    // Tata letak & fasilitas: hanya terima nilai yang ada di daftar resmi
+    $tata_letak = in_array($_POST['tata_letak'] ?? '', TATA_LETAK_KURSI, true) ? $_POST['tata_letak'] : '';
+    $fasilitas  = array_filter((array) ($_POST['fasilitas'] ?? []), fn($k) => is_string($k) && isset(FASILITAS_BUS[$k]));
+    $fasilitas_teks = implode(',', $fasilitas);
 
     // Cek isiannya masuk akal (nama_bus tidak boleh kosong)
     if ($nama === '' || $plat === '' || $kursi < 1 || $kursi > 60 || !in_array($kelas, ['Ekonomi', 'Bisnis', 'Eksekutif'], true)) {
@@ -31,9 +43,19 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Simpan (sekarang ada 4 kolom: nama_bus, plat_nomor, kapasitas_kursi, kelas)
-    $simpan = $koneksi->prepare("INSERT INTO buses (nama_bus, plat_nomor, kapasitas_kursi, kelas) VALUES (?, ?, ?, ?)");
-    $simpan->bind_param('ssis', $nama, $plat, $kursi, $kelas);
+    // Simpan foto (kalau ada). Dilakukan setelah semua cek lolos supaya tidak ada file yatim.
+    $pesan_foto = '';
+    $foto = bus_simpan_foto($_FILES['foto'] ?? null, $pesan_foto);
+    if ($foto === false) {
+        header("Location: $kembali&aksi=tambah&pesan=foto_tidak_valid");
+        exit;
+    }
+    $foto = $foto === '' ? null : $foto;
+
+    $simpan = $koneksi->prepare(
+        "INSERT INTO buses (nama_bus, plat_nomor, kapasitas_kursi, kelas, tata_letak, fasilitas, foto) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    );
+    $simpan->bind_param('ssissss', $nama, $plat, $kursi, $kelas, $tata_letak, $fasilitas_teks, $foto);
     $simpan->execute();
 
     header("Location: $kembali&pesan=tambah_ok");
@@ -42,7 +64,13 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- HAPUS ----------
 if ($aksi === 'hapus') {
-    $id = (int) $_GET['id'];
+    $id = (int) ($_GET['id'] ?? 0);
+
+    // Catat nama file foto dulu, supaya bisa ikut dihapus setelah bus terhapus
+    $ambil = $koneksi->prepare("SELECT foto FROM buses WHERE id = ?");
+    $ambil->bind_param('i', $id);
+    $ambil->execute();
+    $foto_lama = $ambil->get_result()->fetch_assoc()['foto'] ?? '';
 
     try {
         $hapus = $koneksi->prepare("DELETE FROM buses WHERE id = ?");
@@ -52,6 +80,8 @@ if ($aksi === 'hapus') {
         header("Location: $kembali&pesan=bus_dipakai");
         exit;
     }
+
+    bus_hapus_foto($foto_lama);
 
     header("Location: $kembali&pesan=hapus_ok");
     exit;

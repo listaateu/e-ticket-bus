@@ -30,7 +30,7 @@ $pesan = $_GET['pesan'] ?? '';
 <!-- page header -->
 
 <?php if ($pesan === 'tidak_valid') : ?>
-  <div class="alert alert-danger">Data belum benar. Pastikan nama sopir terisi, kota asal berbeda dengan kota tujuan, jam terisi, dan harga lebih dari 0.</div>
+  <div class="alert alert-danger">Data belum benar. Pastikan nama sopir terisi, kota asal berbeda dengan kota tujuan, jam berangkat dan jam tiba terisi (jam tiba harus setelah jam berangkat), dan harga lebih dari 0.</div>
 <?php endif; ?>
 
 <!-- form -->
@@ -82,6 +82,12 @@ $pesan = $_GET['pesan'] ?? '';
           <input type="datetime-local" class="form-control-custom" id="jam_berangkat" name="jam_berangkat" required>
         </div>
 
+        <div class="mb-3">
+          <label for="jam_tiba" class="form-label-custom">Jam Tiba</label>
+          <input type="datetime-local" class="form-control-custom" id="jam_tiba" name="jam_tiba" required>
+          <small class="text-muted">Perkiraan sampai di kota tujuan. Harus setelah jam berangkat. Durasi perjalanan dihitung otomatis.</small>
+        </div>
+
         <div class="mb-4">
           <label for="harga" class="form-label-custom">Harga (Rp)</label>
           <input type="text" inputmode="numeric" autocomplete="off" class="form-control-custom" id="harga" name="harga"
@@ -114,4 +120,15 @@ $pesan = $_GET['pesan'] ?? '';
 
   inputHarga.addEventListener('input', formatRibuan); // jalan tiap kali mengetik
   formatRibuan(); // jalan sekali saat halaman dibuka (untuk nilai lama di form ubah)
+
+  // Jam tiba tidak boleh lebih awal dari jam berangkat
+  const inputBerangkat = document.getElementById('jam_berangkat');
+  const inputTiba = document.getElementById('jam_tiba');
+
+  function batasiJamTiba() {
+    inputTiba.min = inputBerangkat.value;
+  }
+
+  inputBerangkat.addEventListener('change', batasiJamTiba);
+  batasiJamTiba();
 </script>

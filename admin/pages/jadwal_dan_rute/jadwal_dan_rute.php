@@ -1,23 +1,58 @@
 <?php
 // admin/pages/jadwal_dan_rute/jadwal_dan_rute.php
-// Tabel jadwal & rute (bagian R = Read dari CRUD).
+// Tabel jadwal & rute (bagian R = Read dari CRUD), bisa difilter per kelas bus.
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
 
-// Hitung total data dulu, lalu ambil 10 baris untuk halaman yang dibuka
-$total = (int) $koneksi->query("SELECT COUNT(*) AS t FROM schedules")->fetch_assoc()['t'];
+// Filter kelas dari alamat (?kelas=Bisnis). Nilai di luar daftar dianggap "semua".
+$daftar_kelas = ['Eksekutif', 'Bisnis', 'Ekonomi'];
+$kelas = $_GET['kelas'] ?? '';
+if (!in_array($kelas, $daftar_kelas, true)) {
+    $kelas = '';
+}
+
+// Hitung total jadwal (sesuai filter)
+if ($kelas !== '') {
+    $stmt = $koneksi->prepare(
+        "SELECT COUNT(*) AS t FROM schedules s JOIN buses b ON b.id = s.bus_id WHERE b.kelas = ?"
+    );
+    $stmt->bind_param('s', $kelas);
+    $stmt->execute();
+    $total = (int) $stmt->get_result()->fetch_assoc()['t'];
+} else {
+    $total = (int) $koneksi->query("SELECT COUNT(*) AS t FROM schedules")->fetch_assoc()['t'];
+}
+
 [$per_halaman, $offset] = paginasi($total);
 
 // Gabungkan dengan tabel buses supaya nama bus, plat nomor & kelas bisa ditampilkan
 // ASC = jadwal keberangkatan paling awal di paling atas
-$hasil = $koneksi->query(
-    "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas
-     FROM schedules s
-     JOIN buses b ON b.id = s.bus_id
-     ORDER BY s.jam_berangkat ASC
-     LIMIT $per_halaman OFFSET $offset"
-);
+if ($kelas !== '') {
+    $stmt = $koneksi->prepare(
+        "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas
+         FROM schedules s
+         JOIN buses b ON b.id = s.bus_id
+         WHERE b.kelas = ?
+         ORDER BY s.jam_berangkat ASC
+         LIMIT ? OFFSET ?"
+    );
+    $stmt->bind_param('sii', $kelas, $per_halaman, $offset);
+    $stmt->execute();
+    $hasil = $stmt->get_result();
+} else {
+    $hasil = $koneksi->query(
+        "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas
+         FROM schedules s
+         JOIN buses b ON b.id = s.bus_id
+         ORDER BY s.jam_berangkat ASC
+         LIMIT $per_halaman OFFSET $offset"
+    );
+}
+
+// Judul mengikuti kelas yang dipilih
+$judul   = $kelas !== '' ? "Jadwal & Rute Kelas $kelas" : 'Jadwal & Rute';
+$q_kelas = $kelas !== '' ? '&kelas=' . urlencode($kelas) : '';
 
 $pesan = $_GET['pesan'] ?? '';
 ?>
@@ -41,21 +76,21 @@ $pesan = $_GET['pesan'] ?? '';
     border-radius: 50%;
     background: currentColor;
   }
-  .kelas-ekonomi  { background: #dcfce7; color: #15803d; } /* hijau */
-  .kelas-bisnis   { background: #dbeafe; color: #1d4ed8; } /* biru */
+  .kelas-ekonomi   { background: #dcfce7; color: #15803d; } /* hijau */
+  .kelas-bisnis    { background: #dbeafe; color: #1d4ed8; } /* biru */
   .kelas-eksekutif { background: #fef3c7; color: #b45309; } /* emas */
 </style>
 <!-- page header -->
 <div class="page-header">
   <div>
-    <h1 class="page-title">Jadwal &amp; Rute</h1>
+    <h1 class="page-title"><?= htmlspecialchars($judul) ?></h1>
     <p class="page-subtitle">Kelola rute perjalanan, jadwal keberangkatan, dan harga tiket.</p>
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item text-muted-green">Master Data</li>
-      <li class="breadcrumb-item active text-main" aria-current="page">Jadwal &amp; Rute</li>
+      <li class="breadcrumb-item active text-main" aria-current="page"><?= htmlspecialchars($judul) ?></li>
     </ol>
   </nav>
 </div>
@@ -76,12 +111,16 @@ $pesan = $_GET['pesan'] ?? '';
 
   <!-- bar atas tabel -->
   <div class="table-header-control">
-    <div class="table-pagination-info">Total: <strong><?= $total ?></strong> jadwal</div>
-    <div class="table-filter-group">
-      <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=tambah" class="btn-table-action">
-        <i class="bi bi-plus-lg"></i> Tambah Jadwal
-      </a>
+    <div class="table-pagination-info">
+      Total: <strong><?= $total ?></strong> jadwal<?= $kelas !== '' ? ' kelas ' . htmlspecialchars($kelas) : '' ?>
     </div>
+        <?php if ($kelas === '') : ?>
+      <div class="table-filter-group">
+        <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=tambah" class="btn-table-action">
+          <i class="bi bi-plus-lg"></i> Tambah Jadwal
+        </a>
+      </div>
+    <?php endif; ?>
   </div>
 
   <!-- tabel -->
@@ -101,7 +140,7 @@ $pesan = $_GET['pesan'] ?? '';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="7" class="text-center">Belum ada data jadwal.</td>
+            <td colspan="7" class="text-center">Belum ada data jadwal<?= $kelas !== '' ? ' untuk kelas ' . htmlspecialchars($kelas) : '' ?>.</td>
           </tr>
         <?php endif; ?>
 
@@ -124,7 +163,7 @@ $pesan = $_GET['pesan'] ?? '';
             <td>
               <div class="d-flex justify-content-center gap-1">
                 <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=update&id=<?= (int) $j['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
-                <a href="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=hapus&id=<?= (int) $j['id'] ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus jadwal ini?')"><i class="bi bi-trash"></i></a>
+                <a href="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=hapus&id=<?= (int) $j['id'] ?><?= $q_kelas ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus jadwal ini?')"><i class="bi bi-trash"></i></a>
               </div>
             </td>
           </tr>

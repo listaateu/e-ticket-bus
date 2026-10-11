@@ -1,39 +1,44 @@
-<header id="header" class="header d-flex align-items-center fixed-top">
+<?php
+/**
+ * ============================================================
+ * FILE         : penumpang/components/header.php
+ * FUNGSI       : Navbar atas (logo, menu, tombol Masuk/Daftar/Keluar) dan pembuka <main>.
+ * DIPANGGIL DARI: index.php
+ * CATATAN      : Menu aktif ditentukan variabel $menu_aktif dari index.php. Tambah menu: edit array $menu di file ini.
+ * ============================================================
+ */
+?>
+  <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
-      <a href="/e-ticket-bus/index.php" class="logo d-flex align-items-center me-auto">
-        <h1 class="sitename">Logis</h1>
+      <a href="<?= url('beranda') ?>" class="logo d-flex align-items-center me-auto">
+        <h1 class="sitename"><i class="fa-solid fa-bus me-2"></i>E-Ticket Bus</h1>
       </a>
 
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="/e-ticket-bus/index.php" class="active">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#pricing">Pricing</a></li>
-          <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-            <ul>
-              <li><a href="#">Dropdown 1</a></li>
-              <li class="dropdown"><a href="#"><span>Deep Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                <ul>
-                  <li><a href="#">Deep Dropdown 1</a></li>
-                  <li><a href="#">Deep Dropdown 2</a></li>
-                  <li><a href="#">Deep Dropdown 3</a></li>
-                  <li><a href="#">Deep Dropdown 4</a></li>
-                  <li><a href="#">Deep Dropdown 5</a></li>
-                </ul>
-              </li>
-              <li><a href="#">Dropdown 2</a></li>
-              <li><a href="#">Dropdown 3</a></li>
-              <li><a href="#">Dropdown 4</a></li>
-            </ul>
-          </li>
-          <li><a href="#footer">Contact</a></li>
+          <?php
+          $menu = ['beranda' => 'Beranda', 'jadwal' => 'Cari Jadwal'];
+          if (!empty($sudah_login)) {   // menu khusus penumpang yang sudah login
+              $menu += ['tiket' => 'Tiket Saya', 'profil' => 'Profil'];
+          }
+          foreach ($menu as $kode => $label):
+              $aktif = ($menu_aktif === $kode) ? 'active' : '';
+          ?>
+            <li><a href="index.php?page=<?= $kode ?>" class="<?= $aktif ?>"><?= e($label) ?></a></li>
+          <?php endforeach; ?>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
-      <a class="btn-getstarted" href="#pricing">Get a Quote</a>
+      <?php if (!empty($sudah_login)): ?>
+        <a class="btn-getstarted" href="<?= e(LOGOUT_URL) ?>">Keluar</a>
+      <?php else: ?>
+        <a class="btn-getstarted btn-masuk" href="<?= e(LOGIN_URL) ?>">Masuk</a>
+        <a class="btn-getstarted" href="<?= e(REGISTER_URL) ?>">Daftar</a>
+      <?php endif; ?>
 
     </div>
   </header>
+
+  <main class="main">

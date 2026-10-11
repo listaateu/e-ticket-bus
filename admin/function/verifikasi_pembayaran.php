@@ -1,9 +1,11 @@
 <?php
 require_once __DIR__ . '/../login/auth.php';
 wajibRole(['admin']);   // hanya admin yang boleh masuk
+require_once __DIR__ . '/../../includes/alasan_tolak.php';   // daftar & penyusun alasan penolakan
 
 // admin/function/verifikasi_pembayaran.php
 // Proses verifikasi pembayaran: setujui atau tolak.
+// Menolak WAJIB disertai alasan (dikirim dari form di halaman detail).
 // Hanya menerima POST supaya status tidak berubah hanya karena link dibuka/di-prefetch.
 
 include_once __DIR__ . '/../database/koneksi.php';
@@ -37,6 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'
         exit;
     }
 
+    $alasan = null;   // hanya diisi kalau pembayaran ditolak
+
     if ($aksi === 'setujui') {
         // Tidak bisa disetujui kalau belum ada bukti transfer
         if (trim((string) $bayar['bukti_transfer']) === '') {
@@ -46,13 +50,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'
         $status_baru = $STATUS_LUNAS;
         $pesan_ok    = 'setujui_ok';
     } else {
+        // Menolak: alasan wajib dipilih ("lainnya" wajib disertai catatan)
+        $alasan = susun_alasan_tolak(
+            (string) ($_POST['alasan'] ?? ''),
+            (string) ($_POST['catatan'] ?? '')
+        );
+        if ($alasan === null) {
+            header("Location: $kembali&aksi=detail&id=$id&pesan=alasan_kosong");
+            exit;
+        }
         $status_baru = $STATUS_DITOLAK;
         $pesan_ok    = 'tolak_ok';
     }
 
-    // WHERE status = menunggu: mencegah dua admin memproses pembayaran yang sama bersamaan
-    $ubah = $koneksi->prepare("UPDATE payments SET status = ? WHERE id = ? AND status = ?");
-    $ubah->bind_param('sis', $status_baru, $id, $STATUS_MENUNGGU);
+    // WHERE status = menunggu: mencegah dua admin memproses pembayaran yang sama bersamaan.
+    // Saat disetujui, $alasan bernilai null sehingga kolom alasan_penolakan dikosongkan.
+    $ubah = $koneksi->prepare("UPDATE payments SET status = ?, alasan_penolakan = ? WHERE id = ? AND status = ?");
+    $ubah->bind_param('ssis', $status_baru, $alasan, $id, $STATUS_MENUNGGU);
     $ubah->execute();
 
     header("Location: $kembali&pesan=$pesan_ok");

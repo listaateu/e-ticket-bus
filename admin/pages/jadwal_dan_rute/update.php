@@ -31,12 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $asal   = trim($_POST['kota_asal'] ?? '');
     $tujuan = trim($_POST['kota_tujuan'] ?? '');
     $jam    = trim($_POST['jam_berangkat'] ?? '');
+    $tiba   = trim($_POST['jam_tiba'] ?? '');
     $harga  = (int) preg_replace('/\D/', '', $_POST['harga'] ?? ''); // buang titik pemisah ribuan
 
     // input datetime-local formatnya 2026-10-20T08:00 -> ubah ke 2026-10-20 08:00:00
     $jam = str_replace('T', ' ', $jam);
     if (strlen($jam) === 16) {
         $jam .= ':00';
+    }
+    $tiba = str_replace('T', ' ', $tiba);
+    if (strlen($tiba) === 16) {
+        $tiba .= ':00';
     }
 
     // Cek isiannya masuk akal
@@ -45,16 +50,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         && $asal !== '' && $tujuan !== ''
         && strcasecmp($asal, $tujuan) !== 0      // asal tidak boleh sama dengan tujuan
         && strtotime($jam) !== false
+        && strtotime($tiba) !== false
+        && strtotime($tiba) > strtotime($jam)    // jam tiba harus SETELAH jam berangkat
         && $harga > 0;
 
     if (!$valid) {
-        $error = 'Data belum benar. Pastikan nama sopir terisi, kota asal berbeda dengan kota tujuan, jam terisi, dan harga lebih dari 0.';
+        $error = 'Data belum benar. Pastikan nama sopir terisi, kota asal berbeda dengan kota tujuan, jam berangkat dan jam tiba terisi (jam tiba harus setelah jam berangkat), dan harga lebih dari 0.';
     } else {
         // Simpan perubahan
         $ubah = $koneksi->prepare(
-            "UPDATE schedules SET bus_id = ?, sopir = ?, kota_asal = ?, kota_tujuan = ?, jam_berangkat = ?, harga = ? WHERE id = ?"
+            "UPDATE schedules SET bus_id = ?, sopir = ?, kota_asal = ?, kota_tujuan = ?, jam_berangkat = ?, jam_tiba = ?, harga = ? WHERE id = ?"
         );
-        $ubah->bind_param('issssii', $bus_id, $sopir, $asal, $tujuan, $jam, $harga, $id);
+        $ubah->bind_param('isssssii', $bus_id, $sopir, $asal, $tujuan, $jam, $tiba, $harga, $id);
         $ubah->execute();
 
         // Berhasil -> balik ke tabel (pakai JS karena header() sudah tidak bisa di sini)
@@ -69,6 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jadwal['kota_asal']     = $asal;
     $jadwal['kota_tujuan']   = $tujuan;
     $jadwal['jam_berangkat'] = $jam;
+    $jadwal['jam_tiba']      = $tiba;
     $jadwal['harga']         = $harga;
 }
 
@@ -77,12 +85,16 @@ $jam_untuk_form = '';
 if (strtotime($jadwal['jam_berangkat']) !== false) {
     $jam_untuk_form = date('Y-m-d\TH:i', strtotime($jadwal['jam_berangkat']));
 }
+$tiba_untuk_form = '';   // kosong untuk jadwal lama yang belum punya jam tiba
+if (!empty($jadwal['jam_tiba']) && strtotime($jadwal['jam_tiba']) !== false) {
+    $tiba_untuk_form = date('Y-m-d\TH:i', strtotime($jadwal['jam_tiba']));
+}
 ?>
 <!-- page header -->
 <div class="page-header">
   <div>
     <h1 class="page-title">Ubah Jadwal</h1>
-    <p class="page-subtitle">Perbarui bus, rute, jam berangkat, atau harga.</p>
+    <p class="page-subtitle">Perbarui bus, rute, jam berangkat, jam tiba, atau harga.</p>
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
@@ -142,6 +154,13 @@ if (strtotime($jadwal['jam_berangkat']) !== false) {
             value="<?= htmlspecialchars($jam_untuk_form) ?>" required>
         </div>
 
+        <div class="mb-3">
+          <label for="jam_tiba" class="form-label-custom">Jam Tiba</label>
+          <input type="datetime-local" class="form-control-custom" id="jam_tiba" name="jam_tiba"
+            value="<?= htmlspecialchars($tiba_untuk_form) ?>" required>
+          <small class="text-muted">Perkiraan sampai di kota tujuan. Harus setelah jam berangkat. Durasi perjalanan dihitung otomatis.</small>
+        </div>
+
         <div class="mb-4">
           <label for="harga" class="form-label-custom">Harga (Rp)</label>
           <input type="text" inputmode="numeric" autocomplete="off" class="form-control-custom" id="harga" name="harga"
@@ -174,4 +193,15 @@ if (strtotime($jadwal['jam_berangkat']) !== false) {
 
   inputHarga.addEventListener('input', formatRibuan); // jalan tiap kali mengetik
   formatRibuan(); // jalan sekali saat halaman dibuka (untuk nilai lama di form ubah)
+
+  // Jam tiba tidak boleh lebih awal dari jam berangkat
+  const inputBerangkat = document.getElementById('jam_berangkat');
+  const inputTiba = document.getElementById('jam_tiba');
+
+  function batasiJamTiba() {
+    inputTiba.min = inputBerangkat.value;
+  }
+
+  inputBerangkat.addEventListener('change', batasiJamTiba);
+  batasiJamTiba();
 </script>
