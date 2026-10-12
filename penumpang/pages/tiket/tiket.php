@@ -39,3 +39,38 @@ $tab = ['semua' => 'Semua', 'belum_bayar' => 'Belum Dibayar', 'pending' => 'Menu
         <?php foreach ($tiket as $b) { komponen_card_tiket($b); } ?>
       </div>
     </section>
+
+    <?php $id_menunggu = array_map('intval', array_column(array_filter($tiket, fn($b) => status_tiket($b) === 'pending'), 'id')); ?>
+    <?php if ($id_menunggu): ?>
+    <!-- Ada tiket "Menunggu Verifikasi": tanya server tiap 5 detik, muat ulang kalau ada yang berubah. -->
+    <script>
+    (function () {
+      var menunggu = <?= json_encode($id_menunggu) ?>;
+      var alamat   = <?= json_encode(url('tiket-saya', ['aksi' => 'cek_status']), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
+      var selesai  = false;
+
+      function cek() {
+        if (selesai || document.hidden) return;
+        fetch(alamat, { credentials: 'same-origin', cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var peta = data.status || {};
+            var berubah = menunggu.some(function (id) { return (peta[id] || 'hilang') !== 'pending'; });
+            if (!berubah || selesai) return;
+            selesai = true;
+
+            var d = document.createElement('div');
+            d.className = 'alert alert-info shadow';
+            d.style.cssText = 'position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:2000;min-width:280px;max-width:90%;text-align:center;font-weight:600';
+            d.textContent = 'Status pembayaranmu diperbarui oleh admin.';
+            document.body.appendChild(d);
+            setTimeout(function () { location.reload(); }, 1500);
+          })
+          .catch(function () {});
+      }
+
+      setInterval(cek, 5000);
+      document.addEventListener('visibilitychange', cek);
+    })();
+    </script>
+    <?php endif; ?>

@@ -63,7 +63,7 @@ $total = (int) $stmt_total->get_result()->fetch_assoc()['t'];
 // ---------- Tabel: ambil 10 baris untuk halaman yang dibuka ----------
 $sql = "SELECT b.id, b.kode_booking, b.nomor_kursi,
                u.nama, s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
-               bs.plat_nomor, bs.kelas,
+               bs.plat_nomor, bs.kelas, b.batas_bayar,
                p.metode_pembayaran, $status_sql AS status_bayar
         $dari $where
         ORDER BY b.id DESC
@@ -192,7 +192,12 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
             <td><?= htmlspecialchars($b['plat_nomor']) ?> <span class="badge-table success"><?= htmlspecialchars($b['kelas']) ?></span></td>
             <td><?= htmlspecialchars($b['nomor_kursi']) ?></td>
             <td>Rp <?= number_format((int) $b['harga'], 0, ',', '.') ?></td>
-            <td><span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span></td>
+            <td>
+              <span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span>
+              <?php if (!empty($b['batas_bayar']) && in_array($b['status_bayar'], ['belum', 'ditolak'], true)) : ?>
+                <br><small class="text-muted">Batas bayar: <?= date('d M, H:i', strtotime($b['batas_bayar'])) ?></small>
+              <?php endif; ?>
+            </td>
             <td>
               <div class="d-flex justify-content-center gap-1">
                 <a href="<?= $url ?>&aksi=detail&id=<?= (int) $b['id'] ?>" class="table-btn-action" title="Lihat detail"><i class="bi bi-eye"></i></a>

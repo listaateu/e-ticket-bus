@@ -1,6 +1,7 @@
 <?php
 // admin/pages/verifikasi_pembayaran/verifikasi_pembayaran.php
 // Tabel daftar pembayaran + filter status.
+// Kolom Total Transfer = harga tiket + kode unik (angka yang harus muncul di mutasi rekening).
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
@@ -34,7 +35,8 @@ $total = $hitung[$filter];
 $sql = "SELECT p.id, p.metode_pembayaran, p.status,
                b.kode_booking, b.nomor_kursi,
                u.nama,
-               s.kota_asal, s.kota_tujuan, s.harga
+               s.kota_asal, s.kota_tujuan,
+               s.harga + b.kode_unik AS total_transfer
         FROM payments p
         JOIN bookings  b ON b.id = p.booking_id
         JOIN users     u ON u.id = b.user_id
@@ -100,7 +102,7 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
           <th>Penumpang</th>
           <th>Rute</th>
           <th>Kursi</th>
-          <th>Total</th>
+          <th>Total Transfer</th>
           <th>Metode</th>
           <th>Status</th>
           <th class="text-center">Aksi</th>
@@ -122,7 +124,7 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
             <td><?= htmlspecialchars($p['nama']) ?></td>
             <td><?= htmlspecialchars($p['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= htmlspecialchars($p['kota_tujuan']) ?></td>
             <td><?= htmlspecialchars($p['nomor_kursi']) ?></td>
-            <td>Rp <?= number_format((int) $p['harga'], 0, ',', '.') ?></td>
+            <td><strong>Rp <?= number_format((int) round((float) $p['total_transfer']), 0, ',', '.') ?></strong></td>
             <td><?= htmlspecialchars($p['metode_pembayaran']) ?></td>
             <td><span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span></td>
             <td>

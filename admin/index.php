@@ -8,6 +8,12 @@
 //   index.php?page=data_pemesanan&aksi=detail  -> pages/data_pemesanan/detail.php
 //                                                 atau data_pemesanan_detail.php (dua-duanya boleh)
 
+// Batalkan pesanan yang melewati batas waktu bayar setiap halaman admin dibuka
+// (sama seperti di sisi penumpang), supaya daftar & hitungan selalu terbaru.
+require_once __DIR__ . '/database/koneksi.php';
+require_once __DIR__ . '/../includes/batas_bayar.php';
+batalkan_pesanan_kedaluwarsa($koneksi);
+
 // Daftar menu yang diizinkan. Menu baru tinggal ditambah di sini.
 $menu_boleh = ['dashboard', 'bus', 'jadwal_dan_rute', 'user', 'sopir', 'verifikasi_pembayaran', 'data_pemesanan'];
 

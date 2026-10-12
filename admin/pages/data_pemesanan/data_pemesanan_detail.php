@@ -14,7 +14,7 @@ $STATUS = [
 $id = (int) ($_GET['id'] ?? 0);
 
 $ambil = $koneksi->prepare(
-    "SELECT b.id, b.kode_booking, b.nomor_kursi, b.schedule_id,
+    "SELECT b.id, b.kode_booking, b.nomor_kursi, b.schedule_id, b.batas_bayar,
             u.nama, u.email,
             s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
             bs.plat_nomor, bs.kelas, bs.kapasitas_kursi,
@@ -92,6 +92,9 @@ $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
         <tr><td class="text-muted" style="width:40%">Total Bayar</td><td><strong>Rp <?= number_format((int) $b['harga'], 0, ',', '.') ?></strong></td></tr>
         <tr><td class="text-muted">Metode</td><td><?= $b['metode_pembayaran'] ? htmlspecialchars($b['metode_pembayaran']) : '-' ?></td></tr>
         <tr><td class="text-muted">Status</td><td><span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span></td></tr>
+        <?php if (!empty($b['batas_bayar']) && in_array($b['status_bayar'], ['belum', 'ditolak'], true)) : ?>
+          <tr><td class="text-muted">Batas Bayar</td><td><?= date('d M Y, H:i', strtotime($b['batas_bayar'])) ?><br><small class="text-muted">Lewat dari ini, pesanan dibatalkan otomatis.</small></td></tr>
+        <?php endif; ?>
       </table>
 
       <div class="d-flex flex-wrap gap-2">

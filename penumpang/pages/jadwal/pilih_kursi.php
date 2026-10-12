@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     [$ok, $hasil] = simpan_booking($conn, $user_id, $id, $_POST['kursi'] ?? '');
     if ($ok) {
-        set_flash('sukses', 'Kursi berhasil dipesan. Selesaikan pembayaran untuk mengamankan tiketmu.');
+        set_flash('sukses', 'Kursi berhasil dipesan. Selesaikan pembayaran dalam ' . teks_durasi_bayar() . ' agar kursimu tidak dilepas.');
         redirect(url('pembayaran', ['id' => $hasil]));
     }
     set_flash('gagal', $hasil);
@@ -81,6 +81,11 @@ $baris  = array_chunk(range(1, $total), 4); // susunan 2 - lorong - 2
                   Lanjut ke Pembayaran <i class="bi bi-arrow-right ms-1"></i>
                 </button>
                 <small class="text-muted d-block mt-2">Satu pemesanan untuk satu kursi.</small>
+                <small class="text-muted d-block mt-1">
+                  <i class="bi bi-clock-history"></i>
+                  Setelah memesan, bayar dalam <strong><?= e(teks_durasi_bayar()) ?></strong>.
+                  Lewat dari itu, pesanan dibatalkan otomatis dan kursi dibuka lagi.
+                </small>
               </div>
             </div>
 

@@ -3,6 +3,7 @@
 // Detail satu pembayaran: info pemesanan, bukti transfer, tombol setujui / tolak.
 // Setujui mengirim POST ke function/verifikasi_pembayaran.php.
 // Tolak membuka form alasan dulu, baru mengirim POST ke file yang sama.
+// Total Transfer = harga tiket + kode unik (angka yang harus muncul di mutasi rekening).
 
 include_once __DIR__ . '/../../database/koneksi.php';
 require_once __DIR__ . '/../../../includes/alasan_tolak.php';   // daftar alasan penolakan
@@ -22,7 +23,7 @@ $id = (int) ($_GET['id'] ?? 0);
 
 $ambil = $koneksi->prepare(
     "SELECT p.id, p.metode_pembayaran, p.bukti_transfer, p.status, p.alasan_penolakan,
-            b.kode_booking, b.nomor_kursi,
+            b.kode_booking, b.nomor_kursi, b.kode_unik,
             u.nama, u.email,
             s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
             bs.plat_nomor, bs.kelas
@@ -50,12 +51,17 @@ $gambar  = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true);
 $url_bukti = $FOLDER_BUKTI . rawurlencode($bukti);
 $alasan_tersimpan = trim((string) ($p['alasan_penolakan'] ?? ''));
 $pesan   = $_GET['pesan'] ?? '';
+
+// Rincian nominal yang harus ditransfer penumpang
+$harga_tiket    = (int) round((float) $p['harga']);
+$kode_unik      = (int) ($p['kode_unik'] ?? 0);   // 0 untuk pemesanan lama
+$total_transfer = $harga_tiket + $kode_unik;
 ?>
 <!-- page header -->
 <div class="page-header">
   <div>
     <h1 class="page-title">Detail Pembayaran</h1>
-    <p class="page-subtitle">Cocokkan bukti transfer dengan total yang harus dibayar.</p>
+    <p class="page-subtitle">Cocokkan bukti transfer dan nominalnya (termasuk kode unik) dengan mutasi rekening.</p>
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
@@ -86,7 +92,11 @@ $pesan   = $_GET['pesan'] ?? '';
         <tr><td class="text-muted">Berangkat</td><td><?= date('d M Y, H:i', strtotime($p['jam_berangkat'])) ?></td></tr>
         <tr><td class="text-muted">Bus</td><td><?= htmlspecialchars($p['plat_nomor']) ?> (<?= htmlspecialchars($p['kelas']) ?>)</td></tr>
         <tr><td class="text-muted">Nomor Kursi</td><td><?= htmlspecialchars($p['nomor_kursi']) ?></td></tr>
-        <tr><td class="text-muted">Total Bayar</td><td><strong>Rp <?= number_format((int) $p['harga'], 0, ',', '.') ?></strong></td></tr>
+        <tr><td class="text-muted">Harga Tiket</td><td>Rp <?= number_format($harga_tiket, 0, ',', '.') ?></td></tr>
+        <?php if ($kode_unik > 0) : ?>
+          <tr><td class="text-muted">Kode Unik</td><td>Rp <?= number_format($kode_unik, 0, ',', '.') ?></td></tr>
+        <?php endif; ?>
+        <tr><td class="text-muted">Total Transfer</td><td><strong>Rp <?= number_format($total_transfer, 0, ',', '.') ?></strong></td></tr>
         <tr><td class="text-muted">Metode</td><td><?= htmlspecialchars($p['metode_pembayaran']) ?></td></tr>
         <tr><td class="text-muted">Status</td><td><span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span></td></tr>
         <?php if ($p['status'] === 'ditolak' && $alasan_tersimpan !== '') : ?>

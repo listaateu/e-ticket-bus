@@ -30,6 +30,10 @@ function simpan_pembayaran(mysqli $conn, array $booking, string $metode, array $
     if (in_array($booking['status_bayar'] ?? '', ['lunas', 'pending'], true)) {
         return [false, 'Pembayaran untuk tiket ini sudah dikirim.'];
     }
+    // Pesanan yang lewat batas waktu biasanya sudah dihapus otomatis sebelum sampai sini; ini pengaman tambahan
+    if (isset($booking['sisa_detik']) && (int) $booking['sisa_detik'] <= 0) {
+        return [false, 'Batas waktu pembayaran sudah habis. Silakan pesan kursi lagi.'];
+    }
     if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
         return [false, 'Silakan unggah bukti pembayaran.'];
     }
@@ -52,15 +56,32 @@ function simpan_pembayaran(mysqli $conn, array $booking, string $metode, array $
     }
 
     $bid = (int) $booking['id'];
-    if (!empty($booking['payment_id'])) {            // sebelumnya ditolak admin -> kirim ulang
-        $pid  = (int) $booking['payment_id'];
-        // alasan_penolakan dikosongkan lagi karena bukti baru sudah dikirim
-        $stmt = $conn->prepare("UPDATE payments SET metode_pembayaran = ?, bukti_transfer = ?, status = 'pending', alasan_penolakan = NULL WHERE id = ?");
-        $stmt->bind_param('ssi', $metode, $nama, $pid);
-    } else {
-        $stmt = $conn->prepare("INSERT INTO payments (booking_id, metode_pembayaran, bukti_transfer, status) VALUES (?, ?, ?, 'pending')");
-        $stmt->bind_param('iss', $bid, $metode, $nama);
+    try {
+        $conn->begin_transaction();
+
+        if (!empty($booking['payment_id'])) {            // sebelumnya ditolak admin -> kirim ulang
+            $pid  = (int) $booking['payment_id'];
+            // alasan_penolakan dikosongkan lagi karena bukti baru sudah dikirim
+            $stmt = $conn->prepare("UPDATE payments SET metode_pembayaran = ?, bukti_transfer = ?, status = 'pending', alasan_penolakan = NULL WHERE id = ?");
+            $stmt->bind_param('ssi', $metode, $nama, $pid);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO payments (booking_id, metode_pembayaran, bukti_transfer, status) VALUES (?, ?, ?, 'pending')");
+            $stmt->bind_param('iss', $bid, $metode, $nama);
+        }
+        $stmt->execute();
+
+        // Bukti sudah masuk -> hentikan hitung mundur. Mulai saat ini giliran admin memeriksa,
+        // dan pesanan tidak akan dibatalkan otomatis walau admin belum sempat memverifikasi.
+        $stop = $conn->prepare('UPDATE bookings SET batas_bayar = NULL WHERE id = ?');
+        $stop->bind_param('i', $bid);
+        $stop->execute();
+
+        $conn->commit();
+    } catch (Throwable $e) {
+        // Paling sering: pesanan baru saja dibatalkan otomatis (batas waktu habis) saat bukti dikirim
+        try { $conn->rollback(); } catch (Throwable $ignored) {}
+        @unlink(FOLDER_BUKTI . $nama);
+        return [false, 'Pemesanan ini sudah dibatalkan karena melewati batas waktu pembayaran. Silakan pesan kursi lagi.'];
     }
-    $stmt->execute();
     return [true, 'Bukti pembayaran terkirim. Admin akan memverifikasi sebentar lagi.'];
 }

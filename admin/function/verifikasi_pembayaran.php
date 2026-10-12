@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../login/auth.php';
 wajibRole(['admin']);   // hanya admin yang boleh masuk
 require_once __DIR__ . '/../../includes/alasan_tolak.php';   // daftar & penyusun alasan penolakan
+require_once __DIR__ . '/../../includes/batas_bayar.php';    // batas waktu bayar (dimulai ulang saat ditolak)
 
 // admin/function/verifikasi_pembayaran.php
 // Proses verifikasi pembayaran: setujui atau tolak.
@@ -23,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'
     $id = (int) ($_POST['id'] ?? 0);
 
     // Ambil data pembayaran
-    $ambil = $koneksi->prepare("SELECT id, bukti_transfer, status FROM payments WHERE id = ?");
+    $ambil = $koneksi->prepare("SELECT id, booking_id, bukti_transfer, status FROM payments WHERE id = ?");
     $ambil->bind_param('i', $id);
     $ambil->execute();
     $bayar = $ambil->get_result()->fetch_assoc();
@@ -68,6 +69,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'
     $ubah = $koneksi->prepare("UPDATE payments SET status = ?, alasan_penolakan = ? WHERE id = ? AND status = ?");
     $ubah->bind_param('ssis', $status_baru, $alasan, $id, $STATUS_MENUNGGU);
     $ubah->execute();
+
+    // Ditolak -> penumpang diberi waktu baru (sama dengan batas bayar awal) untuk mengunggah bukti yang benar.
+    // Kalau tidak, hitung mundur lamanya sudah dihentikan saat ia mengirim bukti, dan pesanannya akan
+    // tertahan selamanya. Hanya dijalankan kalau baris ini memang berhasil diubah oleh admin ini.
+    if ($aksi === 'tolak' && $ubah->affected_rows === 1) {
+        atur_batas_bayar($koneksi, (int) $bayar['booking_id']);
+    }
 
     header("Location: $kembali&pesan=$pesan_ok");
     exit;

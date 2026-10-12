@@ -26,7 +26,12 @@ function komponen_card_tiket(array $b): void
           <div class="small text-muted">Kursi</div>
           <div class="fw-bold fs-5"><?= e($b['nomor_kursi']) ?></div>
         </div>
-        <div class="col-lg-2 col-6"><?= komponen_badge_status($status) ?></div>
+        <div class="col-lg-2 col-6">
+          <?= komponen_badge_status($status) ?>
+          <?php if (batas_bayar_aktif($b)): ?>
+            <small class="d-block text-danger mt-1"><i class="bi bi-clock-history"></i> Bayar sebelum <?= e(teks_batas_bayar($b['batas_bayar'])) ?></small>
+          <?php endif; ?>
+        </div>
         <div class="col-lg-2 col-6 d-grid">
           <?php if ($status === 'lunas'): ?>
             <a href="<?= url('e-ticket', ['id' => $b['id']]) ?>" class="btn btn-primary btn-sm"><i class="bi bi-qr-code me-1"></i>E-Ticket</a>

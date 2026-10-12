@@ -3,6 +3,9 @@
  * ============================================================
  * FILE         : penumpang/function/booking.php
  * FUNGSI       : Menyimpan pemesanan kursi (simpan_booking) dan mengambil daftar tiket penumpang.
+ *                Setiap pemesanan mendapat KODE UNIK (1-999) yang ditambahkan ke harga tiket,
+ *                supaya admin mudah mencocokkan nominal transfer dengan mutasi rekening.
+ *                Setiap pemesanan juga punya BATAS WAKTU BAYAR (bookings.batas_bayar, lihat includes/batas_bayar.php).
  * DIPANGGIL DARI: index.php; dipakai pages/jadwal/pilih_kursi.php, pages/tiket/*
  * ============================================================
  */
@@ -11,6 +14,50 @@
 function buat_kode_booking(): string
 {
     return 'TKT-' . date('ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+}
+
+/**
+ * Memilih kode unik 1-999 untuk pemesanan baru.
+ * Kode dipilih acak dari yang MASIH KOSONG, yaitu yang tidak membuat total transfer
+ * sama dengan pemesanan lain yang belum lunas (menunggu bayar / menunggu verifikasi / ditolak).
+ * Pemesanan yang sudah lunas tidak dihitung, jadi kodenya boleh dipakai lagi.
+ */
+function buat_kode_unik(mysqli $conn, int $harga): int
+{
+    $min = $harga + 1;
+    $maks = $harga + 999;
+
+    $stmt = $conn->prepare(
+        "SELECT s.harga + bk.kode_unik AS total
+         FROM bookings bk
+         JOIN schedules s ON s.id = bk.schedule_id
+         LEFT JOIN payments p ON p.booking_id = bk.id
+         WHERE COALESCE(p.status, 'belum') <> 'lunas'
+           AND s.harga + bk.kode_unik BETWEEN ? AND ?"
+    );
+    $stmt->bind_param('ii', $min, $maks);
+    $stmt->execute();
+
+    $terpakai = [];
+    foreach ($stmt->get_result()->fetch_all(MYSQLI_ASSOC) as $baris) {
+        $terpakai[(int) round((float) $baris['total'])] = true;
+    }
+
+    $kosong = [];
+    for ($k = 1; $k <= 999; $k++) {
+        if (!isset($terpakai[$harga + $k])) {
+            $kosong[] = $k;
+        }
+    }
+
+    // Hampir mustahil semua 999 kode terpakai; kalau terjadi, pakai kode acak saja
+    return $kosong ? $kosong[array_rand($kosong)] : random_int(1, 999);
+}
+
+/** Total yang harus ditransfer penumpang = harga tiket + kode unik */
+function total_bayar(array $b): int
+{
+    return (int) round((float) $b['harga']) + (int) ($b['kode_unik'] ?? 0);
 }
 
 /**
@@ -41,11 +88,14 @@ function simpan_booking(mysqli $conn, int $user_id, int $schedule_id, string $no
             return [false, 'Maaf, kursi ' . $nomor_kursi . ' baru saja dipesan orang lain. Pilih kursi lain.'];
         }
 
-        $kode = buat_kode_booking();
-        $ins = $conn->prepare('INSERT INTO bookings (user_id, schedule_id, nomor_kursi, kode_booking) VALUES (?, ?, ?, ?)');
-        $ins->bind_param('iiss', $user_id, $schedule_id, $nomor_kursi, $kode);
+        $kode      = buat_kode_booking();
+        $kode_unik = buat_kode_unik($conn, (int) round((float) $jadwal['harga']));
+
+        $ins = $conn->prepare('INSERT INTO bookings (user_id, schedule_id, nomor_kursi, kode_booking, kode_unik) VALUES (?, ?, ?, ?, ?)');
+        $ins->bind_param('iissi', $user_id, $schedule_id, $nomor_kursi, $kode, $kode_unik);
         $ins->execute();
         $id = $conn->insert_id;
+        atur_batas_bayar($conn, $id);   // mulai hitung mundur batas waktu bayar
         $conn->commit();
         return [true, $id];
     } catch (Throwable $e) {
@@ -55,7 +105,11 @@ function simpan_booking(mysqli $conn, int $user_id, int $schedule_id, string $no
 }
 
 // alasan_tolak = alasan penolakan dari admin (kosong kalau belum pernah ditolak)
-const SQL_BOOKING = "SELECT bk.id, bk.user_id, bk.schedule_id, bk.nomor_kursi, bk.kode_booking,
+// kode_unik    = angka tambahan di nominal transfer (0 untuk pemesanan lama)
+// batas_bayar  = batas akhir pembayaran (kosong = tidak ada batas)
+// sisa_detik   = sisa waktu sampai batas_bayar, dihitung MySQL supaya tidak terpengaruh beda zona waktu PHP
+const SQL_BOOKING = "SELECT bk.id, bk.user_id, bk.schedule_id, bk.nomor_kursi, bk.kode_unik, bk.kode_booking,
+                            bk.batas_bayar, TIMESTAMPDIFF(SECOND, NOW(), bk.batas_bayar) AS sisa_detik,
                             s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga, s.sopir,
                             b.nama_bus, b.plat_nomor, b.kelas,
                             u.nama AS nama_penumpang,
@@ -92,4 +146,21 @@ function status_tiket(array $b): string
     // Admin menyimpan penolakan sebagai 'ditolak', sedangkan tampilan penumpang memakai 'gagal'.
     // Baris ini menerjemahkannya supaya badge "Ditolak" dan tombol upload ulang muncul.
     return $status === 'ditolak' ? 'gagal' : $status;
+}
+
+/**
+ * true bila tiket ini sedang dihitung mundur: belum dibayar / bukti ditolak, dan punya batas waktu.
+ * (Yang sudah kirim bukti atau lunas tidak punya batas, jadi tidak pernah dibatalkan otomatis.)
+ */
+function batas_bayar_aktif(array $b): bool
+{
+    return !empty($b['batas_bayar']) && in_array(status_tiket($b), ['belum_bayar', 'gagal'], true);
+}
+
+/** Batas bayar untuk teks singkat: "14:30 WIB", atau "13/10 01:00 WIB" kalau bukan hari ini */
+function teks_batas_bayar(string $datetime): string
+{
+    $t = strtotime($datetime);
+    $hari_ini = date('Y-m-d') === date('Y-m-d', $t);
+    return ($hari_ini ? '' : date('j/n', $t) . ' ') . date('H:i', $t) . ' WIB';
 }

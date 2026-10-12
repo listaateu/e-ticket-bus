@@ -15,6 +15,13 @@
  *   index.php?page=tiket&aksi=pembayaran&id=5    -> pages/tiket/pembayaran.php
  *   index.php?page=tiket&aksi=e_ticket&id=5      -> pages/tiket/e_ticket.php
  *   index.php?page=profil                        -> pages/profil/profil.php
+ *   index.php?page=tiket&aksi=cek_status         -> (bukan halaman) JSON status semua tiketmu,
+ *                                                   dipanggil otomatis tiap 5 detik oleh halaman
+ *                                                   Pembayaran & Tiket Saya yang sedang "Menunggu Verifikasi"
+ *
+ * BATAS WAKTU BAYAR:
+ *   Setiap halaman dibuka, pesanan yang melewati batas waktu bayar dibatalkan otomatis
+ *   (lihat includes/batas_bayar.php), jadi tidak perlu cron / jadwal khusus.
  *
  * URUTAN TAMPILAN (dari atas ke bawah):
  *   partials/head.php -> components/header.php -> flash -> [isi pages/...]
@@ -34,12 +41,17 @@ require_once __DIR__ . '/function/jadwal.php';     // query jadwal & kursi
 require_once __DIR__ . '/function/booking.php';    // simpan pemesanan & daftar tiket
 require_once __DIR__ . '/function/pembayaran.php'; // simpan bukti pembayaran
 require_once __DIR__ . '/function/profil.php';     // ubah profil & password
+require_once __DIR__ . '/../includes/batas_bayar.php'; // batas waktu bayar & pembersihan pesanan kedaluwarsa
 
 // Komponen tampilan kecil (kartu jadwal, badge, dll).
 // Semua file function/komponen_*.php dimuat otomatis.
 foreach (glob(__DIR__ . '/function/komponen_*.php') as $file_komponen) {
     require_once $file_komponen;
 }
+
+// Batalkan pesanan yang melewati batas waktu bayar SEBELUM halaman apa pun dibuat,
+// supaya denah kursi, daftar tiket, dan halaman pembayaran selalu memakai data terbaru.
+batalkan_pesanan_kedaluwarsa($conn);
 
 // ---------- 2. Tentukan halaman mana yang dibuka ----------
 // Menu yang diizinkan. Menu baru tinggal ditambah di sini + buat foldernya di pages/.
@@ -87,6 +99,23 @@ $sudah_login = sudah_login_penumpang();                   // true / false
 $user_id     = $sudah_login ? user_id_login() : 0;        // 0 = tamu
 $user        = $sudah_login ? get_user($conn, $user_id) : null;  // data penumpang (null bila tamu)
 $pakai_qr = false;                      // pages/tiket/e_ticket.php mengubahnya jadi true (memuat library QR)
+
+// ---------- 5. Endpoint kecil: status semua tiket milik penumpang (JSON) ----------
+// Dipakai halaman Pembayaran & Tiket Saya supaya tampilannya berubah SENDIRI
+// begitu admin menyetujui / menolak, tanpa penumpang menekan refresh.
+// Tidak menampilkan halaman apa pun: hanya mengirim JSON lalu berhenti.
+if ($page === 'tiket' && $aksi === 'cek_status') {
+    session_write_close();                       // lepas kunci session supaya tab lain tidak tertahan
+    $peta_status = [];
+    foreach (daftar_tiket_user($conn, $user_id) as $tiket_cek) {
+        $peta_status[(string) $tiket_cek['id']] = status_tiket($tiket_cek);
+    }
+    ob_end_clean();                              // buang output apa pun yang sempat tertahan
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
+    echo json_encode(['status' => (object) $peta_status]);
+    exit;
+}
 ?>
 <!-- head: <!DOCTYPE>, <html>, <head>, dan pembuka <body> -->
 <?php include __DIR__ . '/partials/head.php' ?>

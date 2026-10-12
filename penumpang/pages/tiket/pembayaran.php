@@ -10,7 +10,7 @@
 $id      = (int) ($_GET['id'] ?? 0);
 $booking = get_booking($conn, $id, $user_id);
 if (!$booking) {
-    set_flash('gagal', 'Pemesanan tidak ditemukan.');
+    set_flash('gagal', 'Pemesanan tidak ditemukan, atau sudah dibatalkan karena melewati batas waktu pembayaran.');
     redirect(url('tiket-saya'));
 }
 
@@ -24,8 +24,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect(url('pembayaran', ['id' => $id]));
 }
 
-$status = status_tiket($booking);
-$bisa_bayar = in_array($status, ['belum_bayar', 'gagal'], true);
+$status         = status_tiket($booking);
+$bisa_bayar     = in_array($status, ['belum_bayar', 'gagal'], true);
+$kode_unik      = (int) ($booking['kode_unik'] ?? 0);   // 0 untuk pemesanan lama
+$total_transfer = total_bayar($booking);                // harga tiket + kode unik
 ?>
     <?php komponen_page_title('Pembayaran', 'Kode booking ' . $booking['kode_booking'], ['Tiket Saya' => url('tiket-saya'), 'Pembayaran' => null]); ?>
 
@@ -48,10 +50,26 @@ $bisa_bayar = in_array($status, ['belum_bayar', 'gagal'], true);
                 <dt>Nomor Kursi</dt><dd class="fw-bold"><?= e($booking['nomor_kursi']) ?></dd>
               </dl>
               <hr>
+              <?php if ($kode_unik > 0): ?>
+                <div class="d-flex justify-content-between mb-1">
+                  <span class="text-muted">Harga tiket</span>
+                  <span><?= e(rupiah($booking['harga'])) ?></span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="text-muted">Kode unik</span>
+                  <span><?= e(rupiah($kode_unik)) ?></span>
+                </div>
+              <?php endif; ?>
               <div class="d-flex justify-content-between align-items-center">
                 <span>Total Bayar</span>
-                <span class="total-bayar"><?= e(rupiah($booking['harga'])) ?></span>
+                <span class="total-bayar"><?= e(rupiah($total_transfer)) ?></span>
               </div>
+              <?php if ($kode_unik > 0): ?>
+                <small class="text-muted d-block mt-2">
+                  Kode unik adalah angka tambahan (maksimal Rp999) agar pembayaranmu
+                  mudah dikenali admin dan cepat diverifikasi.
+                </small>
+              <?php endif; ?>
             </div>
           </div>
 
@@ -71,6 +89,7 @@ $bisa_bayar = in_array($status, ['belum_bayar', 'gagal'], true);
                   <h5 class="mt-3">Menunggu Verifikasi Admin</h5>
                   <p class="text-muted mb-1">Metode: <strong><?= e($booking['metode_pembayaran']) ?></strong></p>
                   <p class="text-muted">Bukti pembayaranmu sudah diterima. Kami akan mengabari setelah diverifikasi.</p>
+                  <p class="small text-muted"><i class="bi bi-arrow-repeat"></i> Halaman ini akan berubah sendiri begitu admin selesai memeriksa, tidak perlu di-refresh.</p>
                   <?php if ($booking['bukti_transfer']): ?>
                     <a href="<?= e(URL_BUKTI . $booking['bukti_transfer']) ?>" class="glightbox btn btn-outline-secondary btn-sm">Lihat Bukti</a>
                   <?php endif; ?>
@@ -78,6 +97,19 @@ $bisa_bayar = in_array($status, ['belum_bayar', 'gagal'], true);
 
               <?php else: ?>
                 <h5 class="mb-3">Pilih Metode Pembayaran</h5>
+                <?php if (batas_bayar_aktif($booking)): ?>
+                  <div class="alert alert-warning d-flex align-items-start gap-2" id="banner-batas" data-sisa="<?= (int) $booking['sisa_detik'] ?>">
+                    <i class="bi bi-clock-history fs-5"></i>
+                    <div>
+                      Selesaikan pembayaran sebelum <strong><?= e(tanggal_indo($booking['batas_bayar'])) ?></strong>.
+                      Sisa waktu: <strong id="hitung-mundur">--:--:--</strong>
+                      <div class="small mt-1">
+                        Lewat dari batas ini, pesanan dibatalkan otomatis dan kursi <?= e($booking['nomor_kursi']) ?>
+                        dibuka lagi untuk penumpang lain.
+                      </div>
+                    </div>
+                  </div>
+                <?php endif; ?>
                 <?php if ($status === 'gagal'): ?>
                   <div class="alert alert-danger">
                     <strong>Pembayaran sebelumnya ditolak admin.</strong>
@@ -102,7 +134,13 @@ $bisa_bayar = in_array($status, ['belum_bayar', 'gagal'], true);
                   <div class="info-rek mb-3">
                     <small class="text-muted d-block">Kirim pembayaran ke:</small>
                     <strong id="teks-rek"><?= e(array_values(METODE_BAYAR)[0]) ?></strong>
-                    <div>Nominal: <strong><?= e(rupiah($booking['harga'])) ?></strong></div>
+                    <div>Nominal: <strong><?= e(rupiah($total_transfer)) ?></strong></div>
+                    <?php if ($kode_unik > 0): ?>
+                      <small class="text-muted d-block mt-1">
+                        Transfer <strong>tepat sesuai nominal ini</strong> (termasuk 3 angka terakhir)
+                        supaya pembayaranmu cepat dicocokkan.
+                      </small>
+                    <?php endif; ?>
                   </div>
 
                   <div class="mb-3">
@@ -121,3 +159,82 @@ $bisa_bayar = in_array($status, ['belum_bayar', 'gagal'], true);
         </div>
       </div>
     </section>
+
+    <?php if (batas_bayar_aktif($booking)): ?>
+    <!-- Hitung mundur batas bayar. Saat habis, halaman dimuat ulang sekali: pesanan sudah dibatalkan server. -->
+    <script>
+    (function () {
+      var banner = document.getElementById('banner-batas');
+      var teks   = document.getElementById('hitung-mundur');
+      if (!banner || !teks) return;
+
+      var tujuan = Date.now() + parseInt(banner.getAttribute('data-sisa'), 10) * 1000;
+      var kunci  = 'muat-ulang-batas-<?= (int) $booking['id'] ?>';
+      var timer;
+
+      function dua(n) { return (n < 10 ? '0' : '') + n; }
+
+      function tick() {
+        var detik = Math.max(0, Math.round((tujuan - Date.now()) / 1000));
+        teks.textContent = dua(Math.floor(detik / 3600)) + ':' + dua(Math.floor((detik % 3600) / 60)) + ':' + dua(detik % 60);
+        if (detik <= 0) {
+          clearInterval(timer);
+          teks.textContent = 'Waktu habis';
+          try {
+            // Pengaman: muat ulang hanya sekali, supaya tidak berulang kalau server belum membatalkan
+            if (sessionStorage.getItem(kunci)) return;
+            sessionStorage.setItem(kunci, '1');
+          } catch (e) {}
+          setTimeout(function () { location.reload(); }, 1500);
+        }
+      }
+
+      timer = setInterval(tick, 1000);
+      tick();
+    })();
+    </script>
+    <?php endif; ?>
+
+    <?php if ($status === 'pending'): ?>
+    <!-- Menunggu verifikasi: tanya server tiap 5 detik. Begitu admin memutuskan, tampilkan pemberitahuan lalu muat ulang. -->
+    <script>
+    (function () {
+      var id        = '<?= (int) $booking['id'] ?>';
+      var alamat    = <?= json_encode(url('tiket-saya', ['aksi' => 'cek_status']), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
+      var tiketSaya = <?= json_encode(url('tiket-saya'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;
+      var selesai   = false;
+
+      function toast(teks, jenis) {
+        var d = document.createElement('div');
+        d.className = 'alert alert-' + jenis + ' shadow';
+        d.style.cssText = 'position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:2000;min-width:280px;max-width:90%;text-align:center;font-weight:600';
+        d.textContent = teks;
+        document.body.appendChild(d);
+      }
+
+      function cek() {
+        if (selesai || document.hidden) return;   // tab tidak sedang dilihat: tidak perlu bertanya
+        fetch(alamat, { credentials: 'same-origin', cache: 'no-store' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            var st = (data.status || {})[id] || 'hilang';
+            if (st === 'pending' || selesai) return;
+            selesai = true;
+
+            if (st === 'lunas')      toast('Pembayaran berhasil! Tiketmu sudah aktif.', 'success');
+            else if (st === 'gagal') toast('Pembayaran ditolak admin. Lihat alasannya di halaman ini.', 'danger');
+            else                     toast('Pesanan ini sudah dibatalkan.', 'secondary');
+
+            setTimeout(function () {
+              if (st === 'hilang') location.href = tiketSaya;
+              else location.reload();
+            }, 1800);
+          })
+          .catch(function () { /* koneksi putus sebentar: coba lagi di putaran berikutnya */ });
+      }
+
+      setInterval(cek, 5000);
+      document.addEventListener('visibilitychange', cek);   // balik ke tab ini -> langsung cek
+    })();
+    </script>
+    <?php endif; ?>
