@@ -15,6 +15,9 @@
  *   - Kosong  = tidak ada batas: sudah kirim bukti (menunggu admin), sudah lunas, atau pesanan lama.
  *   - Pembayaran yang sudah dikirim penumpang TIDAK pernah dibatalkan otomatis,
  *     karena lambatnya admin memeriksa bukan salah penumpang.
+ *   - Pesanan yang BELUM dibayar (atau buktinya ditolak) dan jadwalnya SUDAH berangkat juga
+ *     dibatalkan, apa pun isi batas_bayar-nya. Ini menutup pesanan lama yang batas_bayar-nya kosong
+ *     dan jadwal yang diubah admin setelah pesanan dibuat.
  * ============================================================
  */
 
@@ -55,7 +58,9 @@ function atur_batas_bayar(mysqli $db, int $booking_id): void
 /**
  * Hapus pesanan yang melewati batas waktu bayar. Mengembalikan jumlah pesanan yang dibatalkan.
  *
- * Yang dibatalkan: batas_bayar sudah lewat DAN tidak ada pembayaran berstatus pending/lunas.
+ * Yang dibatalkan: tidak ada pembayaran berstatus pending/lunas, DAN salah satu dari:
+ *   (a) batas_bayar sudah lewat, atau
+ *   (b) jadwal sudah berangkat (jam_berangkat < sekarang), walau batas_bayar kosong / masih di depan.
  * (Pembayaran 'ditolak' ikut dihapus bersama pesanannya.)
  * Aman dipanggil di setiap halaman: kalau tidak ada yang kedaluwarsa, hanya satu query ringan.
  * Tidak pernah melempar error ke halaman; kegagalan hanya dicatat di log PHP.
@@ -63,10 +68,13 @@ function atur_batas_bayar(mysqli $db, int $booking_id): void
 function batalkan_pesanan_kedaluwarsa(mysqli $db): int
 {
     // Syarat yang sama dipakai untuk pengecekan cepat dan untuk pengambilan yang dikunci
-    $syarat = "b.batas_bayar IS NOT NULL
-               AND b.batas_bayar < NOW()
-               AND NOT EXISTS (SELECT 1 FROM payments p
-                               WHERE p.booking_id = b.id AND p.status IN ('pending', 'lunas'))";
+    $syarat = "NOT EXISTS (SELECT 1 FROM payments p
+                           WHERE p.booking_id = b.id AND p.status IN ('pending', 'lunas'))
+               AND (
+                    (b.batas_bayar IS NOT NULL AND b.batas_bayar < NOW())
+                    OR EXISTS (SELECT 1 FROM schedules s
+                               WHERE s.id = b.schedule_id AND s.jam_berangkat < NOW())
+               )";
 
     try {
         // 1. Pengecekan cepat tanpa transaksi (kasus paling sering: tidak ada yang kedaluwarsa)

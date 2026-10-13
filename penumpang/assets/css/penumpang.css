@@ -115,3 +115,5 @@
   body { background: #fff; }
   .ticket { box-shadow: none; border: 1px solid #ccc; }
 }
+/* Tiket yang perjalanannya sudah selesai: dibuat sedikit pudar */
+.card-tiket.tiket-selesai { opacity: .75; }

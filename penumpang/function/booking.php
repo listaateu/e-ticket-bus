@@ -108,9 +108,11 @@ function simpan_booking(mysqli $conn, int $user_id, int $schedule_id, string $no
 // kode_unik    = angka tambahan di nominal transfer (0 untuk pemesanan lama)
 // batas_bayar  = batas akhir pembayaran (kosong = tidak ada batas)
 // sisa_detik   = sisa waktu sampai batas_bayar, dihitung MySQL supaya tidak terpengaruh beda zona waktu PHP
+// sudah_berangkat = 1 bila jam berangkat sudah lewat (tiket lunas yang sudah lewat tampil "Selesai")
 const SQL_BOOKING = "SELECT bk.id, bk.user_id, bk.schedule_id, bk.nomor_kursi, bk.kode_unik, bk.kode_booking,
                             bk.batas_bayar, TIMESTAMPDIFF(SECOND, NOW(), bk.batas_bayar) AS sisa_detik,
-                            s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga, s.sopir,
+                            (s.jam_berangkat < NOW()) AS sudah_berangkat,
+                            s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.jam_tiba, s.harga, s.sopir,
                             b.nama_bus, b.plat_nomor, b.kelas,
                             u.nama AS nama_penumpang,
                             p.id AS payment_id, p.metode_pembayaran, p.bukti_transfer,
@@ -132,7 +134,14 @@ function get_booking(mysqli $conn, int $id, int $user_id): ?array
 
 function daftar_tiket_user(mysqli $conn, int $user_id): array
 {
-    $stmt = $conn->prepare(SQL_BOOKING . ' WHERE bk.user_id = ? ORDER BY s.jam_berangkat DESC, bk.id DESC');
+    // Urutan: yang BELUM berangkat dulu, dari keberangkatan paling awal ke paling akhir.
+    // Yang SUDAH berangkat ditaruh di bawah, dari yang paling baru lewat ke yang paling lama.
+    $stmt = $conn->prepare(
+        SQL_BOOKING . ' WHERE bk.user_id = ?
+         ORDER BY (s.jam_berangkat < NOW()) ASC,
+                  IF(s.jam_berangkat >= NOW(), UNIX_TIMESTAMP(s.jam_berangkat), -UNIX_TIMESTAMP(s.jam_berangkat)) ASC,
+                  bk.id ASC'
+    );
     $stmt->bind_param('i', $user_id);
     $stmt->execute();
     return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -146,6 +155,12 @@ function status_tiket(array $b): string
     // Admin menyimpan penolakan sebagai 'ditolak', sedangkan tampilan penumpang memakai 'gagal'.
     // Baris ini menerjemahkannya supaya badge "Ditolak" dan tombol upload ulang muncul.
     return $status === 'ditolak' ? 'gagal' : $status;
+}
+
+/** true bila tiket sudah lunas tetapi bus sudah berangkat (perjalanan selesai) */
+function tiket_selesai(array $b): bool
+{
+    return status_tiket($b) === 'lunas' && !empty($b['sudah_berangkat']);
 }
 
 /**

@@ -17,6 +17,10 @@ if (status_tiket($booking) !== 'lunas') {
     set_flash('info', 'E-ticket tersedia setelah pembayaran diverifikasi admin.');
     redirect(url('pembayaran', ['id' => $id]));
 }
+if (tiket_selesai($booking)) {
+    set_flash('info', 'Perjalanan ini sudah selesai, e-ticket tidak berlaku lagi.');
+    redirect(url('tiket-saya'));
+}
 $pakai_qr = true;
 ?>
     <?php komponen_page_title('E-Ticket', 'Tunjukkan tiket ini kepada kondektur.', ['Tiket Saya' => url('tiket-saya'), 'E-Ticket' => null]); ?>

@@ -158,6 +158,7 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
             <a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'verifikasi_pembayaran' ? ' active' : '' ?>" title="Verifikasi Pembayaran">
               <i class="bi bi-cash-coin"></i>
               <span>Verifikasi Pembayaran</span>
+              <span class="notif-count" id="badge-verifikasi"></span>
             </a>
           </li>
           <li class="sidebar-menu-item">

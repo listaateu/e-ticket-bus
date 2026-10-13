@@ -49,49 +49,18 @@
           <button class="navbar-action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
             aria-expanded="false" id="btn-notifications" data-bs-auto-close="outside">
             <i class="bi bi-bell"></i>
-            <span class="navbar-action-badge"></span>
+            <span class="navbar-action-badge" id="notif-titik" style="display:none"></span>
           </button>
           <div class="dropdown-menu dropdown-menu-end dropdown-menu-notification p-0"
             aria-labelledby="btn-notifications">
             <div class="notification-header">
-              <h6 class="notification-title">Notifications</h6>
-              <button class="btn-clear-all" type="button">Mark all read</button>
+              <h6 class="notification-title" id="notif-judul">Notifikasi</h6>
             </div>
-            <div class="notification-list">
-              <!-- Sale Notification -->
-              <a href="#" class="notification-item">
-                <div class="notification-icon bg-success text-white">
-                  <i class="bi bi-wallet2"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-text">New sale received: <strong>$150.00</strong></p>
-                  <span class="notification-time">2 mins ago</span>
-                </div>
-                <span class="notification-unread-dot"></span>
-              </a>
-              <!-- User Registration Notification -->
-              <a href="#" class="notification-item">
-                <div class="notification-icon bg-primary text-white">
-                  <i class="bi bi-person-plus-fill"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-text">New user registered: <strong>John Doe</strong></p>
-                  <span class="notification-time">1 hour ago</span>
-                </div>
-                <span class="notification-unread-dot"></span>
-              </a>
-              <!-- Low Stock Notification -->
-              <a href="#" class="notification-item">
-                <div class="notification-icon bg-warning text-dark">
-                  <i class="bi bi-box-seam-fill"></i>
-                </div>
-                <div class="notification-content">
-                  <p class="notification-text">Stock running low: <strong>Hoodie</strong></p>
-                  <span class="notification-time">3 hours ago</span>
-                </div>
-              </a>
+            <!-- Diisi otomatis oleh assets/js/notif_pembayaran.js -->
+            <div class="notification-list" id="notif-daftar">
+              <div class="notif-kosong" style="padding:22px 16px;text-align:center;color:#6b7280">Memuat...</div>
             </div>
-            <a href="#" class="notification-footer">View All Notifications</a>
+            <a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran&status=pending" class="notification-footer">Lihat semua yang menunggu</a>
           </div>
         </div>
 

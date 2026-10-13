@@ -10,7 +10,7 @@ $id      = (int) ($_GET['id'] ?? 0);
 $error   = ''; // pesan kesalahan, kosong = tidak ada masalah
 
 // ---------- 1. AMBIL DATA JADWAL YANG MAU DIUBAH ----------
-$ambil = $koneksi->prepare("SELECT * FROM schedules WHERE id = ?");
+$ambil = $koneksi->prepare("SELECT *, (jam_berangkat < NOW()) AS sudah_lewat FROM schedules WHERE id = ?");
 $ambil->bind_param('i', $id);
 $ambil->execute();
 $jadwal = $ambil->get_result()->fetch_assoc();
@@ -18,6 +18,12 @@ $jadwal = $ambil->get_result()->fetch_assoc();
 // Kalau id tidak ditemukan, balik ke tabel
 if (!$jadwal) {
     echo '<script>window.location.href = "' . $kembali . '";</script>';
+    return;
+}
+
+// Jadwal yang sudah berangkat tidak boleh diubah (datanya dipakai untuk riwayat & laporan)
+if ((int) $jadwal['sudah_lewat'] === 1) {   // dibandingkan dengan jam MySQL, sama seperti di tabel
+    echo '<script>window.location.href = "' . $kembali . '&tab=sudah_berangkat&pesan=jadwal_lewat";</script>';
     return;
 }
 

@@ -25,7 +25,7 @@ $ambil = $koneksi->prepare(
     "SELECT p.id, p.metode_pembayaran, p.bukti_transfer, p.status, p.alasan_penolakan,
             b.kode_booking, b.nomor_kursi, b.kode_unik,
             u.nama, u.email,
-            s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
+            s.kota_asal, s.kota_tujuan, s.jam_berangkat, (s.jam_berangkat < NOW()) AS sudah_berangkat, s.harga,
             bs.plat_nomor, bs.kelas
      FROM payments p
      JOIN bookings  b  ON b.id  = p.booking_id
@@ -56,6 +56,7 @@ $pesan   = $_GET['pesan'] ?? '';
 $harga_tiket    = (int) round((float) $p['harga']);
 $kode_unik      = (int) ($p['kode_unik'] ?? 0);   // 0 untuk pemesanan lama
 $total_transfer = $harga_tiket + $kode_unik;
+$berangkat      = !empty($p['sudah_berangkat']);   // true = bus sudah berangkat
 ?>
 <!-- page header -->
 <div class="page-header">
@@ -75,6 +76,8 @@ $total_transfer = $harga_tiket + $kode_unik;
 
 <?php if ($pesan === 'tanpa_bukti') : ?>
   <div class="alert alert-danger">Pembayaran tidak bisa disetujui karena belum ada bukti transfer.</div>
+<?php elseif ($pesan === 'sudah_berangkat') : ?>
+  <div class="alert alert-danger">Pembayaran tidak bisa disetujui karena bus sudah berangkat. Kembalikan dana ke penumpang, lalu tolak pembayaran ini.</div>
 <?php elseif ($pesan === 'alasan_kosong') : ?>
   <div class="alert alert-danger">Pilih alasan penolakan dulu. Kalau memilih "Alasan lain", catatan wajib diisi.</div>
 <?php endif; ?>
@@ -122,12 +125,19 @@ $total_transfer = $harga_tiket + $kode_unik;
       <?php endif; ?>
 
       <?php if ($p['status'] === $STATUS_MENUNGGU) : ?>
+        <?php if ($berangkat) : ?>
+          <div class="alert alert-danger mb-3">
+            <strong>Bus ini sudah berangkat.</strong> Jangan disetujui.
+            Kembalikan dana ke penumpang secara manual (Rp <?= number_format($total_transfer, 0, ',', '.') ?>),
+            <u>lalu</u> klik Tolak. Pesanan ini akan dihapus dari sistem setelah ditolak.
+          </div>
+        <?php endif; ?>
         <div class="d-flex gap-2">
           <!-- Setujui -->
           <form action="/e-ticket-bus/admin/function/verifikasi_pembayaran.php?aksi=setujui" method="post"
                 onsubmit="return confirm('Setujui pembayaran ini?')">
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
-            <button type="submit" class="btn-custom btn-custom-primary"<?= $bukti === '' ? ' disabled' : '' ?>>
+            <button type="submit" class="btn-custom btn-custom-primary"<?= ($bukti === '' || $berangkat) ? ' disabled' : '' ?>>
               <i class="bi bi-check-lg"></i> Setujui
             </button>
           </form>
@@ -142,9 +152,9 @@ $total_transfer = $harga_tiket + $kode_unik;
         </div>
 
         <!-- Form alasan penolakan (tersembunyi sampai tombol Tolak diklik) -->
-        <div class="collapse mt-3" id="form-tolak">
+        <div class="collapse mt-3<?= $berangkat ? ' show' : '' ?>" id="form-tolak">
           <form action="/e-ticket-bus/admin/function/verifikasi_pembayaran.php?aksi=tolak" method="post"
-                onsubmit="return confirm('Tolak pembayaran ini dan kirim alasannya ke penumpang?')">
+                onsubmit="return confirm('<?= $berangkat ? 'Pastikan dana SUDAH dikembalikan ke penumpang. Pesanan ini akan dihapus dari sistem. Lanjutkan?' : 'Tolak pembayaran ini dan kirim alasannya ke penumpang?' ?>')">
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
 
             <div class="mb-3">
@@ -152,7 +162,7 @@ $total_transfer = $harga_tiket + $kode_unik;
               <select class="form-select" id="alasan" name="alasan" required>
                 <option value="">- Pilih alasan -</option>
                 <?php foreach (ALASAN_TOLAK as $kode => $teks) : ?>
-                  <option value="<?= htmlspecialchars($kode) ?>"><?= htmlspecialchars($teks) ?></option>
+                  <option value="<?= htmlspecialchars($kode) ?>"<?= ($berangkat && $kode === 'berangkat') ? ' selected' : '' ?>><?= htmlspecialchars($teks) ?></option>
                 <?php endforeach; ?>
               </select>
             </div>

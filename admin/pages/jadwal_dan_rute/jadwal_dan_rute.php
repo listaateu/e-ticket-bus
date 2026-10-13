@@ -12,52 +12,89 @@ if (!in_array($kelas, $daftar_kelas, true)) {
     $kelas = '';
 }
 
-// Hitung total jadwal (sesuai filter)
-if ($kelas !== '') {
-    $stmt = $koneksi->prepare(
-        "SELECT COUNT(*) AS t FROM schedules s JOIN buses b ON b.id = s.bus_id WHERE b.kelas = ?"
-    );
-    $stmt->bind_param('s', $kelas);
-    $stmt->execute();
-    $total = (int) $stmt->get_result()->fetch_assoc()['t'];
-} else {
-    $total = (int) $koneksi->query("SELECT COUNT(*) AS t FROM schedules")->fetch_assoc()['t'];
+// Tab waktu: yang AKAN DATANG (bawaan), yang SUDAH BERANGKAT, atau SEMUA.
+// "Sudah berangkat" = jam berangkat sudah lewat (dibandingkan dengan jam MySQL, NOW()).
+$daftar_tab = ['akan_datang' => 'Akan Datang', 'sudah_berangkat' => 'Sudah Berangkat', 'semua' => 'Semua'];
+$tab = $_GET['tab'] ?? 'akan_datang';
+if (!isset($daftar_tab[$tab])) {
+    $tab = 'akan_datang';
 }
 
+// Jumlah jadwal per tab (ikut filter kelas) untuk angka di tombol tab
+$hitung = ['akan_datang' => 0, 'sudah_berangkat' => 0, 'semua' => 0];
+$sql_hitung = "SELECT SUM(s.jam_berangkat >= NOW()) AS depan, SUM(s.jam_berangkat < NOW()) AS lewat
+               FROM schedules s JOIN buses b ON b.id = s.bus_id";
+if ($kelas !== '') {
+    $st = $koneksi->prepare($sql_hitung . " WHERE b.kelas = ?");
+    $st->bind_param('s', $kelas);
+    $st->execute();
+    $h = $st->get_result()->fetch_assoc();
+} else {
+    $h = $koneksi->query($sql_hitung)->fetch_assoc();
+}
+$hitung['akan_datang']     = (int) $h['depan'];
+$hitung['sudah_berangkat'] = (int) $h['lewat'];
+$hitung['semua']           = $hitung['akan_datang'] + $hitung['sudah_berangkat'];
+
+// Syarat query (kelas + tab)
+$where = ' WHERE 1=1';
+$tipe  = '';
+$param = [];
+if ($kelas !== '') {
+    $where .= ' AND b.kelas = ?';
+    $tipe .= 's'; $param[] = $kelas;
+}
+if ($tab === 'akan_datang') {
+    $where .= ' AND s.jam_berangkat >= NOW()';
+} elseif ($tab === 'sudah_berangkat') {
+    $where .= ' AND s.jam_berangkat < NOW()';
+}
+
+// Urutan:
+//  - Akan Datang     : keberangkatan paling awal di atas
+//  - Sudah Berangkat : yang paling baru berangkat di atas
+//  - Semua           : yang akan datang dulu (paling awal di atas), lalu yang sudah berangkat (paling baru di atas)
+if ($tab === 'sudah_berangkat') {
+    $urut = 's.jam_berangkat DESC';
+} elseif ($tab === 'semua') {
+    $urut = '(s.jam_berangkat < NOW()) ASC, IF(s.jam_berangkat >= NOW(), UNIX_TIMESTAMP(s.jam_berangkat), -UNIX_TIMESTAMP(s.jam_berangkat)) ASC';
+} else {
+    $urut = 's.jam_berangkat ASC';
+}
+
+$total = $hitung[$tab];
 [$per_halaman, $offset] = paginasi($total);
 
-// Gabungkan dengan tabel buses supaya nama bus, plat nomor & kelas bisa ditampilkan
-// ASC = jadwal keberangkatan paling awal di paling atas
-if ($kelas !== '') {
-    $stmt = $koneksi->prepare(
-        "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas
-         FROM schedules s
-         JOIN buses b ON b.id = s.bus_id
-         WHERE b.kelas = ?
-         ORDER BY s.jam_berangkat ASC
-         LIMIT ? OFFSET ?"
-    );
-    $stmt->bind_param('sii', $kelas, $per_halaman, $offset);
-    $stmt->execute();
-    $hasil = $stmt->get_result();
-} else {
-    $hasil = $koneksi->query(
-        "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas
-         FROM schedules s
-         JOIN buses b ON b.id = s.bus_id
-         ORDER BY s.jam_berangkat ASC
-         LIMIT $per_halaman OFFSET $offset"
-    );
+$stmt = $koneksi->prepare(
+    "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas, (s.jam_berangkat < NOW()) AS sudah_lewat
+     FROM schedules s
+     JOIN buses b ON b.id = s.bus_id
+     $where
+     ORDER BY $urut
+     LIMIT $per_halaman OFFSET $offset"
+);
+if ($tipe !== '') {
+    $stmt->bind_param($tipe, ...$param);
 }
+$stmt->execute();
+$hasil = $stmt->get_result();
 
 // Judul mengikuti kelas yang dipilih
 $judul   = $kelas !== '' ? "Jadwal & Rute Kelas $kelas" : 'Jadwal & Rute';
 $q_kelas = $kelas !== '' ? '&kelas=' . urlencode($kelas) : '';
+$url_tab = '/e-ticket-bus/admin/index.php?page=jadwal_dan_rute' . $q_kelas;
 
 $pesan = $_GET['pesan'] ?? '';
 ?>
 <!-- warna badge kelas bus: tiap kelas punya warna sendiri -->
 <style>
+  /* tab waktu yang sedang dibuka: hijau tua, tulisan putih */
+  .table-filter-group .btn-table-action.tab-aktif {
+    background: #0b2e22 !important;
+    color: #fff !important;
+    border-color: #0b2e22 !important;
+    font-weight: 700;
+  }
   .badge-kelas {
     display: inline-flex;
     align-items: center;
@@ -102,6 +139,8 @@ $pesan = $_GET['pesan'] ?? '';
   <div class="alert alert-success">Jadwal berhasil diubah.</div>
 <?php elseif ($pesan === 'hapus_ok') : ?>
   <div class="alert alert-success">Jadwal berhasil dihapus.</div>
+<?php elseif ($pesan === 'jadwal_lewat') : ?>
+  <div class="alert alert-warning">Jadwal yang sudah berangkat tidak bisa diubah. Kalau perlu jadwal baru, pakai tombol Tambah Jadwal.</div>
 <?php elseif ($pesan === 'jadwal_dipakai') : ?>
   <div class="alert alert-danger">Jadwal tidak bisa dihapus karena sudah ada pemesanan tiket.</div>
 <?php endif; ?>
@@ -112,7 +151,12 @@ $pesan = $_GET['pesan'] ?? '';
   <!-- bar atas tabel -->
   <div class="table-header-control">
     <div class="table-pagination-info">
-      Total: <strong><?= $total ?></strong> jadwal<?= $kelas !== '' ? ' kelas ' . htmlspecialchars($kelas) : '' ?>
+      Menampilkan: <strong><?= $total ?></strong> jadwal<?= $kelas !== '' ? ' kelas ' . htmlspecialchars($kelas) : '' ?>
+    </div>
+    <div class="table-filter-group">
+      <?php foreach ($daftar_tab as $kode => $label) : ?>
+        <a href="<?= $url_tab ?>&tab=<?= $kode ?>" class="btn-table-action<?= $tab === $kode ? ' tab-aktif' : '' ?>"<?= $tab === $kode ? ' aria-current="page"' : '' ?>><?= $label ?> (<?= $hitung[$kode] ?>)</a>
+      <?php endforeach; ?>
     </div>
         <?php if ($kelas === '') : ?>
       <div class="table-filter-group">
@@ -140,12 +184,12 @@ $pesan = $_GET['pesan'] ?? '';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="7" class="text-center">Belum ada data jadwal<?= $kelas !== '' ? ' untuk kelas ' . htmlspecialchars($kelas) : '' ?>.</td>
+            <td colspan="7" class="text-center"><?= $tab === 'sudah_berangkat' ? 'Belum ada jadwal yang sudah berangkat' : ($tab === 'akan_datang' ? 'Tidak ada jadwal yang akan datang' : 'Belum ada data jadwal') ?><?= $kelas !== '' ? ' untuk kelas ' . htmlspecialchars($kelas) : '' ?>.</td>
           </tr>
         <?php endif; ?>
 
-        <?php $no = $offset + 1; while ($j = $hasil->fetch_assoc()) : ?>
-          <tr>
+        <?php $no = $offset + 1; while ($j = $hasil->fetch_assoc()) : $lewat = (bool) $j['sudah_lewat']; ?>
+          <tr<?= $lewat ? ' style="opacity:.7"' : '' ?>>
             <td><?= $no++ ?></td>
             <td class="table-order-id">
               <?= htmlspecialchars($j['kota_asal']) ?>
@@ -158,12 +202,19 @@ $pesan = $_GET['pesan'] ?? '';
               <span class="badge-kelas kelas-<?= strtolower($j['kelas']) ?>"><?= htmlspecialchars($j['kelas']) ?></span>
             </td>
             <td><?= $j['sopir'] !== '' ? htmlspecialchars($j['sopir']) : '-' ?></td>
-            <td><?= date('d M Y, H:i', strtotime($j['jam_berangkat'])) ?></td>
+            <td>
+              <?= date('d M Y, H:i', strtotime($j['jam_berangkat'])) ?>
+              <?php if ($lewat) : ?><span class="badge-kelas" style="background:#e5e7eb;color:#4b5563">Selesai</span><?php endif; ?>
+            </td>
             <td>Rp <?= number_format((int) $j['harga'], 0, ',', '.') ?></td>
             <td>
               <div class="d-flex justify-content-center gap-1">
-                <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=update&id=<?= (int) $j['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
-                <a href="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=hapus&id=<?= (int) $j['id'] ?><?= $q_kelas ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus jadwal ini?')"><i class="bi bi-trash"></i></a>
+                <?php if ($lewat) : ?>
+                  <span class="table-btn-action" title="Jadwal yang sudah berangkat tidak bisa diubah" style="opacity:.35;cursor:not-allowed"><i class="bi bi-pencil"></i></span>
+                <?php else : ?>
+                  <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=update&id=<?= (int) $j['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
+                <?php endif; ?>
+                <a href="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=hapus&id=<?= (int) $j['id'] ?><?= $q_kelas ?>&tab=<?= $tab ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus jadwal ini?')"><i class="bi bi-trash"></i></a>
               </div>
             </td>
           </tr>

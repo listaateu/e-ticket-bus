@@ -40,6 +40,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'
         exit;
     }
 
+    // Bus sudah berangkat? Pembayaran seperti ini TIDAK boleh disetujui (tiketnya sudah tidak berguna).
+    // Dicek di server juga, bukan hanya dengan mematikan tombol di halaman detail.
+    $cek_berangkat = $koneksi->prepare(
+        "SELECT (s.jam_berangkat < NOW()) AS sudah_berangkat
+         FROM payments p
+         JOIN bookings  b ON b.id = p.booking_id
+         JOIN schedules s ON s.id = b.schedule_id
+         WHERE p.id = ?"
+    );
+    $cek_berangkat->bind_param('i', $id);
+    $cek_berangkat->execute();
+    $sudah_berangkat = (int) ($cek_berangkat->get_result()->fetch_assoc()['sudah_berangkat'] ?? 0) === 1;
+
+    if ($aksi === 'setujui' && $sudah_berangkat) {
+        header("Location: $kembali&aksi=detail&id=$id&pesan=sudah_berangkat");
+        exit;
+    }
+
     $alasan = null;   // hanya diisi kalau pembayaran ditolak
 
     if ($aksi === 'setujui') {
@@ -73,7 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'
     // Ditolak -> penumpang diberi waktu baru (sama dengan batas bayar awal) untuk mengunggah bukti yang benar.
     // Kalau tidak, hitung mundur lamanya sudah dihentikan saat ia mengirim bukti, dan pesanannya akan
     // tertahan selamanya. Hanya dijalankan kalau baris ini memang berhasil diubah oleh admin ini.
-    if ($aksi === 'tolak' && $ubah->affected_rows === 1) {
+    // (Kalau bus sudah berangkat, tidak ada waktu baru: pesanan ikut dibersihkan sistem setelah ditolak.)
+    if ($aksi === 'tolak' && $ubah->affected_rows === 1 && !$sudah_berangkat) {
         atur_batas_bayar($koneksi, (int) $bayar['booking_id']);
     }
 

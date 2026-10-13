@@ -14,6 +14,7 @@ function komponen_badge_status(string $status): string
         'pending'     => ['warning text-dark', 'Menunggu Verifikasi'],
         'lunas'       => ['success', 'Lunas'],
         'gagal'       => ['danger', 'Ditolak'],
+        'selesai'     => ['dark', 'Selesai'],
     ];
     [$kelas, $label] = $peta[$status] ?? ['secondary', ucfirst($status)];
     return '<span class="badge bg-' . $kelas . ' status-badge">' . e($label) . '</span>';

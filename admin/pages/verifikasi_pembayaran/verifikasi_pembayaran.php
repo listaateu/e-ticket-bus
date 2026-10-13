@@ -36,6 +36,7 @@ $sql = "SELECT p.id, p.metode_pembayaran, p.status,
                b.kode_booking, b.nomor_kursi,
                u.nama,
                s.kota_asal, s.kota_tujuan,
+               (s.jam_berangkat < NOW()) AS sudah_berangkat,
                s.harga + b.kode_unik AS total_transfer
         FROM payments p
         JOIN bookings  b ON b.id = p.booking_id
@@ -50,6 +51,15 @@ if ($filter !== '') {
     // Yang menunggu ditaruh paling atas supaya cepat terlihat
     $hasil = $koneksi->query($sql . " ORDER BY (p.status = 'pending') DESC, p.id DESC LIMIT $per_halaman OFFSET $offset");
 }
+
+// Pembayaran yang masih "Menunggu" padahal bus-nya sudah berangkat: perlu refund manual, jangan disetujui
+$perlu_refund = (int) $koneksi->query(
+    "SELECT COUNT(*) AS jml
+     FROM payments p
+     JOIN bookings  b ON b.id = p.booking_id
+     JOIN schedules s ON s.id = b.schedule_id
+     WHERE p.status = 'pending' AND s.jam_berangkat < NOW()"
+)->fetch_assoc()['jml'];
 
 $pesan = $_GET['pesan'] ?? '';
 $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
@@ -69,6 +79,14 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
   </nav>
 </div>
 <!-- page header -->
+
+<?php if ($perlu_refund > 0) : ?>
+  <div class="alert alert-danger">
+    <strong><?= $perlu_refund ?> pembayaran</strong> masih menunggu verifikasi padahal bus-nya sudah berangkat.
+    Jangan disetujui: kembalikan dana ke penumpang secara manual, lalu tolak pembayarannya.
+    Cari yang bertanda "Bus sudah berangkat" di tabel bawah.
+  </div>
+<?php endif; ?>
 
 <?php if ($pesan === 'setujui_ok') : ?>
   <div class="alert alert-success">Pembayaran disetujui. Status menjadi lunas.</div>
@@ -126,7 +144,12 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
             <td><?= htmlspecialchars($p['nomor_kursi']) ?></td>
             <td><strong>Rp <?= number_format((int) round((float) $p['total_transfer']), 0, ',', '.') ?></strong></td>
             <td><?= htmlspecialchars($p['metode_pembayaran']) ?></td>
-            <td><span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span></td>
+            <td>
+              <span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span>
+              <?php if ($p['status'] === 'pending' && !empty($p['sudah_berangkat'])) : ?>
+                <br><span class="badge-table failed">Bus sudah berangkat</span>
+              <?php endif; ?>
+            </td>
             <td>
               <div class="d-flex justify-content-center gap-1">
                 <a href="<?= $url ?>&aksi=detail&id=<?= (int) $p['id'] ?>" class="table-btn-action" title="Lihat &amp; verifikasi"><i class="bi bi-eye"></i></a>

@@ -9,11 +9,16 @@
  */
 $semua  = daftar_tiket_user($conn, $user_id);
 $filter = $_GET['status'] ?? 'semua';
+// 'lunas' = tiket aktif (bus belum berangkat); 'selesai' = tiket lunas yang busnya sudah berangkat
 $tiket  = $filter === 'semua'
     ? $semua
-    : array_values(array_filter($semua, fn($b) => status_tiket($b) === $filter));
+    : array_values(array_filter($semua, function ($b) use ($filter) {
+        if ($filter === 'selesai') { return tiket_selesai($b); }
+        if ($filter === 'lunas')   { return status_tiket($b) === 'lunas' && !tiket_selesai($b); }
+        return status_tiket($b) === $filter;
+    }));
 
-$tab = ['semua' => 'Semua', 'belum_bayar' => 'Belum Dibayar', 'pending' => 'Menunggu', 'lunas' => 'Lunas', 'gagal' => 'Ditolak'];
+$tab = ['semua' => 'Semua', 'belum_bayar' => 'Belum Dibayar', 'pending' => 'Menunggu', 'lunas' => 'Lunas', 'gagal' => 'Ditolak', 'selesai' => 'Selesai'];
 ?>
     <?php komponen_page_title('Tiket Saya', 'Riwayat pemesanan dan e-ticket kamu.', ['Tiket Saya' => null]); ?>
 

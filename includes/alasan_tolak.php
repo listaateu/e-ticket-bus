@@ -17,6 +17,7 @@ const ALASAN_TOLAK = [
     'rekening' => 'Rekening atau metode tujuan tidak sesuai',
     'tanggal'  => 'Tanggal atau waktu transfer tidak sesuai',
     'belum'    => 'Dana belum masuk ke rekening kami',
+    'berangkat'=> 'Bus sudah berangkat. Dana akan dikembalikan oleh admin',
     'lainnya'  => 'Alasan lain (tulis di catatan)',
 ];
 

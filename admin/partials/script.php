@@ -5,3 +5,6 @@
 
   <!-- Local dashboard interactions controller -->
   <script src="/e-ticket-bus/admin/assets/js/dashboard.js"></script>
+
+  <!-- Notifikasi pembayaran masuk (tanpa refresh) -->
+  <script src="/e-ticket-bus/admin/assets/js/notif_pembayaran.js"></script>

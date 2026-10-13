@@ -66,6 +66,11 @@ $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
 </div>
 <!-- page header -->
 
+<?php $pesan = $_GET['pesan'] ?? ''; ?>
+<?php if ($pesan === 'gagal') : ?>
+  <div class="alert alert-danger">Gagal memproses. Coba lagi.</div>
+<?php endif; ?>
+
 <div class="row g-3">
 
   <!-- penumpang & perjalanan -->

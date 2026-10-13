@@ -84,6 +84,7 @@ function komponen_card_jadwal(array $j): void
         'Satu e-ticket berlaku untuk satu kursi dan satu kali perjalanan sesuai jadwal.',
         'Kursi yang sudah dipesan tidak dapat dipilih oleh penumpang lain.',
         'Tiket baru berlaku setelah status pembayaran lunas.',
+        'Pembayaran harus diselesaikan dalam ' . teks_durasi_bayar() . ' setelah pemesanan. Setelah waktu habis, pesanan dibatalkan otomatis dan pembayaran tidak bisa dikirim lagi. Pembayaran yang dikirim setelah itu tidak dapat dikembalikan.',
         'Ketentuan lain (bagasi, perubahan jadwal, pembatalan) mengikuti kebijakan operator bus.',
     ];
     ?>
