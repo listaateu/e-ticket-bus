@@ -5,6 +5,7 @@
  * FUNGSI       : Navbar atas (logo, menu, tombol Masuk/Daftar/Keluar) dan pembuka <main>.
  * DIPANGGIL DARI: index.php
  * CATATAN      : Menu aktif ditentukan variabel $menu_aktif dari index.php. Tambah menu: edit array $menu di file ini.
+ *                Tombol Keluar memakai class "js-logout" -> memunculkan modal konfirmasi (modal ada di components/footer.php).
  * ============================================================
  */
 ?>
@@ -32,7 +33,7 @@
       </nav>
 
       <?php if (!empty($sudah_login)): ?>
-        <a class="btn-getstarted" href="<?= e(LOGOUT_URL) ?>">Keluar</a>
+        <a class="btn-getstarted js-logout" href="<?= e(LOGOUT_URL) ?>">Keluar</a>
       <?php else: ?>
         <a class="btn-getstarted btn-masuk" href="<?= e(LOGIN_URL) ?>">Masuk</a>
         <a class="btn-getstarted" href="<?= e(REGISTER_URL) ?>">Daftar</a>

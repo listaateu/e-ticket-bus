@@ -1,39 +1,38 @@
-<header id="header" class="header d-flex align-items-center fixed-top">
+<?php
+/**
+ * ============================================================
+ * FILE         : sopir/components/header.php
+ * FUNGSI       : Navbar atas (logo, menu, nama sopir, tombol Keluar) dan pembuka <main>.
+ * DIPANGGIL DARI: sopir/index.php
+ * CATATAN      : Menu aktif ditentukan variabel $menu_aktif dari index.php. Tambah menu: edit array $menu di file ini.
+ *                Tombol Keluar memakai class "js-logout" -> memunculkan modal konfirmasi (modal ada di components/footer.php).
+ * ============================================================
+ */
+?>
+  <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center">
 
-      <a href="/e-ticket-bus/index.php" class="logo d-flex align-items-center me-auto">
-        <h1 class="sitename">Logis</h1>
+      <a href="<?= url('beranda') ?>" class="logo d-flex align-items-center me-auto">
+        <h1 class="sitename"><i class="fa-solid fa-bus me-2"></i>E-Ticket Bus <small class="label-peran">Sopir</small></h1>
       </a>
 
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="/e-ticket-bus/index.php" class="active">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#pricing">Pricing</a></li>
-          <li class="dropdown"><a href="#"><span>Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-            <ul>
-              <li><a href="#">Dropdown 1</a></li>
-              <li class="dropdown"><a href="#"><span>Deep Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-                <ul>
-                  <li><a href="#">Deep Dropdown 1</a></li>
-                  <li><a href="#">Deep Dropdown 2</a></li>
-                  <li><a href="#">Deep Dropdown 3</a></li>
-                  <li><a href="#">Deep Dropdown 4</a></li>
-                  <li><a href="#">Deep Dropdown 5</a></li>
-                </ul>
-              </li>
-              <li><a href="#">Dropdown 2</a></li>
-              <li><a href="#">Dropdown 3</a></li>
-              <li><a href="#">Dropdown 4</a></li>
-            </ul>
-          </li>
-          <li><a href="#footer">Contact</a></li>
+          <?php
+          $menu = ['beranda' => 'Beranda', 'jadwal' => 'Jadwal Saya', 'scan' => 'Scan Tiket'];
+          foreach ($menu as $kode => $label):
+              $aktif = ($menu_aktif === $kode) ? 'active' : '';
+          ?>
+            <li><a href="index.php?page=<?= $kode ?>" class="<?= $aktif ?>"><?= e($label) ?></a></li>
+          <?php endforeach; ?>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
-      <a class="btn-getstarted" href="#pricing">Get a Quote</a>
+      <span class="nama-sopir d-none d-md-inline-flex"><i class="bi bi-person-circle me-1"></i><?= e($sopir['nama']) ?></span>
+      <a class="btn-getstarted js-logout" href="<?= e(LOGOUT_URL) ?>">Keluar</a>
 
     </div>
   </header>
+
+  <main class="main">

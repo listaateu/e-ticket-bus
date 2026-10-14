@@ -32,12 +32,14 @@ while ($r = $q->fetch_assoc()) {
 $total = $hitung[$filter];
 [$per_halaman, $offset] = paginasi($total);
 
+// CATATAN: b.jumlah_bayi = nama kolom jumlah bayi di tabel bookings.
+// Kalau di databasemu namanya beda, ganti di sini dan di bagian tabel bawah.
 $sql = "SELECT p.id, p.metode_pembayaran, p.status,
-               b.kode_booking, b.nomor_kursi,
+               b.kode_booking, b.nomor_kursi, b.jumlah_dewasa, b.jumlah_bayi,
                u.nama,
                s.kota_asal, s.kota_tujuan,
                (s.jam_berangkat < NOW()) AS sudah_berangkat,
-               s.harga + b.kode_unik AS total_transfer
+               s.harga * b.jumlah_dewasa + b.kode_unik AS total_transfer
         FROM payments p
         JOIN bookings  b ON b.id = p.booking_id
         JOIN users     u ON u.id = b.user_id
@@ -135,11 +137,16 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
 
         <?php $no = $offset + 1; while ($p = $hasil->fetch_assoc()) :
           $info = $STATUS[$p['status']] ?? ['label' => $p['status'], 'badge' => 'pending'];
+          $jml_dewasa = (int) $p['jumlah_dewasa'];
+          $jml_bayi   = (int) $p['jumlah_bayi'];
         ?>
           <tr>
             <td><?= $no++ ?></td>
             <td class="table-order-id"><?= htmlspecialchars($p['kode_booking']) ?></td>
-            <td><?= htmlspecialchars($p['nama']) ?></td>
+            <td>
+              <?= htmlspecialchars($p['nama']) ?>
+              <br><small class="text-muted"><?= $jml_dewasa ?> dewasa<?= $jml_bayi > 0 ? ', ' . $jml_bayi . ' bayi' : '' ?></small>
+            </td>
             <td><?= htmlspecialchars($p['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= htmlspecialchars($p['kota_tujuan']) ?></td>
             <td><?= htmlspecialchars($p['nomor_kursi']) ?></td>
             <td><strong>Rp <?= number_format((int) round((float) $p['total_transfer']), 0, ',', '.') ?></strong></td>

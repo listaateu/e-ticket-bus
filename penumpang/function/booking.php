@@ -6,6 +6,8 @@
  *                Setiap pemesanan mendapat KODE UNIK (1-999) yang ditambahkan ke harga tiket,
  *                supaya admin mudah mencocokkan nominal transfer dengan mutasi rekening.
  *                Setiap pemesanan juga punya BATAS WAKTU BAYAR (bookings.batas_bayar, lihat includes/batas_bayar.php).
+ *                Satu pemesanan bisa untuk 1-4 penumpang DEWASA (masing-masing dapat kursi) + BAYI (gratis, tanpa kursi,
+ *                maksimal 1 bayi per dewasa). Data tiap penumpang disimpan di tabel booking_penumpang.
  * DIPANGGIL DARI: index.php; dipakai pages/jadwal/pilih_kursi.php, pages/tiket/*
  * ============================================================
  */
@@ -22,18 +24,18 @@ function buat_kode_booking(): string
  * sama dengan pemesanan lain yang belum lunas (menunggu bayar / menunggu verifikasi / ditolak).
  * Pemesanan yang sudah lunas tidak dihitung, jadi kodenya boleh dipakai lagi.
  */
-function buat_kode_unik(mysqli $conn, int $harga): int
+function buat_kode_unik(mysqli $conn, int $harga): int   // $harga = total tiket (harga x jumlah dewasa)
 {
     $min = $harga + 1;
     $maks = $harga + 999;
 
     $stmt = $conn->prepare(
-        "SELECT s.harga + bk.kode_unik AS total
+        "SELECT s.harga * bk.jumlah_dewasa + bk.kode_unik AS total
          FROM bookings bk
          JOIN schedules s ON s.id = bk.schedule_id
          LEFT JOIN payments p ON p.booking_id = bk.id
          WHERE COALESCE(p.status, 'belum') <> 'lunas'
-           AND s.harga + bk.kode_unik BETWEEN ? AND ?"
+           AND s.harga * bk.jumlah_dewasa + bk.kode_unik BETWEEN ? AND ?"
     );
     $stmt->bind_param('ii', $min, $maks);
     $stmt->execute();
@@ -54,17 +56,59 @@ function buat_kode_unik(mysqli $conn, int $harga): int
     return $kosong ? $kosong[array_rand($kosong)] : random_int(1, 999);
 }
 
-/** Total yang harus ditransfer penumpang = harga tiket + kode unik */
+/** Batas penumpang dewasa dalam satu pemesanan (bayi maksimal sama dengan jumlah dewasa) */
+const MAKS_DEWASA = 4;
+
+/**
+ * Membaca jumlah penumpang dari alamat/formulir ($_GET), lalu merapikannya:
+ * dewasa 1-4, bayi 0 sampai jumlah dewasa. Mengembalikan [dewasa, bayi].
+ */
+function jumlah_penumpang_dari(array $sumber): array
+{
+    $dewasa = max(1, min(MAKS_DEWASA, (int) ($sumber['dewasa'] ?? 1)));
+    $bayi   = max(0, min($dewasa, (int) ($sumber['bayi'] ?? 0)));
+    return [$dewasa, $bayi];
+}
+
+/** "2 Dewasa, 1 Bayi" */
+function teks_penumpang(int $dewasa, int $bayi = 0): string
+{
+    return $dewasa . ' Dewasa' . ($bayi > 0 ? ', ' . $bayi . ' Bayi' : '');
+}
+
+/** Jumlah dewasa pada satu pemesanan (pemesanan lama otomatis 1) */
+function jumlah_dewasa(array $b): int
+{
+    return max(1, (int) ($b['jumlah_dewasa'] ?? 1));
+}
+
+/** Harga tiket seluruh penumpang dewasa (bayi gratis) */
+function harga_tiket_total(array $b): int
+{
+    return (int) round((float) $b['harga']) * jumlah_dewasa($b);
+}
+
+/** Total yang harus ditransfer penumpang = harga tiket x jumlah dewasa + kode unik */
 function total_bayar(array $b): int
 {
-    return (int) round((float) $b['harga']) + (int) ($b['kode_unik'] ?? 0);
+    return harga_tiket_total($b) + (int) ($b['kode_unik'] ?? 0);
+}
+
+/** Nama penumpang: huruf, spasi, titik, koma, apostrof, strip; 2-100 karakter */
+function nama_penumpang_valid(string $nama): bool
+{
+    // preg dengan flag /u menghitung huruf (bukan byte), jadi tidak butuh ekstensi mbstring
+    return preg_match('/^.{2,100}$/us', $nama) === 1 && preg_match("/^[\\p{L}\\s.,'\\-]+$/u", $nama) === 1;
 }
 
 /**
- * Simpan pemesanan. Mengembalikan [berhasil(bool), pesan|id_booking].
+ * Simpan pemesanan untuk beberapa penumpang. Mengembalikan [berhasil(bool), pesan|id_booking].
+ *   $nama_dewasa : nama tiap penumpang dewasa (1-4 orang)
+ *   $nama_bayi   : nama tiap bayi (0 sampai sebanyak dewasa), bayi tidak memakai kursi
+ *   $kursi       : nomor kursi, jumlahnya HARUS sama dengan jumlah dewasa; kursi ke-1 untuk dewasa ke-1, dst.
  * Cek kursi dilakukan di dalam transaksi + lock supaya tidak dobel.
  */
-function simpan_booking(mysqli $conn, int $user_id, int $schedule_id, string $nomor_kursi): array
+function simpan_booking(mysqli $conn, int $user_id, int $schedule_id, array $nama_dewasa, array $nama_bayi, array $kursi): array
 {
     $jadwal = get_jadwal($conn, $schedule_id);
     if (!$jadwal) {
@@ -73,35 +117,96 @@ function simpan_booking(mysqli $conn, int $user_id, int $schedule_id, string $no
     if (strtotime($jadwal['jam_berangkat']) < time()) {
         return [false, 'Jadwal ini sudah berangkat.'];
     }
-    $nomor_kursi = trim($nomor_kursi);
-    if (!ctype_digit($nomor_kursi) || (int) $nomor_kursi < 1 || (int) $nomor_kursi > (int) $jadwal['kapasitas_kursi']) {
-        return [false, 'Nomor kursi tidak valid.'];
+
+    // ---- Rapikan & periksa jumlah penumpang ----
+    $nama_dewasa = array_values(array_map(fn($n) => trim(preg_replace('/\s+/', ' ', (string) $n)), $nama_dewasa));
+    $nama_bayi   = array_values(array_map(fn($n) => trim(preg_replace('/\s+/', ' ', (string) $n)), $nama_bayi));
+    $dewasa = count($nama_dewasa);
+    $bayi   = count($nama_bayi);
+
+    if ($dewasa < 1 || $dewasa > MAKS_DEWASA) {
+        return [false, 'Jumlah penumpang dewasa harus 1 sampai ' . MAKS_DEWASA . ' orang.'];
     }
+    if ($bayi > $dewasa) {
+        return [false, 'Jumlah bayi tidak boleh lebih banyak dari jumlah dewasa (1 dewasa maksimal membawa 1 bayi).'];
+    }
+    foreach (array_merge($nama_dewasa, $nama_bayi) as $nama) {
+        if (!nama_penumpang_valid($nama)) {
+            return [false, 'Nama penumpang wajib diisi dengan benar (huruf saja, minimal 2 karakter).'];
+        }
+    }
+
+    // ---- Periksa kursi ----
+    $kursi = array_values(array_map(fn($k) => trim((string) $k), $kursi));
+    if (count($kursi) !== $dewasa || count(array_unique($kursi)) !== $dewasa) {
+        return [false, 'Pilih ' . $dewasa . ' kursi yang berbeda, sesuai jumlah penumpang dewasa.'];
+    }
+    foreach ($kursi as $k) {
+        if (!ctype_digit($k) || (int) $k < 1 || (int) $k > (int) $jadwal['kapasitas_kursi']) {
+            return [false, 'Nomor kursi tidak valid.'];
+        }
+    }
+    $kursi = array_map(fn($k) => (string) (int) $k, $kursi);   // "05" -> "5"
 
     $conn->begin_transaction();
     try {
-        $cek = $conn->prepare('SELECT id FROM bookings WHERE schedule_id = ? AND nomor_kursi = ? FOR UPDATE');
-        $cek->bind_param('is', $schedule_id, $nomor_kursi);
+        // Kunci kursi-kursi yang diminta, lalu pastikan belum ada yang memesan
+        $tanda = implode(',', array_fill(0, $dewasa, '?'));
+        $cek   = $conn->prepare("SELECT nomor_kursi FROM booking_penumpang WHERE schedule_id = ? AND nomor_kursi IN ($tanda) FOR UPDATE");
+        $cek->bind_param('i' . str_repeat('s', $dewasa), $schedule_id, ...$kursi);
         $cek->execute();
-        if ($cek->get_result()->num_rows > 0) {
+        $diambil = array_column($cek->get_result()->fetch_all(MYSQLI_ASSOC), 'nomor_kursi');
+        if ($diambil) {
             $conn->rollback();
-            return [false, 'Maaf, kursi ' . $nomor_kursi . ' baru saja dipesan orang lain. Pilih kursi lain.'];
+            return [false, 'Maaf, kursi ' . implode(', ', $diambil) . ' baru saja dipesan orang lain. Pilih kursi lain.'];
         }
 
-        $kode      = buat_kode_booking();
-        $kode_unik = buat_kode_unik($conn, (int) round((float) $jadwal['harga']));
+        $kode        = buat_kode_booking();
+        $total_tiket = (int) round((float) $jadwal['harga']) * $dewasa;
+        $kode_unik   = buat_kode_unik($conn, $total_tiket);
 
-        $ins = $conn->prepare('INSERT INTO bookings (user_id, schedule_id, nomor_kursi, kode_booking, kode_unik) VALUES (?, ?, ?, ?, ?)');
-        $ins->bind_param('iissi', $user_id, $schedule_id, $nomor_kursi, $kode, $kode_unik);
+        $urut_kursi = array_map('intval', $kursi);
+        sort($urut_kursi);
+        $teks_kursi = implode(', ', $urut_kursi);   // contoh "5, 6, 12" (hanya untuk tampilan)
+
+        $ins = $conn->prepare('INSERT INTO bookings (user_id, schedule_id, nomor_kursi, jumlah_dewasa, jumlah_bayi, kode_booking, kode_unik) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $ins->bind_param('iisiisi', $user_id, $schedule_id, $teks_kursi, $dewasa, $bayi, $kode, $kode_unik);
         $ins->execute();
         $id = $conn->insert_id;
+
+        $pax = $conn->prepare('INSERT INTO booking_penumpang (booking_id, schedule_id, nama, tipe, nomor_kursi) VALUES (?, ?, ?, ?, ?)');
+        foreach ($nama_dewasa as $i => $nama) {
+            $tipe = 'dewasa';
+            $pax->bind_param('iisss', $id, $schedule_id, $nama, $tipe, $kursi[$i]);
+            $pax->execute();
+        }
+        foreach ($nama_bayi as $nama) {
+            $tipe = 'bayi';
+            $tanpa_kursi = null;
+            $pax->bind_param('iisss', $id, $schedule_id, $nama, $tipe, $tanpa_kursi);
+            $pax->execute();
+        }
+
         atur_batas_bayar($conn, $id);   // mulai hitung mundur batas waktu bayar
         $conn->commit();
         return [true, $id];
     } catch (Throwable $e) {
-        $conn->rollback();
+        try { $conn->rollback(); } catch (Throwable $ignored) {}
+        // Kode 1062 = kursi yang sama dipesan orang lain pada detik yang sama
+        if ($e instanceof mysqli_sql_exception && (int) $e->getCode() === 1062) {
+            return [false, 'Maaf, ada kursi yang baru saja dipesan orang lain. Pilih kursi lain.'];
+        }
         return [false, 'Gagal menyimpan pemesanan. Coba lagi.'];
     }
+}
+
+/** Daftar penumpang satu pemesanan: dewasa dulu (urut kursi), lalu bayi */
+function daftar_penumpang_booking(mysqli $conn, int $booking_id): array
+{
+    $stmt = $conn->prepare("SELECT nama, tipe, nomor_kursi FROM booking_penumpang WHERE booking_id = ? ORDER BY (tipe = 'bayi') ASC, id ASC");
+    $stmt->bind_param('i', $booking_id);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 
 // alasan_tolak = alasan penolakan dari admin (kosong kalau belum pernah ditolak)
@@ -109,7 +214,7 @@ function simpan_booking(mysqli $conn, int $user_id, int $schedule_id, string $no
 // batas_bayar  = batas akhir pembayaran (kosong = tidak ada batas)
 // sisa_detik   = sisa waktu sampai batas_bayar, dihitung MySQL supaya tidak terpengaruh beda zona waktu PHP
 // sudah_berangkat = 1 bila jam berangkat sudah lewat (tiket lunas yang sudah lewat tampil "Selesai")
-const SQL_BOOKING = "SELECT bk.id, bk.user_id, bk.schedule_id, bk.nomor_kursi, bk.kode_unik, bk.kode_booking,
+const SQL_BOOKING = "SELECT bk.id, bk.user_id, bk.schedule_id, bk.nomor_kursi, bk.jumlah_dewasa, bk.jumlah_bayi, bk.kode_unik, bk.kode_booking,
                             bk.batas_bayar, TIMESTAMPDIFF(SECOND, NOW(), bk.batas_bayar) AS sisa_detik,
                             (s.jam_berangkat < NOW()) AS sudah_berangkat,
                             s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.jam_tiba, s.harga, s.sopir,

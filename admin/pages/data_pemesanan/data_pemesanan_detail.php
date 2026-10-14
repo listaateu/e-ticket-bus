@@ -14,9 +14,9 @@ $STATUS = [
 $id = (int) ($_GET['id'] ?? 0);
 
 $ambil = $koneksi->prepare(
-    "SELECT b.id, b.kode_booking, b.nomor_kursi, b.schedule_id, b.batas_bayar,
+    "SELECT b.id, b.kode_booking, b.nomor_kursi, b.jumlah_dewasa, b.jumlah_bayi, b.schedule_id, b.batas_bayar,
             u.nama, u.email,
-            s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
+            s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga * b.jumlah_dewasa AS harga,
             bs.plat_nomor, bs.kelas, bs.kapasitas_kursi,
             p.id AS payment_id, p.metode_pembayaran, COALESCE(p.status, 'belum') AS status_bayar
      FROM bookings b
@@ -38,7 +38,7 @@ if (!$b) {
 
 // Kursi terisi di jadwal yang sama (pembayaran yang ditolak tidak dihitung)
 $hitung = $koneksi->prepare(
-    "SELECT COUNT(*) AS terisi
+    "SELECT COALESCE(SUM(b.jumlah_dewasa), 0) AS terisi
      FROM bookings b
      LEFT JOIN payments p ON p.id = (SELECT MAX(id) FROM payments WHERE booking_id = b.id)
      WHERE b.schedule_id = ? AND COALESCE(p.status, 'belum') <> 'ditolak'"
@@ -46,6 +46,19 @@ $hitung = $koneksi->prepare(
 $hitung->bind_param('i', $b['schedule_id']);
 $hitung->execute();
 $terisi = (int) $hitung->get_result()->fetch_assoc()['terisi'];
+
+// Daftar penumpang (dewasa dulu, lalu bayi)
+// status_naik / waktu_naik / pemeriksa diisi sopir saat memindai e-ticket (halaman sopir)
+$ambil_pax = $koneksi->prepare(
+    "SELECT bp.nama, bp.tipe, bp.nomor_kursi, bp.status_naik, bp.waktu_naik, k.nama AS pemeriksa
+     FROM booking_penumpang bp
+     LEFT JOIN users k ON k.id = bp.diperiksa_oleh
+     WHERE bp.booking_id = ?
+     ORDER BY (bp.tipe = 'bayi') ASC, bp.id ASC"
+);
+$ambil_pax->bind_param('i', $id);
+$ambil_pax->execute();
+$daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $info = $STATUS[$b['status_bayar']] ?? ['label' => $b['status_bayar'], 'badge' => 'pending'];
 $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
@@ -83,7 +96,23 @@ $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
         <tr><td class="text-muted">Rute</td><td><?= htmlspecialchars($b['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= htmlspecialchars($b['kota_tujuan']) ?></td></tr>
         <tr><td class="text-muted">Berangkat</td><td><?= date('d M Y, H:i', strtotime($b['jam_berangkat'])) ?></td></tr>
         <tr><td class="text-muted">Bus</td><td><?= htmlspecialchars($b['plat_nomor']) ?> (<?= htmlspecialchars($b['kelas']) ?>)</td></tr>
+        <tr><td class="text-muted">Jumlah Penumpang</td><td><?= (int) $b['jumlah_dewasa'] ?> dewasa<?= (int) $b['jumlah_bayi'] > 0 ? ', ' . (int) $b['jumlah_bayi'] . ' bayi' : '' ?></td></tr>
         <tr><td class="text-muted">Nomor Kursi</td><td><strong><?= htmlspecialchars($b['nomor_kursi']) ?></strong></td></tr>
+        <?php foreach ($daftar_pax as $px) : ?>
+          <tr>
+            <td class="text-muted ps-4"><small><?= $px['tipe'] === 'bayi' ? 'Bayi' : 'Dewasa' ?></small></td>
+            <td><?= htmlspecialchars($px['nama']) ?><?= $px['tipe'] === 'dewasa' ? ' <small class="text-muted">· Kursi ' . htmlspecialchars((string) $px['nomor_kursi']) . '</small>' : ' <small class="text-muted">· tanpa kursi</small>' ?>
+            <?php if ($px['tipe'] === 'dewasa' && $b['status_bayar'] === 'lunas') : ?>
+              <?php if ((int) $px['status_naik'] === 1) : ?>
+                <br><span class="badge-table success">Sudah naik<?= !empty($px['waktu_naik']) ? ' · ' . date('H:i', strtotime($px['waktu_naik'])) : '' ?></span>
+                <?php if (!empty($px['pemeriksa'])) : ?><small class="text-muted"> oleh <?= htmlspecialchars($px['pemeriksa']) ?></small><?php endif; ?>
+              <?php else : ?>
+                <br><span class="badge-table pending">Belum naik</span>
+              <?php endif; ?>
+            <?php endif; ?>
+            </td>
+          </tr>
+        <?php endforeach; ?>
         <tr><td class="text-muted">Kursi Terisi</td><td><?= $terisi ?> dari <?= (int) $b['kapasitas_kursi'] ?> kursi</td></tr>
       </table>
     </div>

@@ -17,6 +17,8 @@ if ($tanggal !== '' && (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggal) || !strto
     $tanggal = '';
 }
 
+[$dewasa, $bayi] = jumlah_penumpang_dari($_GET);   // jumlah penumpang yang dicari (dewasa 1-4, bayi 0..dewasa)
+
 $ambil_daftar = function (string $kunci): array {
     return array_values(array_filter((array) ($_GET[$kunci] ?? []), 'is_string'));
 };
@@ -91,7 +93,7 @@ $harga_min  = $semua ? min(array_map('floatval', array_column($semua, 'harga')))
 $ada_filter = $f_kelas || $f_bus || $f_waktu;
 
 // ---------- 3. Pembuat link (tanggal/filter berubah, sisanya tetap) ----------
-$dasar        = ['asal' => $asal, 'tujuan' => $tujuan, 'tanggal' => $tanggal];
+$dasar        = ['asal' => $asal, 'tujuan' => $tujuan, 'tanggal' => $tanggal, 'dewasa' => $dewasa, 'bayi' => $bayi];
 $filter_aktif = ['kelas' => $f_kelas, 'bus' => $f_bus, 'waktu' => $f_waktu, 'urut' => $urut === 'awal' ? '' : $urut];
 $link = function (array $ubah = []) use ($dasar, $filter_aktif): string {
     $q = array_merge(['page' => 'jadwal'], $dasar, $filter_aktif, $ubah);
@@ -117,6 +119,13 @@ if ($tanggal !== '' && !isset($tab_tanggal[$tanggal])) {   // tanggal pilihan di
 $sub_tanggal = $tanggal !== '' ? tanggal_indo($tanggal, false) : 'Semua tanggal';
 $rute_kosong = ($asal === '' && $tujuan === '');
 ?>
+    <!-- Perbaikan: kotak pilihan Penumpang (Dewasa/Bayi) terpotong di tepi bawah banner biru.
+         Banner dibiarkan meluap ke bawah (hanya sisi kiri-kanan yang tetap dipotong) dan diberi lapisan di atas bagian lain. -->
+    <style>
+      .tv-result-head { overflow-x: clip; overflow-y: visible; position: relative; z-index: 20; }
+      .tv-result-head .tv-edit-card { overflow: visible; }
+    </style>
+
     <!-- Banner biru: rute + tab tanggal -->
     <section class="tv-result-head">
       <div class="container">
@@ -127,7 +136,7 @@ $rute_kosong = ($asal === '' && $tujuan === '');
             <?php else: ?>
               <h1>Berangkat: <?= e($asal !== '' ? $asal : 'Semua kota') ?> <i class="bi bi-arrow-right"></i> <?= e($tujuan !== '' ? $tujuan : 'Semua kota') ?></h1>
             <?php endif; ?>
-            <div class="tv-meta"><i class="bi bi-calendar-event me-1"></i><?= e($sub_tanggal) ?></div>
+            <div class="tv-meta"><i class="bi bi-calendar-event me-1"></i><?= e($sub_tanggal) ?><span class="mx-2">·</span><i class="bi bi-people me-1"></i><?= e(teks_penumpang($dewasa, $bayi)) ?></div>
           </div>
           <button class="tv-edit" type="button" data-bs-toggle="collapse" data-bs-target="#edit-cari" aria-expanded="<?= $rute_kosong ? 'true' : 'false' ?>">
             Edit <i class="bi bi-pencil ms-1"></i>
@@ -136,7 +145,7 @@ $rute_kosong = ($asal === '' && $tujuan === '');
 
         <div class="collapse <?= $rute_kosong ? 'show' : '' ?>" id="edit-cari">
           <div class="tv-edit-card">
-            <?php komponen_form_cari($kota, compact('asal', 'tujuan', 'tanggal')); ?>
+            <?php komponen_form_cari($kota, compact('asal', 'tujuan', 'tanggal', 'dewasa', 'bayi')); ?>
           </div>
         </div>
 
@@ -173,6 +182,8 @@ $rute_kosong = ($asal === '' && $tujuan === '');
               <input type="hidden" name="asal" value="<?= e($asal) ?>">
               <input type="hidden" name="tujuan" value="<?= e($tujuan) ?>">
               <input type="hidden" name="tanggal" value="<?= e($tanggal) ?>">
+              <input type="hidden" name="dewasa" value="<?= $dewasa ?>">
+              <input type="hidden" name="bayi" value="<?= $bayi ?>">
 
               <div class="tv-filter-head">
                 <div class="judul">
@@ -238,7 +249,7 @@ $rute_kosong = ($asal === '' && $tujuan === '');
               </div>
             <?php endif; ?>
 
-            <?php foreach ($hasil as $j) { komponen_card_jadwal($j); } ?>
+            <?php foreach ($hasil as $j) { komponen_card_jadwal($j, $dewasa, $bayi); } ?>
           </div>
 
         </div>

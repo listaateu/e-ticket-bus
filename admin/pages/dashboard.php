@@ -23,7 +23,7 @@ $PAY = "LEFT JOIN payments p ON p.id = (SELECT MAX(id) FROM payments WHERE booki
 // ---------- Jumlah per status + pendapatan ----------
 $jml = ['belum' => 0, 'pending' => 0, 'lunas' => 0, 'ditolak' => 0];
 $pendapatan = 0;
-$q = $koneksi->query("SELECT COALESCE(p.status,'belum') AS st, COUNT(*) AS n, SUM(s.harga) AS rp
+$q = $koneksi->query("SELECT COALESCE(p.status,'belum') AS st, COUNT(*) AS n, SUM(s.harga * b.jumlah_dewasa) AS rp
                       FROM bookings b JOIN schedules s ON s.id = b.schedule_id $PAY GROUP BY st");
 while ($r = $q->fetch_assoc()) {
     if (isset($jml[$r['st']])) { $jml[$r['st']] = (int) $r['n']; }
@@ -34,7 +34,7 @@ $total = array_sum($jml);
 // ---------- Pendapatan bulan ini vs bulan lalu (berdasarkan tanggal berangkat) ----------
 $bln_ini  = date('Y-m');
 $bln_lalu = date('Y-m', strtotime('first day of last month'));
-$st = $koneksi->prepare("SELECT DATE_FORMAT(s.jam_berangkat,'%Y-%m') AS ym, SUM(s.harga) AS rp
+$st = $koneksi->prepare("SELECT DATE_FORMAT(s.jam_berangkat,'%Y-%m') AS ym, SUM(s.harga * b.jumlah_dewasa) AS rp
                          FROM bookings b JOIN schedules s ON s.id = b.schedule_id $PAY
                          WHERE p.status = 'lunas' AND DATE_FORMAT(s.jam_berangkat,'%Y-%m') IN (?, ?) GROUP BY ym");
 $st->bind_param('ss', $bln_ini, $bln_lalu);
@@ -53,7 +53,7 @@ if ($lalu > 0) {
 
 // ---------- Grafik harian: 7 hari lalu s/d 7 hari ke depan (tanggal berangkat) ----------
 $awal = date('Y-m-d', strtotime('-7 days')); $akhir = date('Y-m-d', strtotime('+7 days'));
-$st = $koneksi->prepare("SELECT DATE(s.jam_berangkat) AS tgl, COALESCE(p.status,'belum') AS st, COUNT(*) AS n, SUM(s.harga) AS rp
+$st = $koneksi->prepare("SELECT DATE(s.jam_berangkat) AS tgl, COALESCE(p.status,'belum') AS st, COUNT(*) AS n, SUM(s.harga * b.jumlah_dewasa) AS rp
                          FROM bookings b JOIN schedules s ON s.id = b.schedule_id $PAY
                          WHERE DATE(s.jam_berangkat) BETWEEN ? AND ? GROUP BY tgl, st");
 $st->bind_param('ss', $awal, $akhir);
@@ -70,11 +70,11 @@ for ($t = strtotime($awal); $t <= strtotime($akhir); $t += 86400) {
 }
 
 // ---------- Pemesanan terbaru & keberangkatan terdekat ----------
-$terbaru = $koneksi->query("SELECT b.id, b.kode_booking, u.nama, s.kota_asal, s.kota_tujuan, s.harga, COALESCE(p.status,'belum') AS st
+$terbaru = $koneksi->query("SELECT b.id, b.kode_booking, u.nama, s.kota_asal, s.kota_tujuan, s.harga * b.jumlah_dewasa AS harga, COALESCE(p.status,'belum') AS st
                             FROM bookings b JOIN users u ON u.id = b.user_id JOIN schedules s ON s.id = b.schedule_id $PAY
                             ORDER BY b.id DESC LIMIT 5");
 $berangkat = $koneksi->query("SELECT s.kota_asal, s.kota_tujuan, s.jam_berangkat, bs.kapasitas_kursi,
-                                (SELECT COUNT(*) FROM bookings b $PAY WHERE b.schedule_id = s.id AND COALESCE(p.status,'belum') <> 'ditolak') AS terisi
+                                (SELECT COALESCE(SUM(b.jumlah_dewasa), 0) FROM bookings b $PAY WHERE b.schedule_id = s.id AND COALESCE(p.status,'belum') <> 'ditolak') AS terisi
                               FROM schedules s JOIN buses bs ON bs.id = s.bus_id
                               WHERE s.jam_berangkat >= NOW() ORDER BY s.jam_berangkat ASC LIMIT 6");
 $A = '/e-ticket-bus/admin/index.php';

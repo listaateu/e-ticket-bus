@@ -43,13 +43,14 @@ if (!function_exists('bus_tgl_singkat')) {
 }
 
 /** Kartu satu jadwal keberangkatan + jendela detailnya */
-function komponen_card_jadwal(array $j): void
+function komponen_card_jadwal(array $j, int $dewasa = 1, int $bayi = 0): void
 {
     static $script_dimuat = false;
 
     $id        = (int) $j['id'];
     $sisa      = max(0, (int) $j['kapasitas_kursi'] - (int) $j['terisi']);
     $penuh     = $sisa === 0;
+    $kurang    = !$penuh && $sisa < $dewasa;   // kursi masih ada, tapi kurang dari jumlah dewasa yang dicari
     $sedikit   = !$penuh && $sisa <= 5;
     $kelas_css = strtolower(preg_replace('/[^a-z]/i', '', (string) $j['kelas']));
 
@@ -81,7 +82,9 @@ function komponen_card_jadwal(array $j): void
         'Jam keberangkatan, jenis bus, dan rute dapat berubah karena alasan operasional.',
     ];
     $syarat = [
-        'Satu e-ticket berlaku untuk satu kursi dan satu kali perjalanan sesuai jadwal.',
+        'Satu pemesanan bisa untuk maksimal ' . MAKS_DEWASA . ' penumpang dewasa. Setiap dewasa mendapat satu kursi.',
+        'Bayi gratis dan tidak mendapat kursi sendiri (dipangku). Satu dewasa maksimal membawa satu bayi.',
+        'Satu e-ticket berlaku untuk semua penumpang dalam pemesanan tersebut, untuk satu kali perjalanan sesuai jadwal.',
         'Kursi yang sudah dipesan tidak dapat dipilih oleh penumpang lain.',
         'Tiket baru berlaku setelah status pembayaran lunas.',
         'Pembayaran harus diselesaikan dalam ' . teks_durasi_bayar() . ' setelah pemesanan. Setelah waktu habis, pesanan dibatalkan otomatis dan pembayaran tidak bisa dikirim lagi. Pembayaran yang dikirim setelah itu tidak dapat dikembalikan.',
@@ -155,10 +158,15 @@ function komponen_card_jadwal(array $j): void
 
         <div class="tv-card-price">
           <div class="tv-harga"><?= e(rupiah($j['harga'])) ?> <small>/pax</small></div>
+          <?php if ($dewasa > 1): ?>
+            <div class="tv-harga-total">Total <?= e(rupiah((float) $j['harga'] * $dewasa)) ?> <small>untuk <?= e(teks_penumpang($dewasa, $bayi)) ?></small></div>
+          <?php endif; ?>
           <?php if ($penuh): ?>
             <span class="tv-pesan disabled">Penuh</span>
+          <?php elseif ($kurang): ?>
+            <span class="tv-pesan disabled" title="Sisa kursi kurang dari jumlah penumpang">Kursi kurang</span>
           <?php else: ?>
-            <a href="<?= url('pilih-kursi', ['id' => $j['id']]) ?>" class="tv-pesan">Pesan Sekarang</a>
+            <a href="<?= url('pilih-kursi', ['id' => $j['id'], 'dewasa' => $dewasa, 'bayi' => $bayi]) ?>" class="tv-pesan">Pesan Sekarang</a>
           <?php endif; ?>
         </div>
 

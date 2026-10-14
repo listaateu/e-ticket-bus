@@ -21,14 +21,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_flash('gagal', 'Sesi tidak valid, silakan ulangi.');
         redirect(url('pilih-kursi', ['id' => $id]));
     }
-    [$ok, $hasil] = simpan_booking($conn, $user_id, $id, $_POST['kursi'] ?? '');
+    $post_dewasa = array_values((array) ($_POST['nama_dewasa'] ?? []));
+    $post_bayi   = array_values((array) ($_POST['nama_bayi'] ?? []));
+    $post_kursi  = array_values(array_filter(explode(',', (string) ($_POST['kursi'] ?? '')), 'strlen'));
+
+    [$ok, $hasil] = simpan_booking($conn, $user_id, $id, $post_dewasa, $post_bayi, $post_kursi);
     if ($ok) {
         set_flash('sukses', 'Kursi berhasil dipesan. Selesaikan pembayaran dalam ' . teks_durasi_bayar() . ' agar kursimu tidak dilepas.');
         redirect(url('pembayaran', ['id' => $hasil]));
     }
+
+    // Gagal: simpan nama yang sudah diketik supaya penumpang tidak perlu mengisi ulang
+    $_SESSION['pax_lama'] = ['dewasa' => array_map('strval', $post_dewasa), 'bayi' => array_map('strval', $post_bayi)];
+    [$d_balik, $b_balik] = jumlah_penumpang_dari(['dewasa' => count($post_dewasa), 'bayi' => count($post_bayi)]);
     set_flash('gagal', $hasil);
-    redirect(url('pilih-kursi', ['id' => $id]));
+    redirect(url('pilih-kursi', ['id' => $id, 'dewasa' => $d_balik, 'bayi' => $b_balik]));
 }
+
+// Jumlah penumpang dari alamat (hasil pencarian). Nilainya dirapikan: dewasa 1-4, bayi 0..dewasa.
+[$dewasa, $bayi] = jumlah_penumpang_dari($_GET);
+
+// Nama yang diketik sebelumnya (kalau pemesanan tadi gagal)
+$pax_lama = $_SESSION['pax_lama'] ?? [];
+unset($_SESSION['pax_lama']);
+$nama_user = (string) ($user['nama'] ?? '');
 
 $terisi = array_map('strval', kursi_terisi($conn, $id));
 $total  = max(1, (int) $jadwal['kapasitas_kursi']);
@@ -45,20 +61,39 @@ $baris     = array_chunk(range(1, $total), $per_baris);
 $tiba_valid = !empty($jadwal['jam_tiba']) && strtotime($jadwal['jam_tiba']) > strtotime($jadwal['jam_berangkat']);
 $durasi     = $tiba_valid ? durasi_perjalanan($jadwal['jam_berangkat'], $jadwal['jam_tiba']) : '';
 
-$nama_user = (string) ($user['nama'] ?? '');
 $sisa      = max(0, $total - count($terisi));
+$cukup     = $sisa >= $dewasa;   // sisa kursi cukup untuk semua penumpang dewasa
+
+// Isi awal kolom nama: penumpang ke-1 = nama akun, sisanya kosong (atau isi lama bila habis gagal)
+$isi_dewasa = [];
+for ($i = 0; $i < $dewasa; $i++) {
+    $isi_dewasa[$i] = (string) ($pax_lama['dewasa'][$i] ?? ($i === 0 ? $nama_user : ''));
+}
+$isi_bayi = [];
+for ($i = 0; $i < $bayi; $i++) {
+    $isi_bayi[$i] = (string) ($pax_lama['bayi'][$i] ?? '');
+}
+$harga_satuan = (float) $jadwal['harga'];
+$total_tiket  = $harga_satuan * $dewasa;
 ?>
     <?php komponen_stepper(1); ?>
 
     <section id="pilih-kursi" class="tv-page tv-book">
       <div class="container">
-        <form method="post" id="form-kursi">
+        <!-- Formulir kecil (GET) untuk "Terapkan" jumlah penumpang. Kolom pilihannya ada di kartu "Jumlah Penumpang" (atribut form="form-jumlah"). -->
+        <form method="get" action="index.php" id="form-jumlah">
+          <input type="hidden" name="page" value="jadwal">
+          <input type="hidden" name="aksi" value="pilih_kursi">
+          <input type="hidden" name="id" value="<?= $id ?>">
+        </form>
+
+        <form method="post" id="form-kursi" data-dewasa="<?= $dewasa ?>">
           <?= csrf_field() ?>
           <input type="hidden" name="kursi" id="input-kursi" value="">
 
           <div class="tv-book-head">
             <h1>Pemesanan Anda</h1>
-            <p>Cek datamu, pilih kursi, lalu lanjut bayar. Gampang kok.</p>
+            <p>Isi nama penumpang, pilih kursi, lalu lanjut bayar. Gampang kok.</p>
           </div>
 
           <div class="row g-4">
@@ -92,22 +127,67 @@ $sisa      = max(0, $total - count($terisi));
                 </div>
               </div>
 
+              <!-- Jumlah penumpang (ubah lalu klik Terapkan; halaman dimuat ulang dengan jumlah baru) -->
+              <div class="tv-bcard">
+                <div class="tv-bcard-head">
+                  <span class="tv-bicon"><i class="bi bi-people"></i></span>
+                  <div>
+                    <div class="tv-btitle">Jumlah Penumpang</div>
+                    <div class="tv-bsub">Dewasa maksimal <?= MAKS_DEWASA ?> orang. Bayi gratis, tanpa kursi sendiri.</div>
+                  </div>
+                </div>
+                <div class="tv-jml">
+                  <label>
+                    <span>Dewasa</span>
+                    <select name="dewasa" form="form-jumlah" id="pilih-dewasa">
+                      <?php for ($n = 1; $n <= MAKS_DEWASA; $n++): ?>
+                        <option value="<?= $n ?>" <?= $n === $dewasa ? 'selected' : '' ?>><?= $n ?> Dewasa</option>
+                      <?php endfor; ?>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Bayi</span>
+                    <select name="bayi" form="form-jumlah" id="pilih-bayi">
+                      <?php for ($n = 0; $n <= MAKS_DEWASA; $n++): ?>
+                        <option value="<?= $n ?>" <?= $n === $bayi ? 'selected' : '' ?> <?= $n > $dewasa ? 'disabled' : '' ?>><?= $n ?> Bayi</option>
+                      <?php endfor; ?>
+                    </select>
+                  </label>
+                  <button type="submit" form="form-jumlah" class="tv-btn-outline tv-jml-btn">Terapkan</button>
+                </div>
+              </div>
+
               <!-- Detail penumpang -->
               <div class="tv-bcard">
                 <div class="tv-bcard-head">
                   <span class="tv-bicon"><i class="bi bi-people-fill"></i></span>
                   <div>
                     <div class="tv-btitle">Detail Penumpang</div>
-                    <div class="tv-bsub">Satu pemesanan untuk satu kursi</div>
+                    <div class="tv-bsub"><?= e(teks_penumpang($dewasa, $bayi)) ?>. Tulis nama sesuai kartu identitas.</div>
                   </div>
                 </div>
-                <div class="tv-pax">
-                  <span class="no">1</span>
-                  <div>
-                    <strong><?= e($nama_user !== '' ? $nama_user : 'Penumpang') ?></strong>
-                    <small>Dewasa</small>
+
+                <?php foreach ($isi_dewasa as $i => $isi): ?>
+                  <div class="tv-pax-form">
+                    <span class="no"><?= $i + 1 ?></span>
+                    <div class="isi">
+                      <label for="nama-dewasa-<?= $i ?>">Penumpang <?= $i + 1 ?> <small>· Dewasa</small></label>
+                      <input type="text" class="form-control" id="nama-dewasa-<?= $i ?>" name="nama_dewasa[]"
+                             value="<?= e($isi) ?>" placeholder="Nama lengkap" maxlength="100" required autocomplete="off">
+                    </div>
                   </div>
-                </div>
+                <?php endforeach; ?>
+
+                <?php foreach ($isi_bayi as $i => $isi): ?>
+                  <div class="tv-pax-form bayi">
+                    <span class="no"><i class="fa-solid fa-baby"></i></span>
+                    <div class="isi">
+                      <label for="nama-bayi-<?= $i ?>">Bayi <?= $i + 1 ?> <small>· dipangku, gratis, tanpa kursi</small></label>
+                      <input type="text" class="form-control" id="nama-bayi-<?= $i ?>" name="nama_bayi[]"
+                             value="<?= e($isi) ?>" placeholder="Nama bayi" maxlength="100" required autocomplete="off">
+                    </div>
+                  </div>
+                <?php endforeach; ?>
               </div>
 
               <!-- Pilih kursi -->
@@ -122,8 +202,8 @@ $sisa      = max(0, $total - count($terisi));
                 <button type="button" class="tv-kursi-btn" id="btn-buka-kursi" data-bs-toggle="modal" data-bs-target="#modal-kursi">
                   <span class="ikon"><i class="fa-solid fa-couch"></i></span>
                   <span class="teks">
-                    <strong>Nomor Kursi</strong>
-                    <small id="status-kursi">Belum dipilih. Ketuk untuk memilih kursi.</small>
+                    <strong>Nomor Kursi<?= $dewasa > 1 ? " ({$dewasa} kursi)" : "" ?></strong>
+                    <small id="status-kursi">Belum dipilih. Ketuk untuk memilih <?= $dewasa ?> kursi.</small>
                   </span>
                   <span class="angka" id="angka-kursi" hidden></span>
                   <i class="bi bi-chevron-right panah"></i>
@@ -188,16 +268,22 @@ $sisa      = max(0, $total - count($terisi));
                 <div class="tv-side-price">
                   <h6>Rincian harga</h6>
                   <div class="baris-harga">
-                    <span><?= e($jadwal['nama_bus']) ?> · Dewasa x1</span>
-                    <span id="teks-harga" data-harga="<?= (float) $jadwal['harga'] ?>"><?= e(rupiah($jadwal['harga'])) ?></span>
+                    <span><?= e($jadwal['nama_bus']) ?> · Dewasa x<?= $dewasa ?></span>
+                    <span id="teks-harga" data-harga="<?= $total_tiket ?>"><?= e(rupiah($total_tiket)) ?></span>
                   </div>
+                  <?php if ($bayi > 0): ?>
+                    <div class="baris-harga muted">
+                      <span>Bayi x<?= $bayi ?></span>
+                      <span>Gratis</span>
+                    </div>
+                  <?php endif; ?>
                   <div class="baris-harga muted">
                     <span>Kursi</span>
                     <span id="teks-kursi">Belum dipilih</span>
                   </div>
                   <div class="baris-harga total">
                     <span>Harga tiket</span>
-                    <span><?= e(rupiah($jadwal['harga'])) ?></span>
+                    <span><?= e(rupiah($total_tiket)) ?></span>
                   </div>
                   <small class="tv-kode-info">
                     <i class="bi bi-info-circle"></i>
@@ -208,7 +294,7 @@ $sisa      = max(0, $total - count($terisi));
                 <button type="submit" id="btn-lanjut" class="tv-cta" disabled>
                   Lanjut ke Pembayaran <i class="bi bi-arrow-right ms-1"></i>
                 </button>
-                <div class="tv-cta-hint" id="hint-lanjut">Pilih kursi dulu ya.</div>
+                <div class="tv-cta-hint" id="hint-lanjut"><?= $cukup ? "Pilih " . $dewasa . " kursi dulu ya." : "Sisa kursi tidak cukup untuk " . $dewasa . " dewasa. Kurangi jumlah penumpang." ?></div>
               </div>
             </div>
 
@@ -232,13 +318,21 @@ $sisa      = max(0, $total - count($terisi));
                 <div class="modal-body">
                   <div class="row g-4">
                     <div class="col-md-4">
-                      <div class="tv-pax aktif">
-                        <span class="no">1</span>
-                        <div>
-                          <strong><?= e($nama_user !== '' ? $nama_user : 'Penumpang') ?></strong>
-                          <small id="modal-kursi-teks">Belum pilih kursi</small>
-                        </div>
+                      <div class="tv-slots" id="slot-kursi">
+                        <?php foreach ($isi_dewasa as $i => $isi): ?>
+                          <div class="tv-pax" data-slot="<?= $i ?>">
+                            <span class="no"><?= $i + 1 ?></span>
+                            <div>
+                              <strong class="slot-nama"><?= e($isi !== '' ? $isi : 'Penumpang ' . ($i + 1)) ?></strong>
+                              <small class="slot-kursi">Belum pilih kursi</small>
+                            </div>
+                          </div>
+                        <?php endforeach; ?>
                       </div>
+                      <small class="d-block text-muted mt-2" id="modal-kursi-teks">Pilih <?= $dewasa ?> kursi.</small>
+                      <?php if ($bayi > 0): ?>
+                        <small class="d-block text-muted mt-1"><i class="fa-solid fa-baby"></i> <?= $bayi ?> bayi dipangku, tidak perlu kursi.</small>
+                      <?php endif; ?>
 
                       <div class="tv-legend">
                         <span><i class="kotak bebas"></i> Tersedia</span>

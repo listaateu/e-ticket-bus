@@ -19,13 +19,14 @@ function komponen_card_tiket(array $b): void
           <div class="fw-semibold"><?= e($b['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= e($b['kota_tujuan']) ?></div>
           <small class="text-muted"><?= e(tanggal_indo($b['jam_berangkat'])) ?></small>
         </div>
-        <div class="col-lg-3 col-6">
+        <div class="col-lg-2 col-6">
           <div class="small text-muted">Bus</div>
           <div><?= e($b['nama_bus']) ?> · <?= e($b['kelas']) ?></div>
         </div>
-        <div class="col-lg-1 col-6">
+        <div class="col-lg-2 col-6">
           <div class="small text-muted">Kursi</div>
           <div class="fw-bold fs-5"><?= e($b['nomor_kursi']) ?></div>
+          <small class="text-muted"><?= e(teks_penumpang(jumlah_dewasa($b), (int) ($b['jumlah_bayi'] ?? 0))) ?></small>
         </div>
         <div class="col-lg-2 col-6">
           <?= $selesai ? komponen_badge_status('selesai') : komponen_badge_status($status) ?>

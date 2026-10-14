@@ -10,6 +10,7 @@
 function komponen_form_cari(array $kota, array $nilai = [], bool $gelap = false): void
 {
     static $script_dimuat = false;
+    [$dewasa, $bayi] = jumlah_penumpang_dari($nilai);   // 1-4 dewasa, bayi 0..dewasa
     ?>
     <form action="index.php" method="get" class="tv-cari">
       <input type="hidden" name="page" value="jadwal">
@@ -39,6 +40,44 @@ function komponen_form_cari(array $kota, array $nilai = [], bool $gelap = false)
           <div class="tv-input">
             <i class="bi bi-calendar-event"></i>
             <input type="date" id="tv-tanggal" name="tanggal" min="<?= date('Y-m-d') ?>" value="<?= e($nilai['tanggal'] ?? '') ?>">
+          </div>
+        </div>
+
+        <!-- Jumlah penumpang: dewasa 1-<?= MAKS_DEWASA ?>, bayi maksimal sebanyak dewasa -->
+        <div class="tv-col tv-pax-pick" data-maks-dewasa="<?= MAKS_DEWASA ?>">
+          <label>Penumpang</label>
+          <button type="button" class="tv-input tv-pax-btn" aria-haspopup="true" aria-expanded="false">
+            <i class="bi bi-people"></i>
+            <span class="tv-pax-teks"><?= e(teks_penumpang($dewasa, $bayi)) ?></span>
+            <i class="bi bi-chevron-down tv-pax-panah"></i>
+          </button>
+          <input type="hidden" name="dewasa" class="tv-in-dewasa" value="<?= $dewasa ?>">
+          <input type="hidden" name="bayi" class="tv-in-bayi" value="<?= $bayi ?>">
+
+          <div class="tv-pax-pop" hidden>
+            <div class="tv-pax-row">
+              <div>
+                <strong>Dewasa</strong>
+                <small>Maksimal <?= MAKS_DEWASA ?> orang</small>
+              </div>
+              <div class="tv-step">
+                <button type="button" data-aksi="kurang" data-jenis="dewasa" aria-label="Kurangi dewasa"><i class="bi bi-dash"></i></button>
+                <span class="tv-step-n" data-n="dewasa"><?= $dewasa ?></span>
+                <button type="button" data-aksi="tambah" data-jenis="dewasa" aria-label="Tambah dewasa"><i class="bi bi-plus"></i></button>
+              </div>
+            </div>
+            <div class="tv-pax-row">
+              <div>
+                <strong>Bayi</strong>
+                <small>Gratis, tanpa kursi sendiri. Maks. 1 bayi per dewasa</small>
+              </div>
+              <div class="tv-step">
+                <button type="button" data-aksi="kurang" data-jenis="bayi" aria-label="Kurangi bayi"><i class="bi bi-dash"></i></button>
+                <span class="tv-step-n" data-n="bayi"><?= $bayi ?></span>
+                <button type="button" data-aksi="tambah" data-jenis="bayi" aria-label="Tambah bayi"><i class="bi bi-plus"></i></button>
+              </div>
+            </div>
+            <button type="button" class="tv-pax-ok">Selesai</button>
           </div>
         </div>
 

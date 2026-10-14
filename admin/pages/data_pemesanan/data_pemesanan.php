@@ -32,7 +32,7 @@ $status_sql = "COALESCE(p.status, 'belum')";
 // ---------- Ringkasan ----------
 $hitung = ['' => 0, 'belum' => 0, 'pending' => 0, 'lunas' => 0, 'ditolak' => 0];
 $pendapatan = 0;
-$q = $koneksi->query("SELECT $status_sql AS st, COUNT(*) AS jml, SUM(s.harga) AS rupiah $dari GROUP BY st");
+$q = $koneksi->query("SELECT $status_sql AS st, COUNT(*) AS jml, SUM(s.harga * b.jumlah_dewasa) AS rupiah $dari GROUP BY st");
 while ($r = $q->fetch_assoc()) {
     if (isset($hitung[$r['st']])) { $hitung[$r['st']] = (int) $r['jml']; }
     $hitung[''] += (int) $r['jml'];
@@ -61,8 +61,8 @@ $total = (int) $stmt_total->get_result()->fetch_assoc()['t'];
 [$per_halaman, $offset] = paginasi($total);
 
 // ---------- Tabel: ambil 10 baris untuk halaman yang dibuka ----------
-$sql = "SELECT b.id, b.kode_booking, b.nomor_kursi,
-               u.nama, s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga,
+$sql = "SELECT b.id, b.kode_booking, b.nomor_kursi, b.jumlah_dewasa, b.jumlah_bayi,
+               u.nama, s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.harga * b.jumlah_dewasa AS harga,
                bs.plat_nomor, bs.kelas, b.batas_bayar,
                p.metode_pembayaran, $status_sql AS status_bayar
         $dari $where
@@ -190,7 +190,7 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
             <td><?= htmlspecialchars($b['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= htmlspecialchars($b['kota_tujuan']) ?></td>
             <td><?= date('d M Y, H:i', strtotime($b['jam_berangkat'])) ?></td>
             <td><?= htmlspecialchars($b['plat_nomor']) ?> <span class="badge-table success"><?= htmlspecialchars($b['kelas']) ?></span></td>
-            <td><?= htmlspecialchars($b['nomor_kursi']) ?></td>
+            <td><?= htmlspecialchars($b['nomor_kursi']) ?><br><small class="text-muted"><?= (int) $b['jumlah_dewasa'] ?> dewasa<?= (int) $b['jumlah_bayi'] > 0 ? ', ' . (int) $b['jumlah_bayi'] . ' bayi' : '' ?></small></td>
             <td>Rp <?= number_format((int) $b['harga'], 0, ',', '.') ?></td>
             <td>
               <span class="badge-table <?= $info['badge'] ?>"><?= htmlspecialchars($info['label']) ?></span>

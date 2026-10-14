@@ -29,7 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $status         = status_tiket($booking);
 $bisa_bayar     = in_array($status, ['belum_bayar', 'gagal'], true);
 $kode_unik      = (int) ($booking['kode_unik'] ?? 0);   // 0 untuk pemesanan lama
-$total_transfer = total_bayar($booking);                // harga tiket + kode unik
+$total_transfer = total_bayar($booking);                // harga tiket x jumlah dewasa + kode unik
+$n_dewasa       = jumlah_dewasa($booking);
+$n_bayi         = (int) ($booking['jumlah_bayi'] ?? 0);
+$harga_tiket    = harga_tiket_total($booking);          // bayi gratis, jadi hanya dewasa yang dihitung
+$penumpang      = daftar_penumpang_booking($conn, (int) $booking['id']);
 
 // Jam tiba & durasi
 $tiba_valid = !empty($booking['jam_tiba'] ?? '') && strtotime($booking['jam_tiba']) > strtotime($booking['jam_berangkat']);
@@ -205,7 +209,10 @@ $tiba_valid = !empty($booking['jam_tiba'] ?? '') && strtotime($booking['jam_tiba
                     <span class="nilai"><?= e(rupiah($total_transfer)) ?> <i class="bi bi-chevron-down"></i></span>
                   </button>
                   <div class="tv-rincian" id="rincian-total" hidden>
-                    <div><span>Tiket <?= e($booking['nama_bus']) ?> · Dewasa x1</span><span><?= e(rupiah($booking['harga'])) ?></span></div>
+                    <div><span>Tiket <?= e($booking['nama_bus']) ?> · Dewasa x<?= $n_dewasa ?></span><span><?= e(rupiah($harga_tiket)) ?></span></div>
+                    <?php if ($n_bayi > 0): ?>
+                      <div><span>Bayi x<?= $n_bayi ?></span><span>Gratis</span></div>
+                    <?php endif; ?>
                     <?php if ($kode_unik > 0): ?>
                       <div><span>Kode unik</span><span><?= e(rupiah($kode_unik)) ?></span></div>
                     <?php endif; ?>
@@ -252,14 +259,27 @@ $tiba_valid = !empty($booking['jam_tiba'] ?? '') && strtotime($booking['jam_tiba
 
               <div class="tv-rt-sec">
                 <div class="label">Penumpang</div>
-                <div class="tv-rt-pax">
-                  <span><?= e($booking['nama_penumpang']) ?></span>
-                  <span class="jenis">Dewasa</span>
-                </div>
-                <div class="tv-rt-pax">
-                  <span>Nomor kursi</span>
-                  <span class="kursi"><?= e($booking['nomor_kursi']) ?></span>
-                </div>
+                <?php if ($penumpang): ?>
+                  <?php foreach ($penumpang as $px): ?>
+                    <div class="tv-rt-pax">
+                      <span class="nama"><?= e($px['nama']) ?>
+                        <small><?= $px['tipe'] === 'bayi' ? 'Bayi · dipangku, tanpa kursi' : 'Dewasa' ?></small>
+                      </span>
+                      <?php if ($px['tipe'] === 'dewasa'): ?>
+                        <span class="kursi">Kursi <?= e($px['nomor_kursi']) ?></span>
+                      <?php endif; ?>
+                    </div>
+                  <?php endforeach; ?>
+                <?php else: ?>
+                  <div class="tv-rt-pax">
+                    <span><?= e($booking['nama_penumpang']) ?></span>
+                    <span class="jenis">Dewasa</span>
+                  </div>
+                  <div class="tv-rt-pax">
+                    <span>Nomor kursi</span>
+                    <span class="kursi"><?= e($booking['nomor_kursi']) ?></span>
+                  </div>
+                <?php endif; ?>
               </div>
             </div>
           </div>

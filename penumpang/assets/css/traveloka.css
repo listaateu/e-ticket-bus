@@ -81,7 +81,7 @@
 }
 .tv-tab.active { background: var(--tv-blue); color: #fff; }
 
-.tv-cari-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+.tv-cari-grid { display: grid; grid-template-columns: 1.15fr 1.15fr 1fr 1fr auto; gap: 12px; align-items: end; }
 .tv-col { position: relative; }
 .tv-col label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; color: var(--tv-text); }
 .tv-input {
@@ -738,4 +738,80 @@
 @media (prefers-reduced-motion: reduce) {
   .tv-metode input:checked ~ .tv-metode-panel { animation: none; }
   .tv-cta, .tv-seat-modal .seat, .tv-radio::after { transition: none; }
+}
+
+/* ==========================================================
+   PEMESANAN BANYAK PENUMPANG (dewasa max 4 + bayi)
+   ========================================================== */
+
+/* ---------- Kotak "Penumpang" di form cari ---------- */
+.tv-pax-btn { width: 100%; text-align: left; cursor: pointer; font-size: 16px; font-weight: 500; color: var(--tv-text); }
+.tv-pax-teks { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-input > i.tv-pax-panah { font-size: 13px; margin: 0 0 0 6px; color: var(--tv-muted); }
+.tv-pax-pop {
+  position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 330px; max-width: 92vw;
+  background: #fff; border: 1px solid var(--tv-line); border-radius: 14px; padding: 8px 18px 16px;
+  box-shadow: 0 14px 34px rgba(3, 18, 26, .2);
+}
+.tv-pax-pop[hidden] { display: none; }
+.tv-pax-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--tv-line); }
+.tv-pax-row strong { display: block; font-size: 15px; color: var(--tv-text); }
+.tv-pax-row small { display: block; font-size: 12.5px; line-height: 1.35; color: var(--tv-muted); max-width: 170px; }
+.tv-step { display: flex; align-items: center; gap: 12px; }
+.tv-step button {
+  width: 34px; height: 34px; border-radius: 50%; padding: 0;
+  border: 1.5px solid var(--tv-blue); background: #fff; color: var(--tv-blue); font-size: 18px;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background .15s;
+}
+.tv-step button:hover:not(:disabled) { background: var(--tv-blue-soft); }
+.tv-step button:disabled { border-color: var(--tv-line-strong); color: var(--tv-line-strong); cursor: not-allowed; }
+.tv-step-n { min-width: 18px; text-align: center; font-weight: 700; font-size: 16px; color: var(--tv-text); }
+.tv-pax-ok { margin-top: 14px; width: 100%; border: 0; border-radius: 10px; padding: 11px; background: var(--tv-blue); color: #fff; font-weight: 700; }
+.tv-pax-ok:hover { background: var(--tv-blue-dark); }
+
+/* ---------- Harga total di kartu jadwal ---------- */
+.tv-harga-total { font-size: 13px; font-weight: 600; color: var(--tv-text); margin-top: -4px; }
+.tv-harga-total small { display: block; font-weight: 400; color: var(--tv-muted); }
+
+/* ---------- Halaman pemesanan: jumlah penumpang & nama ---------- */
+.tv-jml { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid var(--tv-line); }
+.tv-jml label { flex: 1; min-width: 140px; margin: 0; }
+.tv-jml label span { display: block; font-size: 13px; color: var(--tv-muted); margin-bottom: 4px; }
+.tv-jml select {
+  width: 100%; height: 46px; padding: 0 12px; border: 1px solid var(--tv-line-strong); border-radius: 10px;
+  background: #fff; font-weight: 600; color: var(--tv-text);
+}
+.tv-jml select:focus { outline: 0; border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(1, 148, 243, .15); }
+.tv-jml-btn { height: 46px; padding: 0 22px; }
+
+.tv-pax-form { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-top: 1px solid var(--tv-line); }
+.tv-pax-form:first-of-type { border-top: 0; padding-top: 0; }
+.tv-pax-form .no {
+  width: 36px; height: 36px; margin-top: 26px; border-radius: 50%; flex-shrink: 0;
+  background: var(--tv-blue-soft); color: var(--tv-blue-dark); font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.tv-pax-form.bayi .no { background: #fff1e8; color: var(--tv-orange); }
+.tv-pax-form .isi { flex: 1; min-width: 0; }
+.tv-pax-form label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: var(--tv-text); }
+.tv-pax-form label small { font-weight: 400; color: var(--tv-muted); }
+.tv-pax-form .form-control { height: 46px; border-radius: 10px; border-color: var(--tv-line-strong); }
+.tv-pax-form .form-control:focus { border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(1, 148, 243, .15); }
+
+.tv-slots { display: flex; flex-direction: column; gap: 8px; }
+
+/* ---------- Daftar penumpang di pembayaran & e-ticket ---------- */
+.tv-rt-pax .nama { font-weight: 600; }
+.tv-rt-pax .nama small { display: block; font-weight: 400; color: var(--tv-muted); font-size: 13px; }
+.tiket-pax { margin: 0; padding: 0; list-style: none; }
+.tiket-pax li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px dashed var(--tv-line-strong); }
+.tiket-pax li:last-child { border-bottom: 0; }
+.tiket-pax .nm { font-weight: 600; }
+.tiket-pax .nm small { display: block; font-weight: 400; color: var(--tv-muted); }
+.tiket-pax .ks { font-weight: 700; color: var(--tv-blue-dark); white-space: nowrap; }
+
+/* Dropdown penumpang terpotong: main.css memberi overflow: clip ke semua <section> */
+.tv-search-wrap {
+  overflow: visible;
 }

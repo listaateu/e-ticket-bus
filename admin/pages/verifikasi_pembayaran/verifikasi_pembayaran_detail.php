@@ -23,7 +23,7 @@ $id = (int) ($_GET['id'] ?? 0);
 
 $ambil = $koneksi->prepare(
     "SELECT p.id, p.metode_pembayaran, p.bukti_transfer, p.status, p.alasan_penolakan,
-            b.kode_booking, b.nomor_kursi, b.kode_unik,
+            b.id AS booking_id, b.kode_booking, b.nomor_kursi, b.jumlah_dewasa, b.jumlah_bayi, b.kode_unik,
             u.nama, u.email,
             s.kota_asal, s.kota_tujuan, s.jam_berangkat, (s.jam_berangkat < NOW()) AS sudah_berangkat, s.harga,
             bs.plat_nomor, bs.kelas
@@ -53,10 +53,16 @@ $alasan_tersimpan = trim((string) ($p['alasan_penolakan'] ?? ''));
 $pesan   = $_GET['pesan'] ?? '';
 
 // Rincian nominal yang harus ditransfer penumpang
-$harga_tiket    = (int) round((float) $p['harga']);
+$harga_tiket    = (int) round((float) $p['harga']) * max(1, (int) $p['jumlah_dewasa']);   // harga x jumlah dewasa (bayi gratis)
 $kode_unik      = (int) ($p['kode_unik'] ?? 0);   // 0 untuk pemesanan lama
 $total_transfer = $harga_tiket + $kode_unik;
 $berangkat      = !empty($p['sudah_berangkat']);   // true = bus sudah berangkat
+
+// Daftar penumpang (dewasa dulu, lalu bayi)
+$ambil_pax = $koneksi->prepare("SELECT nama, tipe, nomor_kursi FROM booking_penumpang WHERE booking_id = ? ORDER BY (tipe = 'bayi') ASC, id ASC");
+$ambil_pax->bind_param('i', $p['booking_id']);
+$ambil_pax->execute();
+$daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 <!-- page header -->
 <div class="page-header">
@@ -94,7 +100,14 @@ $berangkat      = !empty($p['sudah_berangkat']);   // true = bus sudah berangkat
         <tr><td class="text-muted">Rute</td><td><?= htmlspecialchars($p['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= htmlspecialchars($p['kota_tujuan']) ?></td></tr>
         <tr><td class="text-muted">Berangkat</td><td><?= date('d M Y, H:i', strtotime($p['jam_berangkat'])) ?></td></tr>
         <tr><td class="text-muted">Bus</td><td><?= htmlspecialchars($p['plat_nomor']) ?> (<?= htmlspecialchars($p['kelas']) ?>)</td></tr>
+        <tr><td class="text-muted">Jumlah Penumpang</td><td><?= (int) $p['jumlah_dewasa'] ?> dewasa<?= (int) $p['jumlah_bayi'] > 0 ? ', ' . (int) $p['jumlah_bayi'] . ' bayi (gratis)' : '' ?></td></tr>
         <tr><td class="text-muted">Nomor Kursi</td><td><?= htmlspecialchars($p['nomor_kursi']) ?></td></tr>
+        <?php foreach ($daftar_pax as $px) : ?>
+          <tr>
+            <td class="text-muted ps-4"><small><?= $px['tipe'] === 'bayi' ? 'Bayi' : 'Dewasa' ?></small></td>
+            <td><?= htmlspecialchars($px['nama']) ?><?= $px['tipe'] === 'dewasa' ? ' <small class="text-muted">· Kursi ' . htmlspecialchars((string) $px['nomor_kursi']) . '</small>' : ' <small class="text-muted">· tanpa kursi</small>' ?></td>
+          </tr>
+        <?php endforeach; ?>
         <tr><td class="text-muted">Harga Tiket</td><td>Rp <?= number_format($harga_tiket, 0, ',', '.') ?></td></tr>
         <?php if ($kode_unik > 0) : ?>
           <tr><td class="text-muted">Kode Unik</td><td>Rp <?= number_format($kode_unik, 0, ',', '.') ?></td></tr>

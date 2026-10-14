@@ -2,7 +2,7 @@
 /**
  * ============================================================
  * FILE         : penumpang/components/footer.php
- * FUNGSI       : Penutup </main>, footer, tombol scroll-top, dan preloader.
+ * FUNGSI       : Penutup </main>, footer, tombol scroll-top, preloader, dan modal konfirmasi keluar.
  * DIPANGGIL DARI: index.php
  * ============================================================
  */
@@ -62,3 +62,44 @@
 
   <!-- Preloader -->
   <div id="preloader"></div>
+
+  <!-- Modal konfirmasi keluar -->
+  <style>
+    #modalKeluar .modal-content { border: 0; border-radius: 16px; }
+    #modalKeluar .ikon-keluar { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; background: #e8f4fe; color: #0194f3; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+    #modalKeluar .btn { border-radius: 10px; font-weight: 600; padding: 9px 22px; }
+  </style>
+  <div class="modal fade" id="modalKeluar" tabindex="-1" aria-labelledby="judulKeluar" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content text-center p-3">
+        <div class="modal-body">
+          <div class="ikon-keluar"><i class="bi bi-box-arrow-right"></i></div>
+          <h5 id="judulKeluar" class="fw-bold mb-2">Yakin ingin keluar?</h5>
+          <p class="text-muted mb-4">Kamu akan keluar dari akunmu dan perlu masuk lagi untuk melanjutkan.</p>
+          <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+            <a href="#" id="tombolKeluarYa" class="btn btn-primary">Ya, Keluar</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Dipasang setelah semua script (termasuk Bootstrap) selesai dimuat
+    document.addEventListener('DOMContentLoaded', function () {
+      var modalEl = document.getElementById('modalKeluar');
+      var tombolYa = document.getElementById('tombolKeluarYa');
+      document.querySelectorAll('.js-logout').forEach(function (link) {
+        link.addEventListener('click', function (ev) {
+          var tujuan = link.getAttribute('href');
+          if (window.bootstrap && bootstrap.Modal && modalEl) {
+            ev.preventDefault();
+            tombolYa.setAttribute('href', tujuan);
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+          } else if (!window.confirm('Yakin ingin keluar?')) {   // cadangan kalau Bootstrap tidak termuat
+            ev.preventDefault();
+          }
+        });
+      });
+    });
+  </script>

@@ -23,7 +23,7 @@ try {
     // 8 pembayaran menunggu terbaru (untuk daftar di ikon lonceng)
     $hasil = $koneksi->query(
         "SELECT p.id, p.metode_pembayaran, b.kode_booking, u.nama,
-                s.kota_asal, s.kota_tujuan, s.harga + b.kode_unik AS total
+                s.kota_asal, s.kota_tujuan, s.harga * b.jumlah_dewasa + b.kode_unik AS total
          FROM payments p
          JOIN bookings  b ON b.id = p.booking_id
          JOIN users     u ON u.id = b.user_id

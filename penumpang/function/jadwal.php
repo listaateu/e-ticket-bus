@@ -10,7 +10,7 @@
 
 const SQL_JADWAL = "SELECT s.id, s.bus_id, s.sopir, s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.jam_tiba, s.harga,
                            b.nama_bus, b.plat_nomor, b.kapasitas_kursi, b.kelas, b.tata_letak, b.fasilitas, b.foto,
-                           (SELECT COUNT(*) FROM bookings bk WHERE bk.schedule_id = s.id) AS terisi
+                           (SELECT COUNT(*) FROM booking_penumpang bp WHERE bp.schedule_id = s.id AND bp.nomor_kursi IS NOT NULL) AS terisi
                     FROM schedules s
                     JOIN buses b ON b.id = s.bus_id";
 
@@ -60,10 +60,10 @@ function daftar_kota(mysqli $conn): array
     return array_column($res->fetch_all(MYSQLI_ASSOC), 'kota');
 }
 
-/** Nomor kursi yang sudah dipesan pada suatu jadwal */
+/** Nomor kursi yang sudah dipesan pada suatu jadwal (bayi tidak memakai kursi, jadi tidak ikut dihitung) */
 function kursi_terisi(mysqli $conn, int $schedule_id): array
 {
-    $stmt = $conn->prepare('SELECT nomor_kursi FROM bookings WHERE schedule_id = ?');
+    $stmt = $conn->prepare('SELECT nomor_kursi FROM booking_penumpang WHERE schedule_id = ? AND nomor_kursi IS NOT NULL');
     $stmt->bind_param('i', $schedule_id);
     $stmt->execute();
     return array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'nomor_kursi');
