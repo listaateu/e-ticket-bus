@@ -1,11 +1,12 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/components/pagination.php
 // Bantuan pagination, dipakai oleh semua halaman tabel.
 
 // Halaman yang sedang dibuka (dari ?hal=2 di alamat), minimal 1
 function halaman_aktif(): int
 {
-    return max(1, (int) ($_GET['hal'] ?? 1));
+    return max(1, min(param_id('hal') ?: 1, 1000000));
 }
 
 // Hitung LIMIT dan OFFSET untuk query. Pakai: [$per_halaman, $offset] = paginasi($total);
@@ -29,7 +30,7 @@ function render_pagination(int $total, int $per_halaman = 10): void
     $link = function (int $h) {
         $q = $_GET;
         $q['hal'] = $h;
-        return '?' . http_build_query($q);
+        return htmlspecialchars('?' . http_build_query($q), ENT_QUOTES, 'UTF-8');
     };
 
     // Nomor yang ditampilkan: pertama, terakhir, dan 2 di kiri-kanan halaman aktif

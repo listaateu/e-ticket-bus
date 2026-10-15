@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/sopir/update.php
 // Halaman ubah sopir (bagian U = Update dari CRUD).
 // File ini mengurus SEMUANYA: tampilkan form + proses UPDATE ke database.
@@ -7,7 +8,7 @@ include_once __DIR__ . '/../../database/koneksi.php';
 
 $kembali = '/e-ticket-bus/admin/index.php?page=sopir';
 $role    = 'kondektur';
-$id      = (int) ($_GET['id'] ?? 0);
+$id      = param_id('id');
 $error   = ''; // pesan kesalahan, kosong = tidak ada masalah
 
 // ---------- 1. AMBIL DATA YANG MAU DIUBAH ----------
@@ -24,7 +25,9 @@ if (!$user) {
 }
 
 // ---------- 2. PROSES UPDATE (jalan hanya saat form disubmit) ----------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
+    $error = 'Sesi formulir tidak valid atau sudah kedaluwarsa. Muat ulang halaman lalu coba lagi.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama     = trim($_POST['nama'] ?? '');
     $email    = strtolower(trim($_POST['email'] ?? ''));
     $password = $_POST['password'] ?? ''; // boleh kosong = password tidak diganti
@@ -91,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <!-- action kosong = kirim ke alamat halaman ini sendiri (update.php), bukan ke function -->
       <form action="" method="post">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="nama" class="form-label-custom">Nama</label>

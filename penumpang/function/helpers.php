@@ -97,5 +97,23 @@ function csrf_field(): string
 
 function csrf_valid(): bool
 {
-    return isset($_POST['csrf'], $_SESSION['csrf']) && hash_equals($_SESSION['csrf'], $_POST['csrf']);
+    return isset($_POST['csrf'], $_SESSION['csrf'])
+        && is_string($_POST['csrf']) && is_string($_SESSION['csrf'])
+        && hash_equals($_SESSION['csrf'], $_POST['csrf']);
+}
+
+/**
+ * Validasi & rapikan nomor HP Indonesia (dipakai profil, dan sebaiknya juga registrasi).
+ * - Spasi dan tanda minus boleh diketik, lalu dibuang.
+ * - Hanya ANGKA (boleh diawali + untuk +62). Huruf atau simbol lain -> ditolak.
+ * - Harus nomor seluler: 08xx..., 628xx..., atau +628xx... (10-14 digit setelah dirapikan).
+ * Hasil dirapikan jadi 08xxxxxxxxxx. Tidak valid -> null.
+ */
+function normalisasi_no_hp(string $no): ?string
+{
+    $no = preg_replace('/[\s\-]/', '', trim($no));
+    if (!preg_match('/^(?:\+62|62|0)8[0-9]{8,12}$/D', $no)) {
+        return null;
+    }
+    return preg_replace('/^(?:\+62|62)/', '0', $no);
 }

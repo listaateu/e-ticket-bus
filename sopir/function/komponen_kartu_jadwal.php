@@ -23,12 +23,17 @@ function komponen_kartu_jadwal(array $j): void
 {
     [$kelas_status, $label_status] = status_jadwal($j);
     $selesai = !empty($j['sudah_tiba']);
+    // Tidak ada penumpang LUNAS sama sekali. Kalau bus sudah berangkat, tidak akan ada lagi yang bisa membayar
+    // (admin tidak bisa menyetujui pembayaran setelah berangkat), jadi manifest & scan tidak ada gunanya.
+    $kosong       = (int) $j['total_dewasa'] === 0 && (int) $j['total_bayi'] === 0;
+    $tanpa_penumpang = $kosong && !empty($j['sudah_berangkat']);
     ?>
     <div class="kartu-jadwal<?= $selesai ? ' selesai' : '' ?>">
       <div class="row align-items-center gy-3">
         <div class="col-lg-4">
           <div class="d-flex align-items-center gap-2 mb-1">
             <span class="badge bg-<?= $kelas_status ?> status-badge"><?= e($label_status) ?></span>
+            <?php if ($tanpa_penumpang): ?><span class="badge bg-secondary status-badge">Tanpa penumpang</span><?php endif; ?>
             <small class="text-muted">Jadwal #<?= (int) $j['id'] ?></small>
           </div>
           <div class="rute"><?= e($j['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= e($j['kota_tujuan']) ?></div>
@@ -43,14 +48,24 @@ function komponen_kartu_jadwal(array $j): void
           <small class="text-muted"><?= e($j['plat_nomor']) ?> &middot; <?= (int) $j['kapasitas_kursi'] ?> kursi</small>
         </div>
         <div class="col-lg-3 col-6">
-          <?php komponen_progress_naik((int) $j['total_naik'], (int) $j['total_dewasa']); ?>
+          <?php if ($tanpa_penumpang): ?>
+            <div class="small text-muted">Penumpang naik</div>
+            <div class="fw-semibold text-muted">Tidak ada penumpang</div>
+            <small class="text-muted">Belum ada pemesanan yang lunas di jadwal ini.</small>
+          <?php else: ?>
+            <?php komponen_progress_naik((int) $j['total_naik'], (int) $j['total_dewasa']); ?>
+          <?php endif; ?>
           <?php if ((int) $j['total_bayi'] > 0): ?>
             <small class="text-muted"><i class="bi bi-person-arms-up"></i> + <?= (int) $j['total_bayi'] ?> bayi</small>
           <?php endif; ?>
         </div>
         <div class="col-lg-2 d-grid gap-2">
-          <a href="<?= url('manifest', ['id' => $j['id']]) ?>" class="btn btn-outline-primary btn-sm"><i class="bi bi-list-check me-1"></i>Manifest</a>
-          <?php if (!$selesai): ?>
+          <?php if ($tanpa_penumpang): ?>
+            <span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true" title="Tidak ada penumpang di jadwal ini"><i class="bi bi-list-check me-1"></i>Manifest</span>
+          <?php else: ?>
+            <a href="<?= url('manifest', ['id' => $j['id']]) ?>" class="btn btn-outline-primary btn-sm"><i class="bi bi-list-check me-1"></i>Manifest</a>
+          <?php endif; ?>
+          <?php if (!$selesai && !$tanpa_penumpang): ?>
             <a href="<?= url('scan', ['id' => $j['id']]) ?>" class="btn btn-primary btn-sm"><i class="bi bi-qr-code-scan me-1"></i>Scan Tiket</a>
           <?php endif; ?>
         </div>

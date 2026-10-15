@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/sopir/tambah.php
 // Form tambah sopir (bagian C = Create dari CRUD).
 // Form ini TIDAK menyimpan sendiri; datanya dikirim ke function/sopir.php?aksi=simpan.
@@ -35,6 +36,7 @@ $pesan = $_GET['pesan'] ?? '';
       <h5 class="card-title mb-4">Data Sopir</h5>
 
       <form action="/e-ticket-bus/admin/function/sopir.php?aksi=simpan" method="post">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="nama" class="form-label-custom">Nama</label>

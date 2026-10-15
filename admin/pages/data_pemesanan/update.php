@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/bus/update.php
 // Halaman ubah bus (bagian U = Update dari CRUD).
 // File ini mengurus SEMUANYA: tampilkan form + proses UPDATE ke database.
@@ -7,7 +8,7 @@ include_once __DIR__ . '/../../database/koneksi.php';
 
 $kembali      = '/e-ticket-bus/admin/index.php?page=bus';
 $daftar_kelas = ['Ekonomi', 'Bisnis', 'Eksekutif'];
-$id           = (int) ($_GET['id'] ?? 0);
+$id           = param_id('id');
 $error        = ''; // pesan kesalahan, kosong = tidak ada masalah
 
 // ---------- 1. AMBIL DATA BUS YANG MAU DIUBAH ----------

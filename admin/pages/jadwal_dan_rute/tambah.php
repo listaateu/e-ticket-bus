@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/jadwal_dan_rute/tambah.php
 // Form tambah jadwal (bagian C = Create dari CRUD).
 // Form ini TIDAK menyimpan sendiri; datanya dikirim ke function/jadwal_dan_rute.php?aksi=simpan.
@@ -31,6 +32,8 @@ $pesan = $_GET['pesan'] ?? '';
 
 <?php if ($pesan === 'tidak_valid') : ?>
   <div class="alert alert-danger">Data belum benar. Pastikan nama sopir terisi, kota asal berbeda dengan kota tujuan, jam berangkat dan jam tiba terisi (jam tiba harus setelah jam berangkat), dan harga lebih dari 0.</div>
+<?php elseif ($pesan === 'jam_lewat') : ?>
+  <div class="alert alert-danger">Jam berangkat sudah lewat. Pilih tanggal dan jam keberangkatan yang belum terjadi.</div>
 <?php endif; ?>
 
 <!-- form -->
@@ -40,6 +43,7 @@ $pesan = $_GET['pesan'] ?? '';
       <h5 class="card-title mb-4">Data Jadwal</h5>
 
       <form action="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=simpan" method="post">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="bus_id" class="form-label-custom">Bus</label>

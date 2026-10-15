@@ -2,6 +2,21 @@
 // admin/function/registrasi.php
 // Dipakai di halaman admin (tambah user) dan nanti di halaman visitor (registrasi).
 
+/**
+ * Validasi & rapikan nomor HP Indonesia.
+ * - Spasi dan tanda minus boleh diketik, lalu dibuang.
+ * - Hanya ANGKA (boleh diawali + untuk +62). Huruf atau simbol lain -> ditolak.
+ * - Harus nomor seluler: 08xx..., 628xx..., atau +628xx... (total 10-14 digit setelah dirapikan).
+ * Hasil dirapikan jadi bentuk 08xxxxxxxxxx. Tidak valid -> null.
+ */
+function normalisasiNoHp(string $no): ?string {
+    $no = preg_replace('/[\s\-]/', '', trim($no));
+    if (!preg_match('/^(?:\+62|62|0)8[0-9]{8,12}$/D', $no)) {
+        return null;
+    }
+    return preg_replace('/^(?:\+62|62)/', '0', $no);
+}
+
 function registrasiPenumpang($conn, $data) {
     $nama     = trim($data['nama'] ?? '');
     $username = strtolower(trim($data['username'] ?? ''));
@@ -12,6 +27,11 @@ function registrasiPenumpang($conn, $data) {
     if ($nama === '' || $no_hp === '') {
         return "Nama dan No. HP wajib diisi.";
     }
+    $no_hp_rapi = normalisasiNoHp($no_hp);
+    if ($no_hp_rapi === null) {
+        return "No. HP tidak valid. Isi angka saja, diawali 08 (contoh: 081234567890), 10-14 digit.";
+    }
+    $no_hp = $no_hp_rapi;
     if (!preg_match('/^[a-z0-9_]{4,20}$/', $username)) {
         return "Username 4-20 karakter, hanya huruf, angka, dan underscore.";
     }

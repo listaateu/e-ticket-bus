@@ -19,7 +19,9 @@ class Database
         );
 
         if ($this->koneksi->connect_error) {
-            die("Koneksi gagal: " . $this->koneksi->connect_error);
+            error_log("Koneksi database gagal: " . $this->koneksi->connect_error);
+            http_response_code(500);
+            die("Koneksi ke database gagal.");
         }
 
         $this->koneksi->set_charset("utf8mb4");

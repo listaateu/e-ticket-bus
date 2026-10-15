@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/data_pemesanan/data_pemesanan.php
 // Tabel Data Pemesanan (Read): semua booking + status pembayarannya, dengan filter & pencarian.
 
@@ -14,11 +15,8 @@ $STATUS = [
 ];
 // ================================================================================
 
-$filter = $_GET['status'] ?? '';
-if (!isset($STATUS[$filter])) {
-    $filter = '';
-}
-$cari = trim($_GET['q'] ?? '');
+$filter = param_enum('status', array_keys($STATUS));   // hanya nilai dari daftar resmi
+$cari   = param_str('q', '', 'GET', 100);               // teks biasa, maksimal 100 karakter
 
 // Bagian FROM dipakai bersama oleh ringkasan & tabel.
 // Ambil pembayaran TERBARU per booking supaya satu booking tidak muncul dobel.
@@ -49,7 +47,8 @@ if ($filter !== '') {
 }
 if ($cari !== '') {
     $where .= " AND (b.kode_booking LIKE ? OR u.nama LIKE ? OR s.kota_asal LIKE ? OR s.kota_tujuan LIKE ?)";
-    $like = '%' . $cari . '%';
+    // % _ \ yang diketik user dianggap huruf biasa (bukan karakter pencarian khusus)
+    $like = '%' . addcslashes($cari, '%_\\') . '%';
     $tipe .= 'ssss'; array_push($param, $like, $like, $like, $like);
 }
 
@@ -67,10 +66,11 @@ $sql = "SELECT b.id, b.kode_booking, b.nomor_kursi, b.jumlah_dewasa, b.jumlah_ba
                p.metode_pembayaran, $status_sql AS status_bayar
         $dari $where
         ORDER BY b.id DESC
-        LIMIT $per_halaman OFFSET $offset";
+        LIMIT ? OFFSET ?";
 
 $stmt = $koneksi->prepare($sql);
-if ($tipe !== '') { $stmt->bind_param($tipe, ...$param); }
+$tipe .= 'ii'; $param[] = (int) $per_halaman; $param[] = (int) $offset;
+$stmt->bind_param($tipe, ...$param);
 $stmt->execute();
 $hasil = $stmt->get_result();
 
@@ -204,7 +204,8 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
                 <?php if ($b['status_bayar'] !== 'lunas') : ?>
                   <form action="/e-ticket-bus/admin/function/data_pemesanan.php?aksi=hapus" method="post" class="d-inline"
                         onsubmit="return confirm('Batalkan pemesanan <?= htmlspecialchars($b['kode_booking'], ENT_QUOTES) ?>?')">
-                    <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
+                    <?= csrf_field() ?>
+            <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
                     <button type="submit" class="table-btn-action delete" title="Batalkan pemesanan"><i class="bi bi-trash"></i></button>
                   </form>
                 <?php endif; ?>

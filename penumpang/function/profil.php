@@ -14,8 +14,12 @@ function update_profil(mysqli $conn, int $id, string $nama, string $email, strin
     if ($nama === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         return [false, 'Nama wajib diisi dan email harus valid.'];
     }
-    if ($no_hp !== '' && !preg_match('/^[0-9+\-\s]{8,20}$/', $no_hp)) {
-        return [false, 'Nomor HP tidak valid.'];
+    if ($no_hp !== '') {
+        $no_hp_rapi = normalisasi_no_hp($no_hp);
+        if ($no_hp_rapi === null) {
+            return [false, 'Nomor HP tidak valid. Isi angka saja, diawali 08 (contoh: 081234567890), 10-14 digit.'];
+        }
+        $no_hp = $no_hp_rapi;   // disimpan dalam bentuk 08xxxxxxxxxx
     }
     $cek = $conn->prepare('SELECT id FROM users WHERE email = ? AND id <> ?');
     $cek->bind_param('si', $email, $id);

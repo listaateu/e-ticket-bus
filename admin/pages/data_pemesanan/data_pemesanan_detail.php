@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/data_pemesanan/detail.php
 // Detail satu pemesanan: data penumpang, perjalanan, kursi, dan status pembayaran.
 
@@ -11,7 +12,7 @@ $STATUS = [
     'ditolak' => ['label' => 'Ditolak',     'badge' => 'failed'],
 ];
 
-$id = (int) ($_GET['id'] ?? 0);
+$id = param_id('id');
 
 $ambil = $koneksi->prepare(
     "SELECT b.id, b.kode_booking, b.nomor_kursi, b.jumlah_dewasa, b.jumlah_bayi, b.schedule_id, b.batas_bayar,
@@ -141,6 +142,7 @@ $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
         <?php if ($b['status_bayar'] !== 'lunas') : ?>
           <form action="/e-ticket-bus/admin/function/data_pemesanan.php?aksi=hapus" method="post"
                 onsubmit="return confirm('Batalkan pemesanan ini?')">
+            <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
             <button type="submit" class="btn-custom btn-custom-light"><i class="bi bi-trash"></i> Batalkan Pemesanan</button>
           </form>

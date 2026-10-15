@@ -8,11 +8,16 @@ wajibRole(['admin']);   // hanya admin yang boleh masuk
 
 include_once __DIR__ . '/../database/koneksi.php';
 
-$aksi    = $_GET['aksi'] ?? '';
+$aksi    = param_enum('aksi', ['hapus']);
+
+// Hanya POST + token CSRF
+if ($aksi !== '') {
+    wajibPostCsrf();
+}
 $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $aksi === 'hapus') {
-    $id = (int) ($_POST['id'] ?? 0);
+    $id = param_id('id', 'POST');
 
     // Cek status pembayaran terbaru. Yang sudah lunas tidak boleh dibatalkan.
     $cek = $koneksi->prepare(

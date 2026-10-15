@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/user/tambah.php
 // Form tambah penumpang (bagian C = Create dari CRUD).
 // Role 'penumpang' otomatis diisi oleh registrasiPenumpang().
@@ -9,7 +10,9 @@ require_once __DIR__ . '/../../function/registrasi.php';
 $kembali = '/e-ticket-bus/admin/index.php?page=user';
 $error   = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
+    $error = 'Sesi formulir tidak valid atau sudah kedaluwarsa. Muat ulang halaman lalu coba lagi.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $hasil = registrasiPenumpang($koneksi, $_POST);
     if ($hasil === true) {
         // pakai JS karena header() sudah tidak bisa di sini (HTML sudah mulai tampil)
@@ -46,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <h5 class="card-title mb-4">Data User</h5>
 
       <form action="" method="post">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="nama" class="form-label-custom">Nama</label>
@@ -70,8 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="mb-3">
           <label for="no_hp" class="form-label-custom">No. HP</label>
-          <input type="text" class="form-control-custom" id="no_hp" name="no_hp"
-            placeholder="08xxxxxxxxxx" maxlength="20"
+          <input class="form-control-custom" id="no_hp" name="no_hp" type="tel" inputmode="numeric" autocomplete="tel" pattern="(08|62)[0-9]{8,12}" maxlength="14"
+            title="Angka saja, diawali 08, 10-14 digit" oninput="this.value = this.value.replace(/\D/g, '')"
+            placeholder="08xxxxxxxxxx"
             value="<?= htmlspecialchars($_POST['no_hp'] ?? '') ?>" required>
         </div>
 

@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/verifikasi_pembayaran/verifikasi_pembayaran_detail.php
 // Detail satu pembayaran: info pemesanan, bukti transfer, tombol setujui / tolak.
 // Setujui mengirim POST ke function/verifikasi_pembayaran.php.
@@ -19,7 +20,7 @@ $STATUS_MENUNGGU = 'pending';
 $FOLDER_BUKTI = '/e-ticket-bus/uploads/bukti/';
 // =======================================
 
-$id = (int) ($_GET['id'] ?? 0);
+$id = param_id('id');
 
 $ambil = $koneksi->prepare(
     "SELECT p.id, p.metode_pembayaran, p.bukti_transfer, p.status, p.alasan_penolakan,
@@ -149,6 +150,7 @@ $daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
           <!-- Setujui -->
           <form action="/e-ticket-bus/admin/function/verifikasi_pembayaran.php?aksi=setujui" method="post"
                 onsubmit="return confirm('Setujui pembayaran ini?')">
+            <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
             <button type="submit" class="btn-custom btn-custom-primary"<?= ($bukti === '' || $berangkat) ? ' disabled' : '' ?>>
               <i class="bi bi-check-lg"></i> Setujui
@@ -168,6 +170,7 @@ $daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
         <div class="collapse mt-3<?= $berangkat ? ' show' : '' ?>" id="form-tolak">
           <form action="/e-ticket-bus/admin/function/verifikasi_pembayaran.php?aksi=tolak" method="post"
                 onsubmit="return confirm('<?= $berangkat ? 'Pastikan dana SUDAH dikembalikan ke penumpang. Pesanan ini akan dihapus dari sistem. Lanjutkan?' : 'Tolak pembayaran ini dan kirim alasannya ke penumpang?' ?>')">
+            <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
 
             <div class="mb-3">

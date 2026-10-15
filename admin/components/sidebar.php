@@ -1,5 +1,6 @@
 <?php
-$kelas_aktif  = $_GET['kelas'] ?? '';
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
+$kelas_aktif  = param_enum('kelas', ['Eksekutif', 'Bisnis', 'Ekonomi']);
 $jadwal_aktif = ($menu_aktif ?? '') === 'jadwal_dan_rute';
 $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
 ?>

@@ -47,7 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="mb-3">
                   <label class="form-label">No. HP</label>
-                  <input type="text" name="no_hp" class="form-control" value="<?= e($user['no_hp'] ?? '') ?>">
+                  <input type="tel" name="no_hp" class="form-control" value="<?= e($user['no_hp'] ?? '') ?>"
+                         inputmode="numeric" autocomplete="tel" maxlength="14" pattern="(08|62)[0-9]{8,12}" placeholder="08xxxxxxxxxx"
+                         title="Angka saja, diawali 08, 10-14 digit" oninput="this.value = this.value.replace(/\D/g, '')">
                 </div>
                 <button class="btn btn-primary">Simpan Perubahan</button>
               </form>

@@ -11,13 +11,18 @@ wajibRole(['admin']);   // hanya admin yang boleh masuk
 
 include_once __DIR__ . '/../database/koneksi.php';
 
-$aksi    = $_GET['aksi'] ?? '';
+$aksi    = param_enum('aksi', ['simpan', 'hapus']);
+
+// Semua proses di file ini mengubah data: hanya POST + token CSRF (link yang disalin/dibuka di tab baru ditolak)
+if ($aksi !== '') {
+    wajibPostCsrf();
+}
 $kembali = '/e-ticket-bus/admin/index.php?page=user';
 $role    = 'penumpang';
 
 // ---------- HAPUS ----------
 if ($aksi === 'hapus') {
-    $id = (int) ($_GET['id'] ?? 0);
+    $id = param_id('id', 'POST');
 
     try {
         // "AND role = ?" supaya halaman ini hanya bisa menghapus penumpang, bukan admin

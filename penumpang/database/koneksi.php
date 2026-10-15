@@ -23,5 +23,6 @@ try {
     $conn->set_charset('utf8mb4');
 } catch (mysqli_sql_exception $e) {
     http_response_code(500);
-    exit('Koneksi database gagal: ' . htmlspecialchars($e->getMessage()));
+    error_log('Koneksi database gagal: ' . $e->getMessage());   // detail hanya di log server, tidak ditampilkan ke pengunjung
+    exit('Koneksi ke database gagal.');
 }

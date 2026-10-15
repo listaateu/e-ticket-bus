@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/bus/tambah.php
 // Form tambah bus (bagian C = Create dari CRUD).
 // Form ini TIDAK menyimpan sendiri; datanya dikirim ke function/bus.php?aksi=simpan.
@@ -39,6 +40,7 @@ $pesan = $_GET['pesan'] ?? '';
 
       <!-- enctype multipart/form-data WAJIB supaya file foto ikut terkirim -->
       <form action="/e-ticket-bus/admin/function/bus.php?aksi=simpan" method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="nama_bus" class="form-label-custom">Nama Bus</label>

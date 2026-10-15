@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/user/user.php
 // Tabel penumpang (bagian R = Read dari CRUD).
 
@@ -16,9 +17,9 @@ $total = (int) $hitung->get_result()->fetch_assoc()['t'];
 
 // Ambil hanya user dengan role 'penumpang', yang terbaru di atas
 $ambil = $koneksi->prepare(
-    "SELECT id, nama, username, email, no_hp FROM users WHERE role = ? ORDER BY id DESC LIMIT $per_halaman OFFSET $offset"
+    "SELECT id, nama, username, email, no_hp FROM users WHERE role = ? ORDER BY id DESC LIMIT ? OFFSET ?"
 );
-$ambil->bind_param('s', $role);
+$ambil->bind_param('sii', $role, $per_halaman, $offset);
 $ambil->execute();
 $hasil = $ambil->get_result();
 
@@ -93,7 +94,7 @@ $pesan = $_GET['pesan'] ?? '';
             <td>
               <div class="d-flex justify-content-center gap-1">
                 <a href="/e-ticket-bus/admin/index.php?page=user&aksi=update&id=<?= (int) $u['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
-                <a href="/e-ticket-bus/admin/function/user.php?aksi=hapus&id=<?= (int) $u['id'] ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus penumpang ini?')"><i class="bi bi-trash"></i></a>
+                <form action="/e-ticket-bus/admin/function/user.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus penumpang ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $u['id'] ?>"><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
               </div>
             </td>
           </tr>

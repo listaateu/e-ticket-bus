@@ -1,3 +1,4 @@
+<?php defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php ?>
 <!-- Top Navbar -->
 <header class="navbar-custom">
       <div class="navbar-left">

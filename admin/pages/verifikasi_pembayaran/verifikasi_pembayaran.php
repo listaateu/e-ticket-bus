@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/verifikasi_pembayaran/verifikasi_pembayaran.php
 // Tabel daftar pembayaran + filter status.
 // Kolom Total Transfer = harga tiket + kode unik (angka yang harus muncul di mutasi rekening).
@@ -14,10 +15,7 @@ $STATUS = [
 ];
 // ================================================================================
 
-$filter = $_GET['status'] ?? '';
-if (!isset($STATUS[$filter])) {
-    $filter = '';   // kosong = tampilkan semua
-}
+$filter = param_enum('status', array_keys($STATUS));   // hanya nilai dari daftar resmi, kosong = tampilkan semua
 
 // Hitung jumlah per status untuk tombol filter
 $hitung = ['' => 0];
@@ -45,14 +43,15 @@ $sql = "SELECT p.id, p.metode_pembayaran, p.status,
         JOIN users     u ON u.id = b.user_id
         JOIN schedules s ON s.id = b.schedule_id";
 if ($filter !== '') {
-    $stmt = $koneksi->prepare($sql . " WHERE p.status = ? ORDER BY p.id DESC LIMIT $per_halaman OFFSET $offset");
-    $stmt->bind_param('s', $filter);
-    $stmt->execute();
-    $hasil = $stmt->get_result();
+    $stmt = $koneksi->prepare($sql . " WHERE p.status = ? ORDER BY p.id DESC LIMIT ? OFFSET ?");
+    $stmt->bind_param('sii', $filter, $per_halaman, $offset);
 } else {
     // Yang menunggu ditaruh paling atas supaya cepat terlihat
-    $hasil = $koneksi->query($sql . " ORDER BY (p.status = 'pending') DESC, p.id DESC LIMIT $per_halaman OFFSET $offset");
+    $stmt = $koneksi->prepare($sql . " ORDER BY (p.status = 'pending') DESC, p.id DESC LIMIT ? OFFSET ?");
+    $stmt->bind_param('ii', $per_halaman, $offset);
 }
+$stmt->execute();
+$hasil = $stmt->get_result();
 
 // Pembayaran yang masih "Menunggu" padahal bus-nya sudah berangkat: perlu refund manual, jangan disetujui
 $perlu_refund = (int) $koneksi->query(

@@ -8,11 +8,20 @@ wajibRole(['admin']);   // hanya admin yang boleh masuk
 
 include_once __DIR__ . '/../database/koneksi.php';
 
-$aksi    = $_GET['aksi'] ?? '';
+$aksi    = param_enum('aksi', ['simpan', 'hapus']);
+
+// Semua proses di file ini mengubah data: hanya POST + token CSRF (link yang disalin/dibuka di tab baru ditolak)
+if ($aksi !== '') {
+    wajibPostCsrf();
+}
 $kembali = '/e-ticket-bus/admin/index.php?page=jadwal_dan_rute';
-$kelas_filter = $_GET['kelas'] ?? '';
+$kelas_filter = param_str('kelas', '', 'POST');
 if ($aksi === 'hapus' && in_array($kelas_filter, ['Eksekutif', 'Bisnis', 'Ekonomi'], true)) {
     $kembali .= '&kelas=' . urlencode($kelas_filter);
+}
+$tab_filter = param_enum('tab', ['akan_datang', 'sudah_berangkat', 'semua'], '', 'POST');
+if ($aksi === 'hapus' && $tab_filter !== '') {
+    $kembali .= '&tab=' . $tab_filter;
 }
 
 // Ambil & rapikan data dari form (dipakai oleh simpan)
@@ -59,6 +68,21 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // Jam berangkat tidak boleh sudah lewat. Dibandingkan dengan jam MySQL (NOW()), sama seperti tabel jadwal,
+    // supaya tidak terpengaruh zona waktu PHP. Hasil NULL = tanggal tidak ada (mis. 31 Februari).
+    $cek_jam = $koneksi->prepare("SELECT (? <= NOW()) AS lewat");
+    $cek_jam->bind_param('s', $jam);
+    $cek_jam->execute();
+    $lewat = $cek_jam->get_result()->fetch_assoc()['lewat'];
+    if ($lewat === null) {
+        header("Location: $kembali&aksi=tambah&pesan=tidak_valid");
+        exit;
+    }
+    if ((int) $lewat === 1) {
+        header("Location: $kembali&aksi=tambah&pesan=jam_lewat");
+        exit;
+    }
+
     $simpan = $koneksi->prepare(
         "INSERT INTO schedules (bus_id, sopir, kota_asal, kota_tujuan, jam_berangkat, jam_tiba, harga) VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
@@ -71,7 +95,7 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- HAPUS ----------
 if ($aksi === 'hapus') {
-    $id = (int) ($_GET['id'] ?? 0);
+    $id = param_id('id', 'POST');
 
     // 1. Hitung ada berapa pemesanan di jadwal ini
     $cek = $koneksi->prepare("SELECT COUNT(*) AS total FROM bookings WHERE schedule_id = ?");

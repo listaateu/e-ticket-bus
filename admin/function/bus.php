@@ -9,9 +9,14 @@ wajibRole(['admin']);   // hanya admin yang boleh masuk
 include_once __DIR__ . '/../database/koneksi.php';
 require_once __DIR__ . '/../../includes/bus_helper.php';
 
-$aksi    = $_GET['aksi'] ?? '';
+$aksi    = param_enum('aksi', ['simpan', 'hapus']);
+
+// Semua proses di file ini mengubah data: hanya POST + token CSRF (link yang disalin/dibuka di tab baru ditolak)
+if ($aksi !== '') {
+    wajibPostCsrf();
+}
 $kembali = '/e-ticket-bus/admin/index.php?page=bus';
-$kelas_filter = $_GET['kelas'] ?? '';
+$kelas_filter = param_str('kelas', '', 'POST');
 if ($aksi === 'hapus' && in_array($kelas_filter, ['Eksekutif', 'Bisnis', 'Ekonomi'], true)) {
     $kembali .= '&kelas=' . urlencode($kelas_filter);
 }
@@ -64,7 +69,7 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ---------- HAPUS ----------
 if ($aksi === 'hapus') {
-    $id = (int) ($_GET['id'] ?? 0);
+    $id = param_id('id', 'POST');
 
     // Catat nama file foto dulu, supaya bisa ikut dihapus setelah bus terhapus
     $ambil = $koneksi->prepare("SELECT foto FROM buses WHERE id = ?");

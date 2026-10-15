@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/dashboard.php
 // Dashboard E-Ticket Bus: tata letak template Spark Admin, isinya data asli dari database.
 

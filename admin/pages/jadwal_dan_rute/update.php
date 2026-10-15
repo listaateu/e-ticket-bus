@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/jadwal_dan_rute/update.php
 // Halaman ubah jadwal (bagian U = Update dari CRUD).
 // File ini mengurus SEMUANYA: tampilkan form + proses UPDATE ke database.
@@ -6,7 +7,7 @@
 include_once __DIR__ . '/../../database/koneksi.php';
 
 $kembali = '/e-ticket-bus/admin/index.php?page=jadwal_dan_rute';
-$id      = (int) ($_GET['id'] ?? 0);
+$id      = param_id('id');
 $error   = ''; // pesan kesalahan, kosong = tidak ada masalah
 
 // ---------- 1. AMBIL DATA JADWAL YANG MAU DIUBAH ----------
@@ -30,8 +31,20 @@ if ((int) $jadwal['sudah_lewat'] === 1) {   // dibandingkan dengan jam MySQL, sa
 // Daftar bus untuk dropdown (ikut ambil nama_bus)
 $daftar_bus = $koneksi->query("SELECT id, nama_bus, plat_nomor, kelas FROM buses ORDER BY nama_bus");
 
+// Jam berangkat harus di masa depan. Dibandingkan dengan jam MySQL (NOW()), sama seperti tabel jadwal.
+// NULL (tanggal tidak ada, mis. 31 Februari) dianggap tidak valid.
+function jam_berangkat_belum_lewat(mysqli $koneksi, string $jam): bool
+{
+    $st = $koneksi->prepare("SELECT (? > NOW()) AS ok");
+    $st->bind_param('s', $jam);
+    $st->execute();
+    return (int) $st->get_result()->fetch_assoc()['ok'] === 1;
+}
+
 // ---------- 2. PROSES UPDATE (jalan hanya saat form disubmit) ----------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
+    $error = 'Sesi formulir tidak valid atau sudah kedaluwarsa. Muat ulang halaman lalu coba lagi.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bus_id = (int) ($_POST['bus_id'] ?? 0);
     $sopir  = trim($_POST['sopir'] ?? '');
     $asal   = trim($_POST['kota_asal'] ?? '');
@@ -62,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$valid) {
         $error = 'Data belum benar. Pastikan nama sopir terisi, kota asal berbeda dengan kota tujuan, jam berangkat dan jam tiba terisi (jam tiba harus setelah jam berangkat), dan harga lebih dari 0.';
+    } elseif (!jam_berangkat_belum_lewat($koneksi, $jam)) {
+        $error = 'Jam berangkat sudah lewat atau tanggalnya tidak ada. Pilih tanggal dan jam keberangkatan yang belum terjadi.';
     } else {
         // Simpan perubahan
         $ubah = $koneksi->prepare(
@@ -124,6 +139,7 @@ if (!empty($jadwal['jam_tiba']) && strtotime($jadwal['jam_tiba']) !== false) {
 
       <!-- action kosong = kirim ke alamat halaman ini sendiri (update.php), bukan ke function -->
       <form action="" method="post">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="bus_id" class="form-label-custom">Bus</label>

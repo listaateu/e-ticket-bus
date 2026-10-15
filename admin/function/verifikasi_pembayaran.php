@@ -11,7 +11,12 @@ require_once __DIR__ . '/../../includes/batas_bayar.php';    // batas waktu baya
 
 include_once __DIR__ . '/../database/koneksi.php';
 
-$aksi    = $_GET['aksi'] ?? '';
+$aksi    = param_enum('aksi', ['setujui', 'tolak']);
+
+// Hanya POST + token CSRF
+if ($aksi !== '') {
+    wajibPostCsrf();
+}
 $kembali = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
 
 // ===== Nilai status di kolom payments.status (SESUAIKAN dengan databasemu) =====
@@ -21,7 +26,7 @@ $STATUS_DITOLAK  = 'ditolak';
 // ================================================================================
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'], true)) {
-    $id = (int) ($_POST['id'] ?? 0);
+    $id = param_id('id', 'POST');
 
     // Ambil data pembayaran
     $ambil = $koneksi->prepare("SELECT id, booking_id, bukti_transfer, status FROM payments WHERE id = ?");
@@ -71,8 +76,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($aksi, ['setujui', 'tolak'
     } else {
         // Menolak: alasan wajib dipilih ("lainnya" wajib disertai catatan)
         $alasan = susun_alasan_tolak(
-            (string) ($_POST['alasan'] ?? ''),
-            (string) ($_POST['catatan'] ?? '')
+            param_str('alasan', '', 'POST', 50),
+            param_str('catatan', '', 'POST', 500)
         );
         if ($alasan === null) {
             header("Location: $kembali&aksi=detail&id=$id&pesan=alasan_kosong");

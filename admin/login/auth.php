@@ -12,7 +12,19 @@
  * ============================================================
  */
 
+// Jangan tampilkan pesan error PHP ke pengunjung (bisa membocorkan path & isi query). Error tetap dicatat di log server.
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
 if (session_status() === PHP_SESSION_NONE) {
+    // Cookie session tidak bisa dibaca JavaScript dan tidak ikut terkirim dari situs lain (membantu melawan CSRF)
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Strict',
+        'secure'   => !empty($_SERVER['HTTPS']),
+    ]);
     session_start();
 }
 
@@ -66,6 +78,94 @@ if (!function_exists('wajibRole')) {
         if (!in_array(roleLogin(), $roleBoleh, true)) {
             http_response_code(403);
             exit('Akses ditolak: halaman ini hanya untuk ' . htmlspecialchars(implode(', ', $roleBoleh), ENT_QUOTES, 'UTF-8') . '.');
+        }
+    }
+}
+
+
+// ============================================================
+// BANTUAN KEAMANAN (dipakai semua halaman & proses admin)
+// ============================================================
+
+/**
+ * Ambil parameter GET/POST SEBAGAI TEKS. Kalau yang dikirim bukan teks (mis. ?status[]=x),
+ * dipakai nilai bawaan, jadi tidak ada TypeError dan tidak ada data aneh yang masuk ke query.
+ */
+if (!function_exists('param_str')) {
+    function param_str(string $kunci, string $bawaan = '', string $sumber = 'GET', int $maks = 100): string
+    {
+        $data  = $sumber === 'POST' ? $_POST : $_GET;
+        $nilai = $data[$kunci] ?? $bawaan;
+        if (!is_string($nilai)) {
+            return $bawaan;
+        }
+        return mb_substr(trim($nilai), 0, $maks, 'UTF-8');
+    }
+}
+
+/** Ambil parameter yang HARUS salah satu dari daftar resmi. Di luar daftar -> nilai bawaan. */
+if (!function_exists('param_enum')) {
+    function param_enum(string $kunci, array $boleh, string $bawaan = '', string $sumber = 'GET'): string
+    {
+        $nilai = param_str($kunci, $bawaan, $sumber, 50);
+        return in_array($nilai, $boleh, true) ? $nilai : $bawaan;
+    }
+}
+
+/** Ambil parameter angka bulat positif (id). Bukan angka -> 0. */
+if (!function_exists('param_id')) {
+    function param_id(string $kunci, string $sumber = 'GET'): int
+    {
+        $nilai = param_str($kunci, '0', $sumber, 12);
+        return ctype_digit($nilai) ? (int) $nilai : 0;
+    }
+}
+
+/** Token CSRF: satu token acak per session. */
+if (!function_exists('csrf_token')) {
+    function csrf_token(): string
+    {
+        if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+}
+
+/** Input tersembunyi berisi token. WAJIB ada di setiap <form method="post">. */
+if (!function_exists('csrf_field')) {
+    function csrf_field(): string
+    {
+        return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8') . '">';
+    }
+}
+
+/** Cek token yang dikirim form sama dengan token session. */
+if (!function_exists('csrf_valid')) {
+    function csrf_valid(): bool
+    {
+        $kirim = $_POST['csrf_token'] ?? '';
+        $asli  = $_SESSION['csrf_token'] ?? '';
+        return is_string($kirim) && is_string($asli) && $kirim !== '' && hash_equals($asli, $kirim);
+    }
+}
+
+/**
+ * Pintu untuk proses yang mengubah data (hapus/simpan) di admin/function/*.php.
+ * - Bukan POST          -> 405 (link yang dibuka/disalin ke tab baru tidak berbuat apa-apa)
+ * - Token CSRF salah    -> 403
+ */
+if (!function_exists('wajibPostCsrf')) {
+    function wajibPostCsrf(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            exit('Metode tidak diizinkan. Gunakan tombol di halaman admin.');
+        }
+        if (!csrf_valid()) {
+            http_response_code(403);
+            exit('Token keamanan tidak valid atau sudah kedaluwarsa. Kembali ke halaman admin, muat ulang, lalu coba lagi.');
         }
     }
 }

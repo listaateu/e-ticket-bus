@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/bus/update.php
 // Halaman ubah bus (bagian U = Update dari CRUD).
 // File ini mengurus SEMUANYA: tampilkan form + proses UPDATE ke database.
@@ -8,7 +9,7 @@ require_once __DIR__ . '/../../../includes/bus_helper.php';
 
 $kembali      = '/e-ticket-bus/admin/index.php?page=bus';
 $daftar_kelas = ['Ekonomi', 'Bisnis', 'Eksekutif'];
-$id           = (int) ($_GET['id'] ?? 0);
+$id           = param_id('id');
 $error        = ''; // pesan kesalahan, kosong = tidak ada masalah
 
 // ---------- 1. AMBIL DATA BUS YANG MAU DIUBAH ----------
@@ -24,7 +25,9 @@ if (!$bus) {
 }
 
 // ---------- 2. PROSES UPDATE (jalan hanya saat form disubmit) ----------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
+    $error = 'Sesi formulir tidak valid atau sudah kedaluwarsa. Muat ulang halaman lalu coba lagi.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama  = trim($_POST['nama_bus'] ?? '');
     $plat  = strtoupper(trim($_POST['plat_nomor'] ?? ''));
     $kursi = (int) ($_POST['kapasitas_kursi'] ?? 0);
@@ -123,6 +126,7 @@ $foto_sekarang      = bus_url_foto($bus['foto'] ?? '');
 
       <!-- action kosong = kirim ke alamat halaman ini sendiri (update.php), bukan ke function -->
       <form action="" method="post" enctype="multipart/form-data">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="nama_bus" class="form-label-custom">Nama Bus</label>

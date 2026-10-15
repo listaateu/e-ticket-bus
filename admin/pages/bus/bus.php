@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/bus/bus.php
 // Tabel daftar bus (bagian R = Read dari CRUD), bisa difilter per kelas.
 
@@ -7,10 +8,7 @@ include_once __DIR__ . '/../../components/pagination.php';
 
 // Filter kelas dari alamat (?kelas=Bisnis). Nilai di luar daftar dianggap "semua".
 $daftar_kelas = ['Eksekutif', 'Bisnis', 'Ekonomi'];
-$kelas = $_GET['kelas'] ?? '';
-if (!in_array($kelas, $daftar_kelas, true)) {
-    $kelas = '';
-}
+$kelas = param_enum('kelas', $daftar_kelas);
 
 // Hitung total bus (sesuai filter)
 if ($kelas !== '') {
@@ -31,7 +29,10 @@ if ($kelas !== '') {
     $stmt->execute();
     $hasil = $stmt->get_result();
 } else {
-    $hasil = $koneksi->query("SELECT * FROM buses ORDER BY id DESC LIMIT $per_halaman OFFSET $offset");
+    $stmt = $koneksi->prepare("SELECT * FROM buses ORDER BY id DESC LIMIT ? OFFSET ?");
+    $stmt->bind_param('ii', $per_halaman, $offset);
+    $stmt->execute();
+    $hasil = $stmt->get_result();
 }
 
 // Judul mengikuti kelas yang dipilih
@@ -140,7 +141,7 @@ $pesan = $_GET['pesan'] ?? '';
             <td>
               <div class="d-flex justify-content-center gap-1">
                 <a href="/e-ticket-bus/admin/index.php?page=bus&aksi=update&id=<?= (int) $bus['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
-                <a href="/e-ticket-bus/admin/function/bus.php?aksi=hapus&id=<?= (int) $bus['id'] ?><?= $q_kelas ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus bus ini?')"><i class="bi bi-trash"></i></a>
+                <form action="/e-ticket-bus/admin/function/bus.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus bus ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $bus['id'] ?>"><?php if ($kelas !== '') : ?><input type="hidden" name="kelas" value="<?= htmlspecialchars($kelas) ?>"><?php endif; ?><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
               </div>
             </td>
           </tr>

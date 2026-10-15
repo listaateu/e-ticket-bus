@@ -1,4 +1,5 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/jadwal_dan_rute/jadwal_dan_rute.php
 // Tabel jadwal & rute (bagian R = Read dari CRUD), bisa difilter per kelas bus.
 
@@ -7,18 +8,12 @@ include_once __DIR__ . '/../../components/pagination.php';
 
 // Filter kelas dari alamat (?kelas=Bisnis). Nilai di luar daftar dianggap "semua".
 $daftar_kelas = ['Eksekutif', 'Bisnis', 'Ekonomi'];
-$kelas = $_GET['kelas'] ?? '';
-if (!in_array($kelas, $daftar_kelas, true)) {
-    $kelas = '';
-}
+$kelas = param_enum('kelas', $daftar_kelas);   // hanya nilai dari daftar resmi, selain itu = semua
 
 // Tab waktu: yang AKAN DATANG (bawaan), yang SUDAH BERANGKAT, atau SEMUA.
 // "Sudah berangkat" = jam berangkat sudah lewat (dibandingkan dengan jam MySQL, NOW()).
 $daftar_tab = ['akan_datang' => 'Akan Datang', 'sudah_berangkat' => 'Sudah Berangkat', 'semua' => 'Semua'];
-$tab = $_GET['tab'] ?? 'akan_datang';
-if (!isset($daftar_tab[$tab])) {
-    $tab = 'akan_datang';
-}
+$tab = param_enum('tab', array_keys($daftar_tab), 'akan_datang');   // hanya nilai dari daftar resmi
 
 // Jumlah jadwal per tab (ikut filter kelas) untuk angka di tombol tab
 $hitung = ['akan_datang' => 0, 'sudah_berangkat' => 0, 'semua' => 0];
@@ -71,11 +66,11 @@ $stmt = $koneksi->prepare(
      JOIN buses b ON b.id = s.bus_id
      $where
      ORDER BY $urut
-     LIMIT $per_halaman OFFSET $offset"
+     LIMIT ? OFFSET ?"
 );
-if ($tipe !== '') {
-    $stmt->bind_param($tipe, ...$param);
-}
+// LIMIT & OFFSET ikut di-bind sebagai angka, bukan disambung ke teks query
+$tipe .= 'ii'; $param[] = (int) $per_halaman; $param[] = (int) $offset;
+$stmt->bind_param($tipe, ...$param);
 $stmt->execute();
 $hasil = $stmt->get_result();
 
@@ -214,7 +209,7 @@ $pesan = $_GET['pesan'] ?? '';
                 <?php else : ?>
                   <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=update&id=<?= (int) $j['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
                 <?php endif; ?>
-                <a href="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=hapus&id=<?= (int) $j['id'] ?><?= $q_kelas ?>&tab=<?= $tab ?>" class="table-btn-action delete" title="Hapus" onclick="return confirm('Yakin hapus jadwal ini?')"><i class="bi bi-trash"></i></a>
+                <form action="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus jadwal ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><?php if ($kelas !== '') : ?><input type="hidden" name="kelas" value="<?= htmlspecialchars($kelas) ?>"><?php endif; ?><input type="hidden" name="tab" value="<?= htmlspecialchars($tab) ?>"><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
               </div>
             </td>
           </tr>

@@ -1,13 +1,15 @@
 <?php
+defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
 // admin/pages/user/update.php
 // Halaman ubah penumpang (bagian U = Update dari CRUD).
 // File ini mengurus SEMUANYA: tampilkan form + proses UPDATE ke database.
 
 include_once __DIR__ . '/../../database/koneksi.php';
+require_once __DIR__ . '/../../function/registrasi.php';   // normalisasiNoHp()
 
 $kembali = '/e-ticket-bus/admin/index.php?page=user';
 $role    = 'penumpang';
-$id      = (int) ($_GET['id'] ?? 0);
+$id      = param_id('id');
 $error   = ''; // pesan kesalahan, kosong = tidak ada masalah
 
 // ---------- 1. AMBIL DATA YANG MAU DIUBAH ----------
@@ -24,17 +26,21 @@ if (!$user) {
 }
 
 // ---------- 2. PROSES UPDATE (jalan hanya saat form disubmit) ----------
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
+    $error = 'Sesi formulir tidak valid atau sudah kedaluwarsa. Muat ulang halaman lalu coba lagi.';
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama     = trim($_POST['nama'] ?? '');
     $username = strtolower(trim($_POST['username'] ?? ''));
     $email    = strtolower(trim($_POST['email'] ?? ''));
     $no_hp    = trim($_POST['no_hp'] ?? '');
     $password = $_POST['password'] ?? ''; // boleh kosong = password tidak diganti
 
-    if ($nama === '' || $no_hp === '' || !preg_match('/^[a-z0-9_]{4,20}$/', $username)
+    $no_hp_rapi = normalisasiNoHp($no_hp);
+    if ($nama === '' || $no_hp_rapi === null || !preg_match('/^[a-z0-9_]{4,20}$/', $username)
         || !filter_var($email, FILTER_VALIDATE_EMAIL) || ($password !== '' && strlen($password) < 6)) {
-        $error = 'Data belum benar. Cek lagi nama, username (4-20 huruf/angka/underscore), email, no. HP, dan password (minimal 6 karakter kalau diisi).';
+        $error = 'Data belum benar. Cek lagi nama, username (4-20 huruf/angka/underscore), email, no. HP (angka saja, diawali 08, 10-14 digit), dan password (minimal 6 karakter kalau diisi).';
     } else {
+        $no_hp = $no_hp_rapi;   // sudah dirapikan jadi 08xxxxxxxxxx
         // Cek username / email tidak dipakai akun LAIN (id <> ? supaya akun ini sendiri tidak dihitung)
         $cek = $koneksi->prepare("SELECT username, email FROM users WHERE (username = ? OR email = ?) AND id <> ?");
         $cek->bind_param('ssi', $username, $email, $id);
@@ -99,6 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <!-- action kosong = kirim ke alamat halaman ini sendiri (update.php), bukan ke function -->
       <form action="" method="post">
+        <?= csrf_field() ?>
 
         <div class="mb-3">
           <label for="nama" class="form-label-custom">Nama</label>
@@ -120,8 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="mb-3">
           <label for="no_hp" class="form-label-custom">No. HP</label>
-          <input type="text" class="form-control-custom" id="no_hp" name="no_hp"
-            value="<?= htmlspecialchars($user['no_hp'] ?? '') ?>" maxlength="20" required>
+          <input class="form-control-custom" id="no_hp" name="no_hp" type="tel" inputmode="numeric" autocomplete="tel" pattern="(08|62)[0-9]{8,12}" maxlength="14"
+            title="Angka saja, diawali 08, 10-14 digit" oninput="this.value = this.value.replace(/\D/g, '')"
+            value="<?= htmlspecialchars($user['no_hp'] ?? '') ?>" required>
         </div>
 
         <div class="mb-4">

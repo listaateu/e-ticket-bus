@@ -1,3 +1,4 @@
+<?php defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php ?>
 <!-- Footer -->
 <footer class="footer-custom">
       <div class="footer-left">
