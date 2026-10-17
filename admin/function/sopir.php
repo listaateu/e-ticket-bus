@@ -16,7 +16,7 @@ $aksi    = param_enum('aksi', ['simpan', 'hapus']);
 if ($aksi !== '') {
     wajibPostCsrf();
 }
-$kembali = '/e-ticket-bus/admin/index.php?page=sopir';
+$kembali = BASE_URL . '/admin/index.php?page=sopir';
 $role    = 'kondektur';
 
 // ---------- TAMBAH ----------

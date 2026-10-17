@@ -14,7 +14,7 @@ $aksi    = param_enum('aksi', ['simpan', 'hapus']);
 if ($aksi !== '') {
     wajibPostCsrf();
 }
-$kembali = '/e-ticket-bus/admin/index.php?page=jadwal_dan_rute';
+$kembali = BASE_URL . '/admin/index.php?page=jadwal_dan_rute';
 $kelas_filter = param_str('kelas', '', 'POST');
 if ($aksi === 'hapus' && in_array($kelas_filter, ['Eksekutif', 'Bisnis', 'Ekonomi'], true)) {
     $kembali .= '&kelas=' . urlencode($kelas_filter);

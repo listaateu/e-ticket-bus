@@ -7,9 +7,22 @@
  * ============================================================
  */
 
+/** true bila bus sudah lewat jam berangkat dan tidak ada penumpang lunas (dewasa maupun bayi) */
+function jadwal_dibatalkan(array $j): bool
+{
+    return !empty($j['sudah_berangkat'])
+        && (int) $j['total_dewasa'] === 0
+        && (int) $j['total_bayi'] === 0;
+}
+
 /** Label status jadwal: [kelas badge bootstrap, teks] */
 function status_jadwal(array $j): array
 {
+    // Sudah lewat jam berangkat tapi tidak ada satu pun penumpang lunas = jadwal dianggap DIBATALKAN
+    // (tidak ada yang bisa membayar lagi setelah berangkat). Status ini dihitung otomatis, tidak disimpan di database.
+    if (jadwal_dibatalkan($j)) {
+        return ['danger', 'Dibatalkan'];
+    }
     if (!empty($j['sudah_tiba'])) {
         return ['dark', 'Selesai'];
     }
@@ -25,15 +38,13 @@ function komponen_kartu_jadwal(array $j): void
     $selesai = !empty($j['sudah_tiba']);
     // Tidak ada penumpang LUNAS sama sekali. Kalau bus sudah berangkat, tidak akan ada lagi yang bisa membayar
     // (admin tidak bisa menyetujui pembayaran setelah berangkat), jadi manifest & scan tidak ada gunanya.
-    $kosong       = (int) $j['total_dewasa'] === 0 && (int) $j['total_bayi'] === 0;
-    $tanpa_penumpang = $kosong && !empty($j['sudah_berangkat']);
+    $tanpa_penumpang = jadwal_dibatalkan($j);
     ?>
-    <div class="kartu-jadwal<?= $selesai ? ' selesai' : '' ?>">
+    <div class="kartu-jadwal<?= ($selesai || $tanpa_penumpang) ? ' selesai' : '' ?>">
       <div class="row align-items-center gy-3">
         <div class="col-lg-4">
           <div class="d-flex align-items-center gap-2 mb-1">
             <span class="badge bg-<?= $kelas_status ?> status-badge"><?= e($label_status) ?></span>
-            <?php if ($tanpa_penumpang): ?><span class="badge bg-secondary status-badge">Tanpa penumpang</span><?php endif; ?>
             <small class="text-muted">Jadwal #<?= (int) $j['id'] ?></small>
           </div>
           <div class="rute"><?= e($j['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= e($j['kota_tujuan']) ?></div>
@@ -51,7 +62,7 @@ function komponen_kartu_jadwal(array $j): void
           <?php if ($tanpa_penumpang): ?>
             <div class="small text-muted">Penumpang naik</div>
             <div class="fw-semibold text-muted">Tidak ada penumpang</div>
-            <small class="text-muted">Belum ada pemesanan yang lunas di jadwal ini.</small>
+            <small class="text-muted">Tidak ada pemesanan lunas sampai jam berangkat, jadwal dibatalkan.</small>
           <?php else: ?>
             <?php komponen_progress_naik((int) $j['total_naik'], (int) $j['total_dewasa']); ?>
           <?php endif; ?>

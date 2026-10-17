@@ -3,13 +3,14 @@
  * login/index.php — Login PENUMPANG & SOPIR (satu form).
  * Sopir di database memakai role 'kondektur' (dibuat admin lewat admin/function/sopir.php).
  */
+require_once __DIR__ . '/../includes/base_url.php';
 require_once __DIR__ . '/../penumpang/database/koneksi.php';   // membuat $conn
 require_once __DIR__ . '/../penumpang/function/auth.php';       // session + ambil_redirect_setelah_login()
 
 // role di database => halaman tujuan setelah login
 const TUJUAN_ROLE = [
-    'penumpang' => '/e-ticket-bus/penumpang/index.php',
-    'kondektur' => '/e-ticket-bus/sopir/index.php',
+    'penumpang' => BASE_URL . '/penumpang/index.php',
+    'kondektur' => BASE_URL . '/sopir/index.php',
 ];
 
 // Sudah login? Langsung arahkan, tidak perlu lihat form lagi.
@@ -23,31 +24,46 @@ if (empty($_SESSION['csrf_login'])) {
     $_SESSION['csrf_login'] = bin2hex(random_bytes(16));
 }
 
+/**
+ * Cocokkan yang diketik dengan akun hasil query.
+ * - Username: HARUS persis sama, huruf besar/kecil dihitung ("kaka" tidak sama dengan "KakA").
+ *   (MySQL secara bawaan tidak membedakan besar/kecil, jadi dicek ulang di sini.)
+ * - Email: tidak membedakan besar/kecil (memang begitu aturan email).
+ */
+function login_cocok(array $user, string $login): bool
+{
+    $username = (string) ($user['username'] ?? '');
+    $email    = (string) ($user['email'] ?? '');
+    return ($username !== '' && hash_equals($username, $login))
+        || ($email !== '' && strcasecmp($email, $login) === 0);
+}
+
 $pesan = $_SESSION['pesan_login'] ?? '';   // mis. "Pendaftaran berhasil"
 unset($_SESSION['pesan_login']);
 $error = '';
 $login = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $login    = trim($_POST['login'] ?? '');
-    $password = $_POST['password'] ?? '';
+    // Hanya terima teks (bukan array seperti login[]=x yang bisa membuat error)
+    $login    = is_string($_POST['login'] ?? null) ? trim($_POST['login']) : '';
+    $password = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
 
-    if (!hash_equals($_SESSION['csrf_login'], $_POST['csrf'] ?? '')) {
+    if (!is_string($_POST['csrf'] ?? null) || !hash_equals($_SESSION['csrf_login'], $_POST['csrf'])) {
         $error = 'Sesi form habis, silakan coba lagi.';
     } elseif ($login === '' || $password === '') {
         $error = 'Email/username dan password wajib diisi.';
     } else {
         // Hanya role penumpang & kondektur yang boleh lewat sini (admin punya login sendiri)
         $stmt = $conn->prepare(
-            "SELECT id, nama, password, role FROM users
-             WHERE (email = ? OR username = ?) AND role IN ('penumpang', 'kondektur')
+            "SELECT id, nama, username, email, password, role FROM users
+             WHERE (email = ? OR BINARY username = ?) AND role IN ('penumpang', 'kondektur')
              LIMIT 1"
         );
         $stmt->bind_param('ss', $login, $login);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
 
-        if ($user && password_verify($password, $user['password'])) {
+        if ($user && login_cocok($user, $login) && password_verify($password, $user['password'])) {
             session_regenerate_id(true);               // cegah session fixation
             $_SESSION['user_id'] = (int) $user['id'];
             $_SESSION['nama']    = $user['nama'];
@@ -76,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Masuk - E-Ticket Bus</title>
   <!-- Sementara memakai bootstrap milik admin; nanti boleh dipindah ke login/assets -->
-  <link rel="stylesheet" href="/e-ticket-bus/admin/assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/admin/assets/libs/bootstrap/css/bootstrap.min.css">
   <style>body{background:#f1f5f9}.kartu{max-width:420px;margin:8vh auto}</style>
 </head>
 <body>
@@ -105,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </form>
 
   <p class="text-center small mt-3 mb-1">Belum punya akun? <a href="register.php">Daftar sebagai penumpang</a></p>
-  <p class="text-center small mb-0"><a href="/e-ticket-bus/penumpang/index.php">&larr; Kembali ke beranda</a></p>
+  <p class="text-center small mb-0"><a href="<?= BASE_URL ?>/penumpang/index.php">&larr; Kembali ke beranda</a></p>
 </div>
 </body>
 </html>

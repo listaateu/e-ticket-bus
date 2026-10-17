@@ -17,7 +17,7 @@ $STATUS = [
 ];
 $STATUS_MENUNGGU = 'pending';
 // Folder tempat file bukti transfer disimpan (sama dengan folder upload di sisi penumpang)
-$FOLDER_BUKTI = '/e-ticket-bus/uploads/bukti/';
+$FOLDER_BUKTI = BASE_URL . '/uploads/bukti/';
 // =======================================
 
 $id = param_id('id');
@@ -41,7 +41,7 @@ $p = $ambil->get_result()->fetch_assoc();
 
 // Kalau id tidak ditemukan, balik ke tabel
 if (!$p) {
-    echo '<script>window.location.href = "/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran";</script>';
+    echo '<script>window.location.href = "' . BASE_URL . '/admin/index.php?page=verifikasi_pembayaran";</script>';
     return;
 }
 
@@ -73,8 +73,8 @@ $daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran" class="text-decoration-none text-muted-green">Verifikasi Pembayaran</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php?page=verifikasi_pembayaran" class="text-decoration-none text-muted-green">Verifikasi Pembayaran</a></li>
       <li class="breadcrumb-item active text-main" aria-current="page">Detail</li>
     </ol>
   </nav>
@@ -148,7 +148,7 @@ $daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
         <?php endif; ?>
         <div class="d-flex gap-2">
           <!-- Setujui -->
-          <form action="/e-ticket-bus/admin/function/verifikasi_pembayaran.php?aksi=setujui" method="post"
+          <form action="<?= BASE_URL ?>/admin/function/verifikasi_pembayaran.php?aksi=setujui" method="post"
                 onsubmit="return confirm('Setujui pembayaran ini?')">
             <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
@@ -163,12 +163,12 @@ $daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
             <i class="bi bi-x-lg"></i> Tolak
           </button>
 
-          <a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran" class="btn-custom btn-custom-light">Kembali</a>
+          <a href="<?= BASE_URL ?>/admin/index.php?page=verifikasi_pembayaran" class="btn-custom btn-custom-light">Kembali</a>
         </div>
 
         <!-- Form alasan penolakan (tersembunyi sampai tombol Tolak diklik) -->
         <div class="collapse mt-3<?= $berangkat ? ' show' : '' ?>" id="form-tolak">
-          <form action="/e-ticket-bus/admin/function/verifikasi_pembayaran.php?aksi=tolak" method="post"
+          <form action="<?= BASE_URL ?>/admin/function/verifikasi_pembayaran.php?aksi=tolak" method="post"
                 onsubmit="return confirm('<?= $berangkat ? 'Pastikan dana SUDAH dikembalikan ke penumpang. Pesanan ini akan dihapus dari sistem. Lanjutkan?' : 'Tolak pembayaran ini dan kirim alasannya ke penumpang?' ?>')">
             <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
@@ -206,7 +206,7 @@ $daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
         </script>
       <?php else : ?>
         <p class="text-muted mb-3">Pembayaran ini sudah diproses.</p>
-        <a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran" class="btn-custom btn-custom-light">Kembali</a>
+        <a href="<?= BASE_URL ?>/admin/index.php?page=verifikasi_pembayaran" class="btn-custom btn-custom-light">Kembali</a>
       <?php endif; ?>
     </div>
   </div>

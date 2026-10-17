@@ -54,7 +54,7 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
 <!-- Sidebar -->
 <div class="sidebar-wrapper" id="sidebar">
     <!-- Brand Logo / Identity -->
-    <a href="/e-ticket-bus/admin/index.php" class="sidebar-brand">
+    <a href="<?= BASE_URL ?>/admin/index.php" class="sidebar-brand">
       <i class="bi bi-bus-front"></i>
       <span>E-Ticket Bus</span>
     </a>
@@ -66,7 +66,7 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
         <div class="sidebar-menu-title">Menu</div>
         <ul class="sidebar-menu-list">
           <li class="sidebar-menu-item">
-            <a href="/e-ticket-bus/admin/index.php" class="sidebar-menu-link<?= ($menu_aktif ?? 'dashboard') === 'dashboard' ? ' active' : '' ?>" title="Dashboard">
+            <a href="<?= BASE_URL ?>/admin/index.php" class="sidebar-menu-link<?= ($menu_aktif ?? 'dashboard') === 'dashboard' ? ' active' : '' ?>" title="Dashboard">
               <i class="bi bi-grid-fill"></i>
               <span>Dashboard</span>
             </a>
@@ -79,7 +79,7 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
         <div class="sidebar-menu-title">Master Data</div>
         <ul class="sidebar-menu-list">
           <li class="sidebar-menu-item">
-            <a href="/e-ticket-bus/admin/index.php?page=bus" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'bus' ? ' active' : '' ?>" title="Data Bus">
+            <a href="<?= BASE_URL ?>/admin/index.php?page=bus" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'bus' ? ' active' : '' ?>" title="Data Bus">
               <i class="bi bi-bus-front-fill"></i>
               <span>Data Bus</span>
             </a>
@@ -102,19 +102,19 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
             <div class="collapse<?= $jadwal_aktif ? ' show' : '' ?>" id="submenuJadwal">
               <ul class="sidebar-submenu">
                 <li>
-                  <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute"
+                  <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute"
                      class="sidebar-submenu-link<?= $jadwal_aktif && $kelas_aktif === '' ? ' active' : '' ?>">Semua Kelas</a>
                 </li>
                 <li>
-                  <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&kelas=Eksekutif"
+                  <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute&kelas=Eksekutif"
                      class="sidebar-submenu-link<?= $kelas_aktif === 'Eksekutif' ? ' active' : '' ?>">Eksekutif</a>
                 </li>
                 <li>
-                  <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&kelas=Bisnis"
+                  <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute&kelas=Bisnis"
                      class="sidebar-submenu-link<?= $kelas_aktif === 'Bisnis' ? ' active' : '' ?>">Bisnis</a>
                 </li>
                 <li>
-                  <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&kelas=Ekonomi"
+                  <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute&kelas=Ekonomi"
                      class="sidebar-submenu-link<?= $kelas_aktif === 'Ekonomi' ? ' active' : '' ?>">Ekonomi</a>
                 </li>
               </ul>
@@ -138,11 +138,11 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
             <div class="collapse<?= $user_aktif ? ' show' : '' ?>" id="submenuUser">
               <ul class="sidebar-submenu">
                 <li>
-                  <a href="/e-ticket-bus/admin/index.php?page=sopir"
+                  <a href="<?= BASE_URL ?>/admin/index.php?page=sopir"
                      class="sidebar-submenu-link<?= ($menu_aktif ?? '') === 'sopir' ? ' active' : '' ?>">Data Sopir</a>
                 </li>
                 <li>
-                  <a href="/e-ticket-bus/admin/index.php?page=user"
+                  <a href="<?= BASE_URL ?>/admin/index.php?page=user"
                      class="sidebar-submenu-link<?= ($menu_aktif ?? '') === 'user' ? ' active' : '' ?>">Data Penumpang</a>
                 </li>
               </ul>
@@ -156,14 +156,14 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
         <div class="sidebar-menu-title">Transaksi</div>
         <ul class="sidebar-menu-list">
           <li class="sidebar-menu-item">
-            <a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'verifikasi_pembayaran' ? ' active' : '' ?>" title="Verifikasi Pembayaran">
+            <a href="<?= BASE_URL ?>/admin/index.php?page=verifikasi_pembayaran" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'verifikasi_pembayaran' ? ' active' : '' ?>" title="Verifikasi Pembayaran">
               <i class="bi bi-cash-coin"></i>
               <span>Verifikasi Pembayaran</span>
               <span class="notif-count" id="badge-verifikasi"></span>
             </a>
           </li>
           <li class="sidebar-menu-item">
-            <a href="/e-ticket-bus/admin/index.php?page=data_pemesanan" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'data_pemesanan' ? ' active' : '' ?>" title="Data Pemesanan">
+            <a href="<?= BASE_URL ?>/admin/index.php?page=data_pemesanan" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'data_pemesanan' ? ' active' : '' ?>" title="Data Pemesanan">
               <i class="bi bi-ticket-perforated-fill"></i>
               <span>Data Pemesanan</span>
             </a>
@@ -174,7 +174,7 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
 
     <!-- Sidebar Profile Card (Dynamic Footer) -->
     <div class="sidebar-profile">
-      <img src="/e-ticket-bus/admin/assets/images/avatar.png" alt="Administrator" class="sidebar-profile-img"
+      <img src="<?= BASE_URL ?>/admin/assets/images/avatar.png" alt="Administrator" class="sidebar-profile-img"
         onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'">
       <div class="sidebar-profile-info">
         <div class="sidebar-profile-name">Administrator</div>

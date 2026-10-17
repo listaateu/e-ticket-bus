@@ -1,5 +1,4 @@
 <?php
-// index.php (root)
-// Halaman utama situs langsung diarahkan ke halaman penumpang.
-header('Location: /e-ticket-bus/penumpang/index.php');
+require_once __DIR__ . '/includes/base_url.php';
+header('Location: ' . BASE_URL . '/penumpang/index.php');
 exit;

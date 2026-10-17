@@ -61,7 +61,9 @@ $total = $hitung[$tab];
 [$per_halaman, $offset] = paginasi($total);
 
 $stmt = $koneksi->prepare(
-    "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas, (s.jam_berangkat < NOW()) AS sudah_lewat
+    "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas, (s.jam_berangkat < NOW()) AS sudah_lewat,
+            (SELECT COUNT(*) FROM bookings bk JOIN payments py ON py.booking_id = bk.id
+              WHERE bk.schedule_id = s.id AND py.status = 'lunas') AS jml_lunas
      FROM schedules s
      JOIN buses b ON b.id = s.bus_id
      $where
@@ -77,7 +79,7 @@ $hasil = $stmt->get_result();
 // Judul mengikuti kelas yang dipilih
 $judul   = $kelas !== '' ? "Jadwal & Rute Kelas $kelas" : 'Jadwal & Rute';
 $q_kelas = $kelas !== '' ? '&kelas=' . urlencode($kelas) : '';
-$url_tab = '/e-ticket-bus/admin/index.php?page=jadwal_dan_rute' . $q_kelas;
+$url_tab = BASE_URL . '/admin/index.php?page=jadwal_dan_rute' . $q_kelas;
 
 $pesan = $_GET['pesan'] ?? '';
 ?>
@@ -120,7 +122,7 @@ $pesan = $_GET['pesan'] ?? '';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item text-muted-green">Master Data</li>
       <li class="breadcrumb-item active text-main" aria-current="page"><?= htmlspecialchars($judul) ?></li>
     </ol>
@@ -155,7 +157,7 @@ $pesan = $_GET['pesan'] ?? '';
     </div>
         <?php if ($kelas === '') : ?>
       <div class="table-filter-group">
-        <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=tambah" class="btn-table-action">
+        <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute&aksi=tambah" class="btn-table-action">
           <i class="bi bi-plus-lg"></i> Tambah Jadwal
         </a>
       </div>
@@ -199,7 +201,11 @@ $pesan = $_GET['pesan'] ?? '';
             <td><?= $j['sopir'] !== '' ? htmlspecialchars($j['sopir']) : '-' ?></td>
             <td>
               <?= date('d M Y, H:i', strtotime($j['jam_berangkat'])) ?>
-              <?php if ($lewat) : ?><span class="badge-kelas" style="background:#e5e7eb;color:#4b5563">Selesai</span><?php endif; ?>
+              <?php if ($lewat && (int) $j['jml_lunas'] === 0) : ?>
+                <span class="badge-kelas" style="background:#fee2e2;color:#b91c1c" title="Sudah lewat jam berangkat dan tidak ada pemesanan lunas">Dibatalkan</span>
+              <?php elseif ($lewat) : ?>
+                <span class="badge-kelas" style="background:#e5e7eb;color:#4b5563">Selesai</span>
+              <?php endif; ?>
             </td>
             <td>Rp <?= number_format((int) $j['harga'], 0, ',', '.') ?></td>
             <td>
@@ -207,9 +213,9 @@ $pesan = $_GET['pesan'] ?? '';
                 <?php if ($lewat) : ?>
                   <span class="table-btn-action" title="Jadwal yang sudah berangkat tidak bisa diubah" style="opacity:.35;cursor:not-allowed"><i class="bi bi-pencil"></i></span>
                 <?php else : ?>
-                  <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute&aksi=update&id=<?= (int) $j['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
+                  <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute&aksi=update&id=<?= (int) $j['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
                 <?php endif; ?>
-                <form action="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus jadwal ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><?php if ($kelas !== '') : ?><input type="hidden" name="kelas" value="<?= htmlspecialchars($kelas) ?>"><?php endif; ?><input type="hidden" name="tab" value="<?= htmlspecialchars($tab) ?>"><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
+                <form action="<?= BASE_URL ?>/admin/function/jadwal_dan_rute.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus jadwal ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><?php if ($kelas !== '') : ?><input type="hidden" name="kelas" value="<?= htmlspecialchars($kelas) ?>"><?php endif; ?><input type="hidden" name="tab" value="<?= htmlspecialchars($tab) ?>"><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
               </div>
             </td>
           </tr>

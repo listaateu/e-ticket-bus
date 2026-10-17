@@ -17,7 +17,7 @@ $aksi    = param_enum('aksi', ['setujui', 'tolak']);
 if ($aksi !== '') {
     wajibPostCsrf();
 }
-$kembali = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
+$kembali = BASE_URL . '/admin/index.php?page=verifikasi_pembayaran';
 
 // ===== Nilai status di kolom payments.status (SESUAIKAN dengan databasemu) =====
 $STATUS_MENUNGGU = 'pending';

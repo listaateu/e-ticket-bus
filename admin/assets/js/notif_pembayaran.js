@@ -9,7 +9,7 @@
 (function () {
   'use strict';
 
-  var ALAMAT   = '/e-ticket-bus/admin/function/notif_pembayaran.php';
+  var ALAMAT   = (window.BASE_URL || '') + '/admin/function/notif_pembayaran.php';
   var KUNCI    = 'notif_pembayaran_ids';        // id yang sudah dilihat (disimpan per tab browser)
   var JEDA     = 5000;
   var judulAsli = document.title;
@@ -92,7 +92,7 @@
         lst.innerHTML = '<div class="notif-kosong"><i class="bi bi-check-circle fs-4 d-block mb-1"></i>Tidak ada pembayaran yang menunggu.</div>';
       } else {
         lst.innerHTML = data.daftar.map(function (p) {
-          return '<a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran&aksi=detail&id=' + p.id + '" class="notification-item">' +
+          return '<a href="' + (window.BASE_URL || '') + '/admin/index.php?page=verifikasi_pembayaran&aksi=detail&id=' + p.id + '" class="notification-item">' +
             '<div class="notification-icon bg-warning text-dark"><i class="bi bi-cash-coin"></i></div>' +
             '<div class="notification-content">' +
               '<p class="notification-text"><strong>' + esc(p.nama) + '</strong> mengirim bukti ' + esc(p.metode) + '</p>' +
@@ -132,7 +132,7 @@
           // Pertama kali admin membuka halaman di tab ini: ingatkan sekali kalau ada yang menunggu
           if (data.jumlah > 0) {
             toast(data.jumlah + ' pembayaran menunggu verifikasi', 'Segera periksa bukti transfer penumpang.',
-                  '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran&status=pending');
+                  (window.BASE_URL || '') + '/admin/index.php?page=verifikasi_pembayaran&status=pending');
           }
           return;
         }
@@ -142,7 +142,7 @@
 
         baru.slice().reverse().forEach(function (p) {
           toast('Pembayaran baru masuk', esc(p.nama) + ' &middot; ' + esc(p.rute) + '<br>' + rp(p.total) + ' via ' + esc(p.metode),
-                '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran&aksi=detail&id=' + p.id);
+                (window.BASE_URL || '') + '/admin/index.php?page=verifikasi_pembayaran&aksi=detail&id=' + p.id);
         });
         bunyi();
 

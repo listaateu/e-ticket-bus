@@ -9,16 +9,16 @@
   <meta name="author" content="E-Ticket Bus">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/e-ticket-bus/admin/assets/images/favicon.ico">
+  <link rel="icon" type="image/png" href="<?= BASE_URL ?>/admin/assets/images/favicon.ico">
 
   <!-- Local Third-Party Libraries (100% Offline Compatible) -->
-  <link rel="stylesheet" href="/e-ticket-bus/admin/assets/libs/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/e-ticket-bus/admin/assets/libs/bootstrap-icons/bootstrap-icons.css">
-  <link rel="stylesheet" href="/e-ticket-bus/admin/assets/libs/apexcharts/apexcharts.css">
-  <link rel="stylesheet" href="/e-ticket-bus/admin/assets/libs/flatpickr/flatpickr.min.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/admin/assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/admin/assets/libs/bootstrap-icons/bootstrap-icons.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/admin/assets/libs/apexcharts/apexcharts.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/admin/assets/libs/flatpickr/flatpickr.min.css">
 
   <!-- Main Design System & Custom Stylesheet -->
-  <link rel="stylesheet" href="/e-ticket-bus/admin/assets/css/main.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/admin/assets/css/main.css">
 
   <style>
   /* sembunyikan panah atas-bawah di input angka */

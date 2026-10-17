@@ -61,7 +61,7 @@
             <div class="notification-list" id="notif-daftar">
               <div class="notif-kosong" style="padding:22px 16px;text-align:center;color:#6b7280">Memuat...</div>
             </div>
-            <a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran&status=pending" class="notification-footer">Lihat semua yang menunggu</a>
+            <a href="<?= BASE_URL ?>/admin/index.php?page=verifikasi_pembayaran&status=pending" class="notification-footer">Lihat semua yang menunggu</a>
           </div>
         </div>
 
@@ -69,8 +69,8 @@
         <div class="dropdown ms-2">
           <button class="navbar-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
             aria-expanded="false" id="profile-dropdown">
-            <img src="/e-ticket-bus/admin/assets/images/avatar.png" alt="Profile Image" class="navbar-profile-img">
-            <span class="navbar-profile-name d-none d-md-inline">Admin</span>
+            <img src="<?= BASE_URL ?>/admin/assets/images/avatar.png" alt="Profile Image" class="navbar-profile-img">
+            <span class="navbar-profile-name d-none d-md-inline"><?= htmlspecialchars((string) ($_SESSION['nama'] ?? 'Admin'), ENT_QUOTES, 'UTF-8') ?></span>
             <i class="bi bi-chevron-down navbar-profile-caret"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-profile" aria-labelledby="profile-dropdown">
@@ -80,10 +80,31 @@
             <li>
               <hr class="dropdown-divider">
             </li>
-            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right"></i>
-                Keluar</a></li>
+            <li>
+              <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#modalKeluar">
+                <i class="bi bi-box-arrow-right"></i> Keluar
+              </button>
+            </li>
           </ul>
         </div>
       </div>
     </header>
+
+    <!-- Konfirmasi keluar -->
+    <div class="modal fade" id="modalKeluar" tabindex="-1" aria-labelledby="judulModalKeluar" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-body text-center p-4">
+            <div class="mb-3 text-danger" style="font-size:2.5rem;line-height:1"><i class="bi bi-box-arrow-right"></i></div>
+            <h5 class="mb-2" id="judulModalKeluar">Keluar dari admin?</h5>
+            <p class="text-muted small mb-4">Kamu harus masuk lagi untuk membuka halaman admin.</p>
+            <form method="post" action="<?= BASE_URL ?>/admin/login/logout.php" class="d-flex gap-2 m-0">
+              <?= csrf_field() ?>
+              <button type="button" class="btn btn-light flex-fill" data-bs-dismiss="modal">Batal</button>
+              <button type="submit" class="btn btn-danger flex-fill">Ya, Keluar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
 <!-- Top Navbar -->

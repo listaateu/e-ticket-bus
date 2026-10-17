@@ -63,7 +63,7 @@ $perlu_refund = (int) $koneksi->query(
 )->fetch_assoc()['jml'];
 
 $pesan = $_GET['pesan'] ?? '';
-$url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
+$url   = BASE_URL . '/admin/index.php?page=verifikasi_pembayaran';
 ?>
 <!-- page header -->
 <div class="page-header">
@@ -73,7 +73,7 @@ $url   = '/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item text-muted-green">Transaksi</li>
       <li class="breadcrumb-item active text-main" aria-current="page">Verifikasi Pembayaran</li>
     </ol>

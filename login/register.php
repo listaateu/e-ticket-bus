@@ -3,12 +3,13 @@
  * login/register.php — Daftar akun PENUMPANG.
  * Memakai registrasiPenumpang() dari admin/function/registrasi.php (role dikunci 'penumpang' di sana).
  */
+require_once __DIR__ . '/../includes/base_url.php';
 require_once __DIR__ . '/../penumpang/database/koneksi.php';
 require_once __DIR__ . '/../penumpang/function/auth.php';
 require_once __DIR__ . '/../admin/function/registrasi.php';
 
 if (sudah_login_penumpang()) {
-    header('Location: /e-ticket-bus/penumpang/index.php');
+    header('Location: ' . BASE_URL . '/penumpang/index.php');
     exit;
 }
 
@@ -20,11 +21,22 @@ $error = '';
 $old   = ['nama' => '', 'username' => '', 'email' => '', 'no_hp' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach ($old as $k => $_) {
-        $old[$k] = trim($_POST[$k] ?? '');
+    // Semua isian harus berupa teks (bukan array seperti nama[]=x yang bisa membuat error)
+    $semua_teks = true;
+    foreach (['nama', 'username', 'email', 'no_hp', 'password', 'password2', 'csrf'] as $k) {
+        if (!is_string($_POST[$k] ?? '')) {
+            $semua_teks = false;
+        }
+    }
+    if ($semua_teks) {
+        foreach ($old as $k => $_) {
+            $old[$k] = trim($_POST[$k] ?? '');
+        }
     }
 
-    if (!hash_equals($_SESSION['csrf_login'], $_POST['csrf'] ?? '')) {
+    if (!$semua_teks) {
+        $error = 'Data yang dikirim tidak valid.';
+    } elseif (!hash_equals($_SESSION['csrf_login'], $_POST['csrf'] ?? '')) {
         $error = 'Sesi form habis, silakan coba lagi.';
     } elseif (($_POST['password'] ?? '') !== ($_POST['password2'] ?? '')) {
         $error = 'Konfirmasi password tidak sama.';
@@ -45,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Daftar - E-Ticket Bus</title>
-  <link rel="stylesheet" href="/e-ticket-bus/admin/assets/libs/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>/admin/assets/libs/bootstrap/css/bootstrap.min.css">
   <style>body{background:#f1f5f9}.kartu{max-width:460px;margin:5vh auto}</style>
 </head>
 <body>
@@ -74,7 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <div class="mb-3">
       <label class="form-label" for="no_hp">No. HP</label>
-      <input class="form-control" type="tel" id="no_hp" name="no_hp" value="<?= htmlspecialchars($old['no_hp']) ?>" required>
+      <input class="form-control" type="tel" id="no_hp" name="no_hp" value="<?= htmlspecialchars($old['no_hp']) ?>"
+             inputmode="numeric" autocomplete="tel" maxlength="14" pattern="(08|62)[0-9]{8,12}" placeholder="08xxxxxxxxxx"
+             title="Angka saja, diawali 08, 10-14 digit"
+             oninput="this.value = this.value.replace(/\D/g, '')" required>
     </div>
     <div class="row">
       <div class="col-6 mb-3">

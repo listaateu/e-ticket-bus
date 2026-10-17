@@ -3,11 +3,12 @@
  * login/logout.php — Keluar (hapus session sampai bersih).
  * Penumpang kembali ke beranda, sopir kembali ke halaman login.
  */
+require_once __DIR__ . '/../includes/base_url.php';
 session_start();
 
 $tujuan = (($_SESSION['role'] ?? '') === 'penumpang')
-    ? '/e-ticket-bus/penumpang/index.php'
-    : '/e-ticket-bus/login/index.php';
+    ? BASE_URL . '/penumpang/index.php'
+    : BASE_URL . '/login/index.php';
 
 $_SESSION = [];
 if (ini_get('session.use_cookies')) {

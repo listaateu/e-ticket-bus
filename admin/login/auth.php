@@ -13,8 +13,12 @@
  */
 
 // Jangan tampilkan pesan error PHP ke pengunjung (bisa membocorkan path & isi query). Error tetap dicatat di log server.
+require_once __DIR__ . '/../../includes/base_url.php';
+
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
+ini_set('session.use_strict_mode', '1');   // tolak session ID buatan penyerang
+ini_set('session.use_only_cookies', '1');  // session ID tidak boleh lewat alamat (URL)
 
 if (session_status() === PHP_SESSION_NONE) {
     // Cookie session tidak bisa dibaca JavaScript dan tidak ikut terkirim dari situs lain (membantu melawan CSRF)
@@ -35,12 +39,25 @@ if (session_status() === PHP_SESSION_NONE) {
 // WAJIB diubah ke false setelah halaman login selesai dibuat!
 // ============================================================
 if (!defined('AUTH_DEV_BYPASS')) {
-    define('AUTH_DEV_BYPASS', true);
+    define('AUTH_DEV_BYPASS', false);   // halaman login admin sudah ada, jadi pengecekan login AKTIF
 }
 
 // Alamat halaman login. Ubah bila file login kamu bernama/berlokasi lain.
 if (!defined('AUTH_LOGIN_URL')) {
-    define('AUTH_LOGIN_URL', '/e-ticket-bus/admin/login/index.php');
+    define('AUTH_LOGIN_URL', BASE_URL . '/admin/login/index.php');
+}
+
+// Alamat beranda admin (tujuan setelah login berhasil)
+if (!defined('ADMIN_HOME_URL')) {
+    define('ADMIN_HOME_URL', BASE_URL . '/admin/index.php');
+}
+
+// Batas waktu sesi admin (detik)
+if (!defined('AUTH_IDLE_TIMEOUT')) {
+    define('AUTH_IDLE_TIMEOUT', 1800);    // 30 menit tidak ada aktivitas -> harus login lagi
+}
+if (!defined('AUTH_MAX_LIFETIME')) {
+    define('AUTH_MAX_LIFETIME', 28800);   // paling lama 8 jam sejak login, seaktif apa pun
 }
 
 if (!function_exists('idLogin')) {
@@ -58,9 +75,58 @@ if (!function_exists('roleLogin')) {
 }
 
 /**
+ * true bila sesi admin sudah lewat batas waktu (terlalu lama diam, atau sudah lewat 8 jam sejak login).
+ */
+if (!function_exists('admin_sesi_kedaluwarsa')) {
+    function admin_sesi_kedaluwarsa(): bool
+    {
+        $sekarang = time();
+        $mulai    = (int) ($_SESSION['admin_login_at'] ?? 0);
+        $terakhir = (int) ($_SESSION['admin_terakhir'] ?? 0);
+        if ($mulai <= 0 || $terakhir <= 0) {
+            return true;
+        }
+        return ($sekarang - $terakhir > AUTH_IDLE_TIMEOUT) || ($sekarang - $mulai > AUTH_MAX_LIFETIME);
+    }
+}
+
+/** true bila pengunjung sudah login sebagai admin dan sesinya masih berlaku. */
+if (!function_exists('admin_sudah_login')) {
+    function admin_sudah_login(): bool
+    {
+        return idLogin() > 0 && roleLogin() === 'admin' && !admin_sesi_kedaluwarsa();
+    }
+}
+
+/** Hapus sesi sampai bersih (data di server + cookie di browser). */
+if (!function_exists('admin_hapus_sesi')) {
+    function admin_hapus_sesi(): void
+    {
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $p = session_get_cookie_params();
+            setcookie(session_name(), '', [
+                'expires'  => time() - 42000,
+                'path'     => $p['path'],
+                'domain'   => $p['domain'],
+                'secure'   => $p['secure'],
+                'httponly' => $p['httponly'],
+                'samesite' => $p['samesite'] ?: 'Strict',
+            ]);
+        }
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+    }
+}
+
+/**
  * Izinkan akses hanya untuk role tertentu, mis. wajibRole(['admin']).
  * - Belum login            -> dilempar ke halaman login.
+ * - Sesi admin kedaluwarsa -> sesi dihapus, dilempar ke halaman login.
  * - Sudah login, role salah -> ditolak (403).
+ * notif_pembayaran.php dipanggil otomatis oleh JavaScript tiap beberapa detik; dia TIDAK memperpanjang
+ * sesi (supaya batas 30 menit diam tetap berlaku) dan menjawab 401, bukan pindah halaman.
  */
 if (!function_exists('wajibRole')) {
     function wajibRole(array $roleBoleh): void
@@ -69,9 +135,29 @@ if (!function_exists('wajibRole')) {
             return;
         }
 
+        $endpoint_latar = basename($_SERVER['SCRIPT_NAME'] ?? '') === 'notif_pembayaran.php';
+        $habis = false;
+
+        if (idLogin() > 0 && roleLogin() === 'admin') {
+            if (admin_sesi_kedaluwarsa()) {
+                admin_hapus_sesi();
+                session_start();           // sesi baru yang kosong
+                $habis = true;
+            } elseif (!$endpoint_latar) {
+                $_SESSION['admin_terakhir'] = time();   // perpanjang batas diam
+            }
+        }
+
         if (idLogin() <= 0) {
-            $_SESSION['redirect_setelah_login'] = $_SERVER['REQUEST_URI'] ?? '';
-            header('Location: ' . AUTH_LOGIN_URL);
+            if ($endpoint_latar) {
+                http_response_code(401);
+                exit;
+            }
+            // Hanya halaman yang dibuka biasa (GET) yang diingat; proses POST tidak bisa dibuka ulang
+            $_SESSION['redirect_setelah_login'] = (($_SERVER['REQUEST_METHOD'] ?? '') === 'GET')
+                ? ($_SERVER['REQUEST_URI'] ?? '')
+                : '';
+            header('Location: ' . AUTH_LOGIN_URL . ($habis ? '?habis=1' : ''));
             exit;
         }
 

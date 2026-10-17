@@ -78,7 +78,7 @@ $pesan = $_GET['pesan'] ?? '';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item text-muted-green">Master Data</li>
       <li class="breadcrumb-item active text-main" aria-current="page"><?= htmlspecialchars($judul) ?></li>
     </ol>
@@ -105,7 +105,7 @@ $pesan = $_GET['pesan'] ?? '';
       Total: <strong><?= $total ?></strong> bus<?= $kelas !== '' ? ' kelas ' . htmlspecialchars($kelas) : '' ?>
     </div>
     <div class="table-filter-group">
-      <a href="/e-ticket-bus/admin/index.php?page=bus&aksi=tambah" class="btn-table-action">
+      <a href="<?= BASE_URL ?>/admin/index.php?page=bus&aksi=tambah" class="btn-table-action">
         <i class="bi bi-plus-lg"></i> Tambah Bus
       </a>
     </div>
@@ -140,8 +140,8 @@ $pesan = $_GET['pesan'] ?? '';
             <td><span class="badge-kelas kelas-<?= strtolower($bus['kelas']) ?>"><?= htmlspecialchars($bus['kelas']) ?></span></td>
             <td>
               <div class="d-flex justify-content-center gap-1">
-                <a href="/e-ticket-bus/admin/index.php?page=bus&aksi=update&id=<?= (int) $bus['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
-                <form action="/e-ticket-bus/admin/function/bus.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus bus ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $bus['id'] ?>"><?php if ($kelas !== '') : ?><input type="hidden" name="kelas" value="<?= htmlspecialchars($kelas) ?>"><?php endif; ?><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
+                <a href="<?= BASE_URL ?>/admin/index.php?page=bus&aksi=update&id=<?= (int) $bus['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
+                <form action="<?= BASE_URL ?>/admin/function/bus.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus bus ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $bus['id'] ?>"><?php if ($kelas !== '') : ?><input type="hidden" name="kelas" value="<?= htmlspecialchars($kelas) ?>"><?php endif; ?><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
               </div>
             </td>
           </tr>

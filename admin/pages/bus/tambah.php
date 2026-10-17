@@ -16,8 +16,8 @@ $pesan = $_GET['pesan'] ?? '';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php?page=bus" class="text-decoration-none text-muted-green">Data Bus</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php?page=bus" class="text-decoration-none text-muted-green">Data Bus</a></li>
       <li class="breadcrumb-item active text-main" aria-current="page">Tambah</li>
     </ol>
   </nav>
@@ -39,7 +39,7 @@ $pesan = $_GET['pesan'] ?? '';
       <h5 class="card-title mb-4">Data Bus</h5>
 
       <!-- enctype multipart/form-data WAJIB supaya file foto ikut terkirim -->
-      <form action="/e-ticket-bus/admin/function/bus.php?aksi=simpan" method="post" enctype="multipart/form-data">
+      <form action="<?= BASE_URL ?>/admin/function/bus.php?aksi=simpan" method="post" enctype="multipart/form-data">
         <?= csrf_field() ?>
 
         <div class="mb-3">
@@ -106,7 +106,7 @@ $pesan = $_GET['pesan'] ?? '';
           <button type="submit" class="btn-custom btn-custom-primary">
             <i class="bi bi-check-lg"></i> Simpan
           </button>
-          <a href="/e-ticket-bus/admin/index.php?page=bus" class="btn-custom btn-custom-light">Batal</a>
+          <a href="<?= BASE_URL ?>/admin/index.php?page=bus" class="btn-custom btn-custom-light">Batal</a>
         </div>
 
       </form>

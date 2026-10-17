@@ -1,0 +1,35 @@
+# ============================================================
+# .htaccess TUNGGAL untuk seluruh proyek E-Ticket Bus
+# Letak: folder e-ticket-bus (sejajar dengan admin/, penumpang/, sopir/, login/, includes/)
+# Menggantikan semua .htaccess lama di admin/ (admin, assets, components, database,
+# function, login, pages, partials, template). Hapus yang lama, pakai file ini saja.
+# Butuh Apache dengan mod_rewrite (sudah aktif bawaan XAMPP).
+# ============================================================
+
+# 1. Daftar isi folder tidak boleh terlihat
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 2. Tolak alamat yang mengandung "../" atau byte NUL (path traversal)
+    RewriteCond %{THE_REQUEST} (\.\./|\.\.\\|\.\.%2f|\.\.%5c|%2e%2e|%00) [NC]
+    RewriteRule ^ - [F,L]
+
+    # 3. Folder internal: hanya dipakai PHP di server, tidak boleh dibuka lewat browser
+    RewriteRule ^admin/(database|pages|components|partials|template)(/|$)                    - [F,L,NC]
+    RewriteRule ^(penumpang|sopir)/(database|function|pages|components|partials|template)(/|$) - [F,L,NC]
+    RewriteRule ^includes(/|$)                                                                - [F,L,NC]
+
+    # 4. File bantu yang tidak boleh dibuka langsung (admin/function/*.php lain tetap jalan:
+    #    dipanggil lewat form POST dan notif_pembayaran.php dipanggil oleh JavaScript)
+    RewriteRule ^admin/login/auth\.php$       - [F,L,NC]
+    RewriteRule ^admin/function/registrasi\.php$ - [F,L,NC]
+
+    # 5. Script PHP tidak boleh jalan di folder aset dan folder unggahan
+    RewriteRule ^(uploads|admin/assets|penumpang/assets|sopir/assets)/.*\.(php|phtml|phar|php[0-9])$ - [F,L,NC]
+
+    # 6. File tersembunyi (.git, .env, dll) dan file cadangan/konfigurasi tidak boleh diunduh
+    RewriteRule (^|/)\.                                  - [F,L]
+    RewriteRule \.(bak|old|orig|sql|log|ini|inc|sh|zip|tar|gz)$ - [F,L,NC]
+</IfModule>

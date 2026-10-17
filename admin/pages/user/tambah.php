@@ -7,7 +7,7 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 include_once __DIR__ . '/../../database/koneksi.php';
 require_once __DIR__ . '/../../function/registrasi.php';
 
-$kembali = '/e-ticket-bus/admin/index.php?page=user';
+$kembali = BASE_URL . '/admin/index.php?page=user';
 $error   = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php?page=user" class="text-decoration-none text-muted-green">Data User</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php?page=user" class="text-decoration-none text-muted-green">Data User</a></li>
       <li class="breadcrumb-item active text-main" aria-current="page">Tambah</li>
     </ol>
   </nav>
@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
           <button type="submit" class="btn-custom btn-custom-primary">
             <i class="bi bi-check-lg"></i> Simpan
           </button>
-          <a href="/e-ticket-bus/admin/index.php?page=user" class="btn-custom btn-custom-light">Batal</a>
+          <a href="<?= BASE_URL ?>/admin/index.php?page=user" class="btn-custom btn-custom-light">Batal</a>
         </div>
 
       </form>

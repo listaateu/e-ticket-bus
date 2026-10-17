@@ -75,7 +75,7 @@ $stmt->execute();
 $hasil = $stmt->get_result();
 
 $pesan = $_GET['pesan'] ?? '';
-$url   = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
+$url   = BASE_URL . '/admin/index.php?page=data_pemesanan';
 $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
 ?>
 <!-- page header -->
@@ -86,7 +86,7 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item text-muted-green">Transaksi</li>
       <li class="breadcrumb-item active text-main" aria-current="page">Data Pemesanan</li>
     </ol>
@@ -145,7 +145,7 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
     </div>
   </div>
 
-  <form method="get" action="/e-ticket-bus/admin/index.php" class="d-flex gap-2 px-3 pb-3">
+  <form method="get" action="<?= BASE_URL ?>/admin/index.php" class="d-flex gap-2 px-3 pb-3">
     <input type="hidden" name="page" value="data_pemesanan">
     <?php if ($filter !== '') : ?><input type="hidden" name="status" value="<?= htmlspecialchars($filter) ?>"><?php endif; ?>
     <input type="text" name="q" value="<?= htmlspecialchars($cari) ?>" class="form-control-custom"
@@ -202,7 +202,7 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
               <div class="d-flex justify-content-center gap-1">
                 <a href="<?= $url ?>&aksi=detail&id=<?= (int) $b['id'] ?>" class="table-btn-action" title="Lihat detail"><i class="bi bi-eye"></i></a>
                 <?php if ($b['status_bayar'] !== 'lunas') : ?>
-                  <form action="/e-ticket-bus/admin/function/data_pemesanan.php?aksi=hapus" method="post" class="d-inline"
+                  <form action="<?= BASE_URL ?>/admin/function/data_pemesanan.php?aksi=hapus" method="post" class="d-inline"
                         onsubmit="return confirm('Batalkan pemesanan <?= htmlspecialchars($b['kode_booking'], ENT_QUOTES) ?>?')">
                     <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">

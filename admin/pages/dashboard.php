@@ -78,7 +78,7 @@ $berangkat = $koneksi->query("SELECT s.kota_asal, s.kota_tujuan, s.jam_berangkat
                                 (SELECT COALESCE(SUM(b.jumlah_dewasa), 0) FROM bookings b $PAY WHERE b.schedule_id = s.id AND COALESCE(p.status,'belum') <> 'ditolak') AS terisi
                               FROM schedules s JOIN buses bs ON bs.id = s.bus_id
                               WHERE s.jam_berangkat >= NOW() ORDER BY s.jam_berangkat ASC LIMIT 6");
-$A = '/e-ticket-bus/admin/index.php';
+$A = BASE_URL . '/admin/index.php';
 ?>
 <!-- START: Header -->
 <div class="page-header">

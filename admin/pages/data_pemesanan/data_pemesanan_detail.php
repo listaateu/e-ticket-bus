@@ -33,7 +33,7 @@ $b = $ambil->get_result()->fetch_assoc();
 
 // Kalau id tidak ditemukan, balik ke tabel
 if (!$b) {
-    echo '<script>window.location.href = "/e-ticket-bus/admin/index.php?page=data_pemesanan";</script>';
+    echo '<script>window.location.href = "' . BASE_URL . '/admin/index.php?page=data_pemesanan";</script>';
     return;
 }
 
@@ -62,7 +62,7 @@ $ambil_pax->execute();
 $daftar_pax = $ambil_pax->get_result()->fetch_all(MYSQLI_ASSOC);
 
 $info = $STATUS[$b['status_bayar']] ?? ['label' => $b['status_bayar'], 'badge' => 'pending'];
-$kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
+$kembali = BASE_URL . '/admin/index.php?page=data_pemesanan';
 ?>
 <!-- page header -->
 <div class="page-header">
@@ -72,7 +72,7 @@ $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item"><a href="<?= $kembali ?>" class="text-decoration-none text-muted-green">Data Pemesanan</a></li>
       <li class="breadcrumb-item active text-main" aria-current="page">Detail</li>
     </ol>
@@ -134,13 +134,13 @@ $kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
 
       <div class="d-flex flex-wrap gap-2">
         <?php if ($b['payment_id'] && $b['status_bayar'] === 'pending') : ?>
-          <a href="/e-ticket-bus/admin/index.php?page=verifikasi_pembayaran&aksi=detail&id=<?= (int) $b['payment_id'] ?>" class="btn-custom btn-custom-primary">
+          <a href="<?= BASE_URL ?>/admin/index.php?page=verifikasi_pembayaran&aksi=detail&id=<?= (int) $b['payment_id'] ?>" class="btn-custom btn-custom-primary">
             <i class="bi bi-cash-coin"></i> Verifikasi Pembayaran
           </a>
         <?php endif; ?>
 
         <?php if ($b['status_bayar'] !== 'lunas') : ?>
-          <form action="/e-ticket-bus/admin/function/data_pemesanan.php?aksi=hapus" method="post"
+          <form action="<?= BASE_URL ?>/admin/function/data_pemesanan.php?aksi=hapus" method="post"
                 onsubmit="return confirm('Batalkan pemesanan ini?')">
             <?= csrf_field() ?>
             <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">

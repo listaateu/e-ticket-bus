@@ -6,7 +6,7 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 
 include_once __DIR__ . '/../../database/koneksi.php';
 
-$kembali = '/e-ticket-bus/admin/index.php?page=sopir';
+$kembali = BASE_URL . '/admin/index.php?page=sopir';
 $role    = 'kondektur';
 $id      = param_id('id');
 $error   = ''; // pesan kesalahan, kosong = tidak ada masalah
@@ -74,8 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php?page=sopir" class="text-decoration-none text-muted-green">Data Sopir</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php?page=sopir" class="text-decoration-none text-muted-green">Data Sopir</a></li>
       <li class="breadcrumb-item active text-main" aria-current="page">Ubah</li>
     </ol>
   </nav>
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
           <button type="submit" class="btn-custom btn-custom-primary">
             <i class="bi bi-check-lg"></i> Simpan Perubahan
           </button>
-          <a href="/e-ticket-bus/admin/index.php?page=sopir" class="btn-custom btn-custom-light">Batal</a>
+          <a href="<?= BASE_URL ?>/admin/index.php?page=sopir" class="btn-custom btn-custom-light">Batal</a>
         </div>
 
       </form>

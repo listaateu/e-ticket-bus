@@ -9,9 +9,11 @@
  *                ($_SESSION["user_id"], ["role"]) dengan folder /login milikmu (dibuat terakhir).
  * ============================================================
  */
-const LOGIN_URL    = '../login/index.php';
-const REGISTER_URL = '../login/register.php';
-const LOGOUT_URL   = '../login/logout.php';
+require_once __DIR__ . '/../../includes/base_url.php';
+
+const LOGIN_URL    = BASE_URL . '/login/index.php';
+const REGISTER_URL = BASE_URL . '/login/register.php';
+const LOGOUT_URL   = BASE_URL . '/login/logout.php';
 const ROLE_PENUMPANG = 'penumpang';
 
 if (session_status() === PHP_SESSION_NONE) {

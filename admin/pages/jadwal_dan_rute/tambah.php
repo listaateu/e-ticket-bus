@@ -22,8 +22,8 @@ $pesan = $_GET['pesan'] ?? '';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute" class="text-decoration-none text-muted-green">Jadwal &amp; Rute</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute" class="text-decoration-none text-muted-green">Jadwal &amp; Rute</a></li>
       <li class="breadcrumb-item active text-main" aria-current="page">Tambah</li>
     </ol>
   </nav>
@@ -42,7 +42,7 @@ $pesan = $_GET['pesan'] ?? '';
     <div class="card border-light shadow-sm p-4">
       <h5 class="card-title mb-4">Data Jadwal</h5>
 
-      <form action="/e-ticket-bus/admin/function/jadwal_dan_rute.php?aksi=simpan" method="post">
+      <form action="<?= BASE_URL ?>/admin/function/jadwal_dan_rute.php?aksi=simpan" method="post">
         <?= csrf_field() ?>
 
         <div class="mb-3">
@@ -102,7 +102,7 @@ $pesan = $_GET['pesan'] ?? '';
           <button type="submit" class="btn-custom btn-custom-primary">
             <i class="bi bi-check-lg"></i> Simpan
           </button>
-          <a href="/e-ticket-bus/admin/index.php?page=jadwal_dan_rute" class="btn-custom btn-custom-light">Batal</a>
+          <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute" class="btn-custom btn-custom-light">Batal</a>
         </div>
 
       </form>

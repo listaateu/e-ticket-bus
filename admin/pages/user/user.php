@@ -33,7 +33,7 @@ $pesan = $_GET['pesan'] ?? '';
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
       <li class="breadcrumb-item text-muted-green">Data User</li>
       <li class="breadcrumb-item active text-main" aria-current="page">Data Penumpang</li>
     </ol>
@@ -58,7 +58,7 @@ $pesan = $_GET['pesan'] ?? '';
   <div class="table-header-control">
     <div class="table-pagination-info">Total: <strong><?= $total ?></strong> penumpang</div>
     <div class="table-filter-group">
-      <a href="/e-ticket-bus/admin/index.php?page=user&aksi=tambah" class="btn-table-action">
+      <a href="<?= BASE_URL ?>/admin/index.php?page=user&aksi=tambah" class="btn-table-action">
         <i class="bi bi-plus-lg"></i> Tambah Penumpang
       </a>
     </div>
@@ -93,8 +93,8 @@ $pesan = $_GET['pesan'] ?? '';
             <td><?= htmlspecialchars($u['no_hp'] ?? '-') ?></td>
             <td>
               <div class="d-flex justify-content-center gap-1">
-                <a href="/e-ticket-bus/admin/index.php?page=user&aksi=update&id=<?= (int) $u['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
-                <form action="/e-ticket-bus/admin/function/user.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus penumpang ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $u['id'] ?>"><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
+                <a href="<?= BASE_URL ?>/admin/index.php?page=user&aksi=update&id=<?= (int) $u['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
+                <form action="<?= BASE_URL ?>/admin/function/user.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus penumpang ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $u['id'] ?>"><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
               </div>
             </td>
           </tr>

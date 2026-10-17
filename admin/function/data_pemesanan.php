@@ -14,7 +14,7 @@ $aksi    = param_enum('aksi', ['hapus']);
 if ($aksi !== '') {
     wajibPostCsrf();
 }
-$kembali = '/e-ticket-bus/admin/index.php?page=data_pemesanan';
+$kembali = BASE_URL . '/admin/index.php?page=data_pemesanan';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $aksi === 'hapus') {
     $id = param_id('id', 'POST');

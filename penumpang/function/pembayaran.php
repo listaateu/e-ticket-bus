@@ -81,12 +81,14 @@ function jenis_metode(string $metode): string
     return (DETAIL_METODE[$metode]['grup'] ?? 'bank') === 'qris' ? 'qris' : 'rekening';
 }
 
+require_once __DIR__ . '/../../includes/base_url.php';
+
 // Gambar QRIS toko/perusahaan. Letakkan file QRIS aslimu di penumpang/assets/img/qris.png
 const FILE_QRIS = __DIR__ . '/../assets/img/qris.png';
-const URL_QRIS  = '/e-ticket-bus/penumpang/assets/img/qris.png';
+const URL_QRIS  = BASE_URL . '/penumpang/assets/img/qris.png';
 
 const FOLDER_BUKTI = __DIR__ . '/../../uploads/bukti/';   // lokasi folder di komputer/server
-const URL_BUKTI    = '/e-ticket-bus/uploads/bukti/';       // alamat folder di browser
+const URL_BUKTI    = BASE_URL . '/uploads/bukti/';       // alamat folder di browser
 
 /** Simpan bukti pembayaran. Mengembalikan [berhasil, pesan]. */
 function simpan_pembayaran(mysqli $conn, array $booking, string $metode, array $file): array

@@ -8,8 +8,10 @@
  * CATATAN      : Memakai session yang diisi login/index.php: $_SESSION['user_id'], ['role'], ['nama'].
  * ============================================================
  */
-const LOGIN_URL  = '/e-ticket-bus/login/index.php';
-const LOGOUT_URL = '/e-ticket-bus/login/logout.php';
+require_once __DIR__ . '/../../includes/base_url.php';
+
+const LOGIN_URL  = BASE_URL . '/login/index.php';
+const LOGOUT_URL = BASE_URL . '/login/logout.php';
 const ROLE_SOPIR = 'kondektur';
 
 if (session_status() === PHP_SESSION_NONE) {

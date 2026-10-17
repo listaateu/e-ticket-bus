@@ -7,7 +7,7 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 include_once __DIR__ . '/../../database/koneksi.php';
 require_once __DIR__ . '/../../../includes/bus_helper.php';
 
-$kembali      = '/e-ticket-bus/admin/index.php?page=bus';
+$kembali      = BASE_URL . '/admin/index.php?page=bus';
 $daftar_kelas = ['Ekonomi', 'Bisnis', 'Eksekutif'];
 $id           = param_id('id');
 $error        = ''; // pesan kesalahan, kosong = tidak ada masalah
@@ -106,8 +106,8 @@ $foto_sekarang      = bus_url_foto($bus['foto'] ?? '');
   </div>
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
-      <li class="breadcrumb-item"><a href="/e-ticket-bus/admin/index.php?page=bus" class="text-decoration-none text-muted-green">Data Bus</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php" class="text-decoration-none text-muted-green">Dashboard</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>/admin/index.php?page=bus" class="text-decoration-none text-muted-green">Data Bus</a></li>
       <li class="breadcrumb-item active text-main" aria-current="page">Ubah</li>
     </ol>
   </nav>
@@ -205,7 +205,7 @@ $foto_sekarang      = bus_url_foto($bus['foto'] ?? '');
           <button type="submit" class="btn-custom btn-custom-primary">
             <i class="bi bi-check-lg"></i> Simpan Perubahan
           </button>
-          <a href="/e-ticket-bus/admin/index.php?page=bus" class="btn-custom btn-custom-light">Batal</a>
+          <a href="<?= BASE_URL ?>/admin/index.php?page=bus" class="btn-custom btn-custom-light">Batal</a>
         </div>
 
       </form>

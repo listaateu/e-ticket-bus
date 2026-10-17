@@ -10,8 +10,10 @@
  * ============================================================
  */
 
+require_once __DIR__ . '/base_url.php';
+
 const DIR_FOTO_BUS = __DIR__ . '/../uploads/bus/';    // lokasi folder foto di komputer/server
-const URL_FOTO_BUS = '/e-ticket-bus/uploads/bus/';    // alamat folder foto di browser
+const URL_FOTO_BUS = BASE_URL . '/uploads/bus/';    // alamat folder foto di browser
 
 // kode => [nama yang tampil, ikon FontAwesome]
 const FASILITAS_BUS = [
