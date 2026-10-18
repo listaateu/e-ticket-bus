@@ -5,21 +5,29 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
+include_once __DIR__ . '/../../components/pencarian.php';
 
 $role = 'penumpang';
 
-// Hitung total penumpang, lalu ambil 10 baris untuk halaman yang dibuka
-$hitung = $koneksi->prepare("SELECT COUNT(*) AS t FROM users WHERE role = ?");
-$hitung->bind_param('s', $role);
+// Pencarian dari kotak cari di topbar (?q=): nama, username, email, atau no. HP
+$cari  = param_cari();
+$tipe  = 's';
+$param = [$role];
+$where = ' WHERE role = ?' . syarat_cari(['nama', 'username', 'email', 'no_hp'], $cari, $tipe, $param);
+
+// Hitung total penumpang (sesuai pencarian), lalu ambil 10 baris untuk halaman yang dibuka
+$hitung = $koneksi->prepare("SELECT COUNT(*) AS t FROM users $where");
+$hitung->bind_param($tipe, ...$param);
 $hitung->execute();
 $total = (int) $hitung->get_result()->fetch_assoc()['t'];
 [$per_halaman, $offset] = paginasi($total);
 
 // Ambil hanya user dengan role 'penumpang', yang terbaru di atas
 $ambil = $koneksi->prepare(
-    "SELECT id, nama, username, email, no_hp FROM users WHERE role = ? ORDER BY id DESC LIMIT ? OFFSET ?"
+    "SELECT id, nama, username, email, no_hp FROM users $where ORDER BY id DESC LIMIT ? OFFSET ?"
 );
-$ambil->bind_param('sii', $role, $per_halaman, $offset);
+$tipe .= 'ii'; $param[] = (int) $per_halaman; $param[] = (int) $offset;
+$ambil->bind_param($tipe, ...$param);
 $ambil->execute();
 $hasil = $ambil->get_result();
 
@@ -64,6 +72,8 @@ $pesan = $_GET['pesan'] ?? '';
     </div>
   </div>
 
+  <?php render_info_cari($cari, $total, BASE_URL . '/admin/index.php?page=user'); ?>
+
   <!-- tabel -->
   <div class="table-responsive">
     <table class="table-custom">
@@ -80,7 +90,7 @@ $pesan = $_GET['pesan'] ?? '';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="6" class="text-center">Belum ada data penumpang.</td>
+            <td colspan="6" class="text-center"><?= $cari !== '' ? 'Tidak ada penumpang yang cocok dengan pencarian.' : 'Belum ada data penumpang.' ?></td>
           </tr>
         <?php endif; ?>
 

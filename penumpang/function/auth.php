@@ -16,9 +16,9 @@ const REGISTER_URL = BASE_URL . '/login/register.php';
 const LOGOUT_URL   = BASE_URL . '/login/logout.php';
 const ROLE_PENUMPANG = 'penumpang';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+// Session aman (cookie HttpOnly + SameSite, header anti-iframe). Lihat includes/session_aman.php
+require_once __DIR__ . '/../../includes/session_aman.php';
+mulai_session_pengguna();
 
 function user_id_login(): int
 {

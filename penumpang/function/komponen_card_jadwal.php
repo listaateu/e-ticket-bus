@@ -11,6 +11,11 @@
 
 require_once __DIR__ . '/../../includes/bus_helper.php';
 
+// Gambar cadangan bila bus belum punya foto (relatif terhadap penumpang/index.php)
+if (!defined('BUS_FOTO_DEFAULT')) {
+    define('BUS_FOTO_DEFAULT', 'assets/img/bus-default.svg');
+}
+
 if (!function_exists('durasi_perjalanan')) {
     /** Selisih dua waktu jadi teks pendek, mis. "3j 45m". Kosong bila tidak valid. */
     function durasi_perjalanan(?string $berangkat, ?string $tiba): string
@@ -98,7 +103,7 @@ function komponen_card_jadwal(array $j, int $dewasa = 1, int $bayi = 0): void
           <?php if ($foto !== ''): ?>
             <img src="<?= e($foto) ?>" alt="Foto <?= e($j['nama_bus']) ?>" loading="lazy">
           <?php else: ?>
-            <i class="fa-solid fa-bus"></i>
+            <img src="<?= e(BUS_FOTO_DEFAULT) ?>" alt="Ilustrasi <?= e($j['nama_bus']) ?>" loading="lazy">
           <?php endif; ?>
         </div>
 
@@ -228,7 +233,7 @@ function komponen_card_jadwal(array $j, int $dewasa = 1, int $bayi = 0): void
                       <?php if ($foto !== ''): ?>
                         <img src="<?= e($foto) ?>" alt="Foto <?= e($j['nama_bus']) ?>" loading="lazy">
                       <?php else: ?>
-                        <div class="kosong-foto"><i class="fa-solid fa-bus"></i>Foto bus belum tersedia</div>
+                        <img src="<?= e(BUS_FOTO_DEFAULT) ?>" alt="Ilustrasi <?= e($j['nama_bus']) ?>" loading="lazy">
                       <?php endif; ?>
                     </div>
                   </div>

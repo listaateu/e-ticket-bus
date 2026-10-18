@@ -71,13 +71,13 @@ $bayi_qr   = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'bay
     <?php komponen_page_title('E-Ticket', 'Tunjukkan QR masing-masing penumpang kepada kondektur.', ['Tiket Saya' => url('tiket-saya'), 'E-Ticket' => null]); ?>
 
     <style>
-      .qr-kartu { border: 1px solid #e1e6f5; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: center; }
+      .qr-kartu { border: 1px solid #F7DCE8; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: center; }
       .qr-kartu .nm { font-weight: 700; color: var(--heading-color); }
-      .qr-kartu .ks { color: #0194f3; font-weight: 700; font-size: 14px; }
-      .qr-kartu .qr-pax { display: inline-block; padding: 10px; margin: 10px 0 6px; background: #fff; border: 1px solid #e1e6f5; border-radius: 12px; }
+      .qr-kartu .ks { color: #E0558A; font-weight: 700; font-size: 14px; }
+      .qr-kartu .qr-pax { display: inline-block; padding: 10px; margin: 10px 0 6px; background: #fff; border: 1px solid #F7DCE8; border-radius: 12px; }
       .qr-kartu .kode { font-family: monospace; font-size: 14px; font-weight: 700; letter-spacing: .5px; color: var(--heading-color); }
       .qr-kartu.sudah-naik { opacity: .6; }
-      .qr-bayi { font-size: 13px; color: #687176; text-align: center; margin-top: 4px; }
+      .qr-bayi { font-size: 13px; color: #8B6F80; text-align: center; margin-top: 4px; }
       @media print { .qr-kartu { break-inside: avoid; } }
     </style>
 
@@ -146,7 +146,7 @@ $bayi_qr   = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'bay
             <?php else: ?>
               <!-- Cadangan untuk pemesanan lama yang belum punya data per penumpang -->
               <div class="text-center">
-                <div class="qr-pax" data-kode="<?= e($booking['kode_booking']) ?>" style="display:inline-block;padding:10px;background:#fff;border:1px solid #e1e6f5;border-radius:12px;"></div>
+                <div class="qr-pax" data-kode="<?= e($booking['kode_booking']) ?>" style="display:inline-block;padding:10px;background:#fff;border:1px solid #F7DCE8;border-radius:12px;"></div>
                 <div><small class="text-muted">Kondektur akan memindai kode ini untuk validasi.</small></div>
               </div>
             <?php endif; ?>

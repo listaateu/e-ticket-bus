@@ -11,6 +11,7 @@
  *   index.php?page=jadwal                         -> pages/jadwal/jadwal.php    (daftar jadwal saya)
  *   index.php?page=jadwal&aksi=manifest&id=3      -> pages/jadwal/manifest.php  (daftar penumpang satu jadwal)
  *   index.php?page=scan&id=3                      -> pages/scan/scan.php        (scan QR e-ticket)
+ *   index.php?page=profil                         -> pages/profil/profil.php    (foto, no HP, password; nama & email dikunci)
  *
  *   Endpoint (bukan halaman, hanya memproses lalu berhenti):
  *   index.php?page=scan&aksi=validasi             -> POST, balasan JSON hasil scan tiket (satu-satunya jalan mencatat naik)
@@ -34,8 +35,23 @@ ob_start();
 require_once __DIR__ . '/database/koneksi.php';       // membuat variabel $conn
 require_once __DIR__ . '/function/helpers.php';       // e(), tanggal_indo(), url(), redirect(), flash, csrf
 require_once __DIR__ . '/function/auth.php';          // cek login & role sopir (kondektur)
+
+// ---------- Endpoint kecil: cek siapa yang sedang login (JSON) ----------
+// Dipanggil otomatis oleh script di partials/script.php (tiap 5 detik & saat tab dibuka kembali).
+// Tujuannya: kalau di tab lain login berganti (mis. sopir <-> penumpang) atau sudah logout,
+// tab ini ikut refresh sendiri. Tidak menampilkan halaman, hanya mengirim JSON lalu berhenti.
+if (isset($_GET['cek_sesi'])) {
+    $sesi_sekarang = user_id_login() . '|' . role_login();
+    session_write_close();                       // lepas kunci session supaya tab lain tidak tertahan
+    ob_end_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
+    echo json_encode(['sesi' => $sesi_sekarang]);
+    exit;
+}
 require_once __DIR__ . '/function/jadwal_sopir.php';  // query jadwal & manifest
 require_once __DIR__ . '/function/scan_tiket.php';    // validasi tiket & status naik
+require_once __DIR__ . '/function/profil.php';        // ubah no HP, foto, password sopir
 
 // Komponen tampilan kecil. Semua file function/komponen_*.php dimuat otomatis.
 foreach (glob(__DIR__ . '/function/komponen_*.php') as $file_komponen) {
@@ -55,7 +71,7 @@ if (!$sopir) {
 
 // ---------- 3. Tentukan halaman mana yang dibuka ----------
 // Menu baru: tambah di sini + buat foldernya di pages/ + tambah di peta url() (function/helpers.php).
-$menu_boleh = ['beranda', 'jadwal', 'scan'];
+$menu_boleh = ['beranda', 'jadwal', 'scan', 'profil'];
 
 // Aksi yang diizinkan untuk tiap menu ('manifest' = halaman; 'validasi' = endpoint).
 $aksi_boleh = [
@@ -67,6 +83,7 @@ $judul_menu = [
     'beranda' => 'Beranda',
     'jadwal'  => 'Jadwal Saya',
     'scan'    => 'Scan Tiket',
+    'profil'  => 'Profil Saya',
 ];
 
 $page = $_GET['page'] ?? 'beranda';

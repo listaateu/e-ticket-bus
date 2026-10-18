@@ -19,7 +19,7 @@
       <nav id="navmenu" class="navmenu">
         <ul>
           <?php
-          $menu = ['beranda' => 'Beranda', 'jadwal' => 'Jadwal Saya', 'scan' => 'Scan Tiket'];
+          $menu = ['beranda' => 'Beranda', 'jadwal' => 'Jadwal Saya', 'scan' => 'Scan Tiket', 'profil' => 'Profil'];
           foreach ($menu as $kode => $label):
               $aktif = ($menu_aktif === $kode) ? 'active' : '';
           ?>
@@ -29,7 +29,15 @@
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
-      <span class="nama-sopir d-none d-md-inline-flex"><i class="bi bi-person-circle me-1"></i><?= e($sopir['nama']) ?></span>
+      <?php $foto_header = foto_sopir_url((int) $sopir['id']); ?>
+      <a href="<?= url('profil') ?>" class="nama-sopir d-none d-md-inline-flex" title="Buka profil">
+        <?php if ($foto_header !== ''): ?>
+          <img src="<?= e($foto_header) ?>" alt="" class="avatar-mini">
+        <?php else: ?>
+          <span class="avatar-mini avatar-inisial"><?= e(inisial_nama($sopir['nama'])) ?></span>
+        <?php endif; ?>
+        <?= e($sopir['nama']) ?>
+      </a>
       <a class="btn-getstarted js-logout" href="<?= e(LOGOUT_URL) ?>">Keluar</a>
 
     </div>

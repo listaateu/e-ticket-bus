@@ -6,6 +6,7 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
+include_once __DIR__ . '/../../components/pencarian.php';
 
 // ===== Nilai status di kolom payments.status (SESUAIKAN dengan databasemu) =====
 $STATUS = [
@@ -17,10 +18,29 @@ $STATUS = [
 
 $filter = param_enum('status', array_keys($STATUS));   // hanya nilai dari daftar resmi, kosong = tampilkan semua
 
-// Hitung jumlah per status untuk tombol filter
+// Pencarian dari kotak cari di topbar (?q=): kode booking, penumpang, rute, kursi, metode, status, total, atau jam berangkat
+$cari = param_cari();
+$label_sql = 'CASE p.status';                                  // "Menunggu" / "Lunas" / "Ditolak" (tulisan yang tampil di tabel)
+foreach ($STATUS as $kode => $x) { $label_sql .= " WHEN '$kode' THEN '" . $x['label'] . "'"; }
+$label_sql .= ' END';
+$kolom_cari = ['b.kode_booking', 'u.nama', 'u.email', 's.kota_asal', 's.kota_tujuan', 'b.nomor_kursi', 'p.metode_pembayaran', 'p.status', $label_sql, "IF(s.jam_berangkat < NOW() AND p.status = 'pending', 'Bus sudah berangkat', '')", 'CAST(s.harga * b.jumlah_dewasa + COALESCE(b.kode_unik, 0) AS CHAR)', "DATE_FORMAT(s.jam_berangkat, '%d %b %Y, %H:%i')"];
+$tipe_c  = '';
+$param_c = [];
+$syarat_cari = syarat_cari($kolom_cari, $cari, $tipe_c, $param_c);
+
+// Bagian FROM dipakai bersama oleh hitungan tombol filter & tabel
+$dari = "FROM payments p
+         JOIN bookings  b ON b.id = p.booking_id
+         JOIN users     u ON u.id = b.user_id
+         JOIN schedules s ON s.id = b.schedule_id";
+
+// Hitung jumlah per status untuk tombol filter (ikut pencarian)
 $hitung = ['' => 0];
 foreach ($STATUS as $kode => $x) { $hitung[$kode] = 0; }
-$q = $koneksi->query("SELECT status, COUNT(*) AS jml FROM payments GROUP BY status");
+$st_hitung = $koneksi->prepare("SELECT p.status AS status, COUNT(*) AS jml $dari WHERE 1=1 $syarat_cari GROUP BY p.status");
+if ($tipe_c !== '') { $st_hitung->bind_param($tipe_c, ...$param_c); }
+$st_hitung->execute();
+$q = $st_hitung->get_result();
 while ($r = $q->fetch_assoc()) {
     if (isset($hitung[$r['status']])) { $hitung[$r['status']] = (int) $r['jml']; }
     $hitung[''] += (int) $r['jml'];
@@ -42,14 +62,18 @@ $sql = "SELECT p.id, p.metode_pembayaran, p.status,
         JOIN bookings  b ON b.id = p.booking_id
         JOIN users     u ON u.id = b.user_id
         JOIN schedules s ON s.id = b.schedule_id";
+$tipe  = $tipe_c;
+$param = $param_c;
+$where = ' WHERE 1=1' . $syarat_cari;
 if ($filter !== '') {
-    $stmt = $koneksi->prepare($sql . " WHERE p.status = ? ORDER BY p.id DESC LIMIT ? OFFSET ?");
-    $stmt->bind_param('sii', $filter, $per_halaman, $offset);
-} else {
-    // Yang menunggu ditaruh paling atas supaya cepat terlihat
-    $stmt = $koneksi->prepare($sql . " ORDER BY (p.status = 'pending') DESC, p.id DESC LIMIT ? OFFSET ?");
-    $stmt->bind_param('ii', $per_halaman, $offset);
+    $where .= ' AND p.status = ?';
+    $tipe .= 's'; $param[] = $filter;
 }
+// Kalau tidak difilter, yang menunggu ditaruh paling atas supaya cepat terlihat
+$urut = $filter !== '' ? 'p.id DESC' : "(p.status = 'pending') DESC, p.id DESC";
+$stmt = $koneksi->prepare($sql . $where . " ORDER BY $urut LIMIT ? OFFSET ?");
+$tipe .= 'ii'; $param[] = (int) $per_halaman; $param[] = (int) $offset;
+$stmt->bind_param($tipe, ...$param);
 $stmt->execute();
 $hasil = $stmt->get_result();
 
@@ -64,7 +88,19 @@ $perlu_refund = (int) $koneksi->query(
 
 $pesan = $_GET['pesan'] ?? '';
 $url   = BASE_URL . '/admin/index.php?page=verifikasi_pembayaran';
+$url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';   // tombol filter ikut membawa pencarian
+$url_reset = $url . ($filter !== '' ? '&status=' . $filter : '');   // alamat tanpa pencarian
 ?>
+<!-- style tombol filter aktif (boleh dipindah ke file CSS admin nanti) -->
+<style>
+  .table-filter-group .btn-table-action.active {
+    background: #B94E77;      /* samakan dengan warna tombol "Tambah" */
+    border-color: #B94E77;
+    color: #fff;
+    font-weight: 600;
+  }
+</style>
+
 <!-- page header -->
 <div class="page-header">
   <div>
@@ -104,12 +140,14 @@ $url   = BASE_URL . '/admin/index.php?page=verifikasi_pembayaran';
   <div class="table-header-control">
     <div class="table-pagination-info">Total: <strong><?= $total ?></strong> pembayaran</div>
     <div class="table-filter-group">
-      <a href="<?= $url ?>" class="btn-table-action"<?= $filter === '' ? ' style="font-weight:700"' : '' ?>>Semua (<?= $hitung[''] ?>)</a>
+      <a href="<?= $url . $url_q ?>" class="btn-table-action<?= $filter === '' ? ' active' : '' ?>">Semua (<?= $hitung[''] ?>)</a>
       <?php foreach ($STATUS as $kode => $info) : ?>
-        <a href="<?= $url ?>&status=<?= $kode ?>" class="btn-table-action"<?= $filter === $kode ? ' style="font-weight:700"' : '' ?>><?= $info['label'] ?> (<?= $hitung[$kode] ?>)</a>
+        <a href="<?= $url ?>&status=<?= $kode ?><?= $url_q ?>" class="btn-table-action<?= $filter === $kode ? ' active' : '' ?>"><?= $info['label'] ?> (<?= $hitung[$kode] ?>)</a>
       <?php endforeach; ?>
     </div>
   </div>
+
+  <?php render_info_cari($cari, $total, $url_reset); ?>
 
   <!-- tabel -->
   <div class="table-responsive">
@@ -130,7 +168,7 @@ $url   = BASE_URL . '/admin/index.php?page=verifikasi_pembayaran';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="9" class="text-center">Belum ada data pembayaran.</td>
+            <td colspan="9" class="text-center"><?= $cari !== '' ? 'Tidak ada pembayaran yang cocok dengan pencarian.' : 'Belum ada data pembayaran.' ?></td>
           </tr>
         <?php endif; ?>
 

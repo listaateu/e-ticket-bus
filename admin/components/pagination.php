@@ -48,11 +48,11 @@ function render_pagination(int $total, int $per_halaman = 10): void
       .pagination-custom a, .pagination-custom span.titik {
         display: inline-flex; align-items: center; justify-content: center;
         min-width: 36px; height: 36px; padding: 0 10px; border-radius: 10px;
-        border: 1px solid #e5e7eb; background: #fff; color: #0b2e22;
+        border: 1px solid #e5e7eb; background: #fff; color: #B94E77;
         font-size: 0.85rem; font-weight: 600; text-decoration: none;
       }
-      .pagination-custom a:hover { background: #f0fdf4; }
-      .pagination-custom li.aktif a { background: #0b2e22; color: #fff; border-color: #0b2e22; }
+      .pagination-custom a:hover { background: #FFF0F6; }
+      .pagination-custom li.aktif a { background: #B94E77; color: #fff; border-color: #B94E77; }
       .pagination-custom li.mati a { opacity: .4; pointer-events: none; }
     </style>
     <div class="pagination-custom">

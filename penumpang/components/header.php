@@ -33,6 +33,14 @@
       </nav>
 
       <?php if (!empty($sudah_login)): ?>
+        <?php $foto_header = foto_penumpang_url((int) ($user['id'] ?? 0)); ?>
+        <a href="<?= url('profil') ?>" class="avatar-nav" title="Buka profil">
+          <?php if ($foto_header !== ''): ?>
+            <img src="<?= e($foto_header) ?>" alt="Profil">
+          <?php else: ?>
+            <span><?= e(inisial_nama((string) ($user['nama'] ?? ''))) ?></span>
+          <?php endif; ?>
+        </a>
         <a class="btn-getstarted js-logout" href="<?= e(LOGOUT_URL) ?>">Keluar</a>
       <?php else: ?>
         <a class="btn-getstarted btn-masuk" href="<?= e(LOGIN_URL) ?>">Masuk</a>

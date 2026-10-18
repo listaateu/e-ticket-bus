@@ -24,6 +24,30 @@
   <script src="assets/js/main.js"></script>
   <script src="assets/js/sopir.js"></script>
 
+  <!-- Auto-refresh: kalau login berganti / logout di tab lain, tab ini ikut refresh sendiri -->
+  <script>
+  (function () {
+    var sesiAwal = <?= json_encode(user_id_login() . '|' . role_login(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    var url = window.location.pathname + '?cek_sesi=1';
+    var sedangCek = false;
+
+    function cekSesi() {
+      if (sedangCek) { return; }
+      sedangCek = true;
+      fetch(url, { credentials: 'same-origin', cache: 'no-store' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d && d.sesi !== sesiAwal) { window.location.reload(); } })
+        .catch(function () { /* koneksi putus: abaikan, coba lagi nanti */ })
+        .then(function () { sedangCek = false; });
+    }
+
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { cekSesi(); } });
+    window.addEventListener('focus', cekSesi);
+    window.addEventListener('pageshow', function (e) { if (e.persisted) { cekSesi(); } });
+    setInterval(function () { if (!document.hidden) { cekSesi(); } }, 5000);
+  })();
+  </script>
+
 </body>
 
 </html>

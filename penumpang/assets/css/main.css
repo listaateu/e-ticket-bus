@@ -20,9 +20,9 @@
 /* Global Colors - The following color variables are used throughout the website. Updating them here will change the color scheme of the entire website */
 :root { 
   --background-color: #ffffff; /* Background color for the entire website, including individual sections */
-  --default-color: #212529; /* Default color used for the majority of the text content across the entire website */
-  --heading-color: #001973; /* Color for headings, subheadings and title throughout the website */
-  --accent-color: #0d42ff; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
+  --default-color: #3B2233; /* Default color used for the majority of the text content across the entire website */
+  --heading-color: #6B2F4D; /* Color for headings, subheadings and title throughout the website */
+  --accent-color: #E0558A; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
   --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
   --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
 }
@@ -34,22 +34,22 @@
   --nav-mobile-background-color: #ffffff; /* Used as the background color for mobile navigation menu */
   --nav-dropdown-background-color: #ffffff; /* Used as the background color for dropdown items that appear when hovering over primary navigation items */
   --nav-dropdown-color: #212529; /* Used for navigation links of the dropdown items in the navigation menu. */
-  --nav-dropdown-hover-color: #0d42ff; /* Similar to --nav-hover-color, this color is applied to dropdown navigation links when they are hovered over. */
+  --nav-dropdown-hover-color: #E0558A; /* Similar to --nav-hover-color, this color is applied to dropdown navigation links when they are hovered over. */
 }
 
 /* Color Presets - These classes override global colors when applied to any section or element, providing reuse of the sam color scheme. */
 
 .light-background {
-  --background-color: #f7f9fc;
+  --background-color: #FFF6FA;
   --surface-color: #ffffff;
 }
 
 .dark-background {
-  --background-color: #0e1d34;
-  --default-color: #ffffff;
-  --heading-color: #ffffff;
-  --surface-color: #19335c;
-  --contrast-color: #ffffff;
+  --background-color: #FFD3E4;
+  --default-color: #5A1F3E;
+  --heading-color: #5A1F3E;
+  --surface-color: #ffffff;
+  --contrast-color: #C23D74;
 }
 
 /* Smooth scroll */
@@ -282,13 +282,13 @@ h6 {
 
 .scrolled .header {
   padding: 10px 0;
-  box-shadow: 0px 0 18px rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0 18px rgba(107, 47, 77, 0.1);
 }
 
 /* Global Header on Scroll
 ------------------------------*/
 .scrolled .header {
-  --background-color: rgba(14, 29, 52, 0.9);
+  --background-color: rgba(255, 246, 250, 0.92);
 }
 
 /*--------------------------------------------------------------
@@ -357,7 +357,7 @@ h6 {
     transition: 0.3s;
     border-radius: 4px;
     z-index: 99;
-    box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 0px 30px rgba(107, 47, 77, 0.1);
   }
 
   .navmenu .dropdown ul li {
@@ -429,7 +429,7 @@ h6 {
     overflow-y: auto;
     transition: 0.3s;
     z-index: 9998;
-    box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 0px 30px rgba(107, 47, 77, 0.1);
   }
 
   .navmenu a,
@@ -1244,7 +1244,7 @@ section,
 --------------------------------------------------------------*/
 .pricing .pricing-item {
   background-color: var(--surface-color);
-  box-shadow: 0 3px 20px -2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 20px -2px rgba(107, 47, 77, 0.1);
   border-top: 4px solid var(--background-color);
   padding: 60px 40px;
   height: 100%;
@@ -1740,7 +1740,7 @@ section,
 --------------------------------------------------------------*/
 .alt-pricing .pricing-item {
   background-color: var(--surface-color);
-  box-shadow: 0 3px 20px -2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 20px -2px rgba(107, 47, 77, 0.1);
   padding-bottom: 30px;
   position: relative;
 }

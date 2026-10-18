@@ -21,24 +21,117 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-quick-action" aria-labelledby="quick-actions-dropdown">
             <li class="dropdown-header">Pintasan Cepat</li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-plus"></i> Bus Baru</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-person-plus"></i> Jadwal Baru</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-box-seam"></i> User Baru</a></li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Pengaturan</a></li>
+            <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/index.php?page=bus&amp;aksi=tambah"><i class="bi bi-bus-front"></i> Bus Baru</a></li>
+            <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute&amp;aksi=tambah"><i class="bi bi-signpost-split"></i> Jadwal Baru</a></li>
+            <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/index.php?page=sopir&amp;aksi=tambah"><i class="bi bi-person-badge"></i> Sopir Baru</a></li>
+            <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/index.php?page=user&amp;aksi=tambah"><i class="bi bi-person-plus"></i> Penumpang Baru</a></li>
           </ul>
         </div>
       </div>
 
-      <!-- Mid navbar: search pill -->
-      <div class="navbar-search-wrapper">
-        <input type="text" class="navbar-search-input" placeholder="Cari bus, jadwal, atau kode booking..." id="main-search">
-        <button class="navbar-search-btn" aria-label="Search">
+      <!-- Mid navbar: kotak cari. Mencari di halaman daftar yang sedang dibuka (?q=...). -->
+      <?php
+      // Halaman daftar yang bisa dicari. Dari Dashboard (atau halaman lain), pencarian diarahkan ke Data Pemesanan.
+      $placeholder_cari = [
+          'bus'                   => 'Cari nama bus, plat nomor, kapasitas, atau kelas...',
+          'jadwal_dan_rute'       => 'Cari rute, bus, sopir, jam berangkat, atau harga...',
+          'user'                  => 'Cari nama, username, email, atau no. HP penumpang...',
+          'sopir'                 => 'Cari nama atau email sopir...',
+          'verifikasi_pembayaran' => 'Cari kode booking, penumpang, rute, metode, atau status...',
+          'data_pemesanan'        => 'Cari kode booking, penumpang, rute, bus, kursi, atau status...',
+      ];
+      $menu_aktif   = $menu_aktif ?? '';   // diset di admin/index.php; default kosong bila belum ada
+      $sedang_cari  = array_key_exists($menu_aktif, $placeholder_cari);
+      $halaman_cari = $sedang_cari ? $menu_aktif : 'data_pemesanan';
+      // Pencarian langsung (hasil muncul saat mengetik) hanya di halaman daftar, bukan di form tambah/ubah.
+      $cari_langsung = $sedang_cari && ($aksi ?? '') === '';
+      $q_sekarang   = ($sedang_cari && is_string($_GET['q'] ?? null)) ? mb_substr(trim($_GET['q']), 0, 100, 'UTF-8') : '';
+
+      // Filter yang ikut dibawa saat mencari (supaya pilihan kelas / tab / status tidak hilang)
+      $filter_dibawa = ['bus' => ['kelas'], 'jadwal_dan_rute' => ['kelas', 'tab'],
+                        'verifikasi_pembayaran' => ['status'], 'data_pemesanan' => ['status']];
+      $url_hapus_q = BASE_URL . '/admin/index.php?page=' . $halaman_cari;
+      ?>
+      <form method="get" action="<?= BASE_URL ?>/admin/index.php" class="navbar-search-wrapper" role="search">
+        <input type="hidden" name="page" value="<?= htmlspecialchars($halaman_cari, ENT_QUOTES, 'UTF-8') ?>">
+        <?php if ($sedang_cari) : foreach ($filter_dibawa[$halaman_cari] ?? [] as $kunci_filter) :
+          $nilai_filter = $_GET[$kunci_filter] ?? '';
+          if (is_string($nilai_filter) && $nilai_filter !== '') :
+            $url_hapus_q .= '&' . $kunci_filter . '=' . urlencode($nilai_filter); ?>
+          <input type="hidden" name="<?= $kunci_filter ?>" value="<?= htmlspecialchars($nilai_filter, ENT_QUOTES, 'UTF-8') ?>">
+        <?php endif; endforeach; endif; ?>
+        <input type="text" name="q" class="navbar-search-input" maxlength="100" autocomplete="off"
+               value="<?= htmlspecialchars($q_sekarang, ENT_QUOTES, 'UTF-8') ?>"
+               placeholder="<?= htmlspecialchars($placeholder_cari[$halaman_cari], ENT_QUOTES, 'UTF-8') ?>" id="main-search"
+               aria-label="Cari data">
+        <a href="<?= htmlspecialchars($url_hapus_q, ENT_QUOTES, 'UTF-8') ?>" id="hapus-cari" title="Hapus pencarian" aria-label="Hapus pencarian"
+           style="position:absolute;right:3rem;top:50%;transform:translateY(-50%);color:#6b7280;text-decoration:none;line-height:1<?= $q_sekarang === '' ? ';display:none' : '' ?>">
+          <i class="bi bi-x-lg"></i>
+        </a>
+        <button type="submit" class="navbar-search-btn" aria-label="Cari">
           <i class="bi bi-search"></i>
         </button>
-      </div>
+      </form>
+
+      <?php if ($cari_langsung) : ?>
+      <!-- Pencarian langsung: tiap ketikan memuat ulang isi tabel (tanpa reload halaman) -->
+      <script>
+      (function () {
+        var form  = document.querySelector('.navbar-search-wrapper');
+        var input = document.getElementById('main-search');
+        var hapus = document.getElementById('hapus-cari');
+        var isi   = document.getElementById('isi-halaman');
+        if (!form || !input || !isi || !window.fetch || !window.DOMParser || !window.AbortController) return;
+
+        var timer = null, ctrl = null, terakhir = input.value.trim();
+
+        function alamat() {
+          var p = new URLSearchParams(new FormData(form));
+          var q = input.value.trim();
+          if (q === '') { p.delete('q'); } else { p.set('q', q); }
+          return form.action + '?' + p.toString();
+        }
+
+        function muat() {
+          var u = alamat();
+          terakhir = input.value.trim();
+          if (ctrl) ctrl.abort();
+          ctrl = new AbortController();
+          isi.style.opacity = '.6';
+          fetch(u, { credentials: 'same-origin', signal: ctrl.signal })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+              var baru = new DOMParser().parseFromString(html, 'text/html').getElementById('isi-halaman');
+              if (!baru) { window.location.href = u; return; }   // mis. sesi habis -> ke halaman login
+              isi.innerHTML = baru.innerHTML;
+              isi.style.opacity = '';
+              history.replaceState(null, '', u);
+            })
+            .catch(function (e) {
+              if (e && e.name === 'AbortError') return;
+              isi.style.opacity = '';
+            });
+        }
+
+        function atur() {
+          if (hapus) hapus.style.display = input.value === '' ? 'none' : '';
+          clearTimeout(timer);
+          if (input.value.trim() !== terakhir) timer = setTimeout(muat, 200);
+        }
+
+        input.addEventListener('input', atur);
+        form.addEventListener('submit', function (e) { e.preventDefault(); clearTimeout(timer); muat(); });
+        if (hapus) hapus.addEventListener('click', function (e) {
+          e.preventDefault();
+          input.value = '';
+          hapus.style.display = 'none';
+          input.focus();
+          clearTimeout(timer);
+          muat();
+        });
+      })();
+      </script>
+      <?php endif; ?>
 
       <!-- Right actions -->
       <div class="navbar-actions">
@@ -69,14 +162,13 @@
         <div class="dropdown ms-2">
           <button class="navbar-profile-btn dropdown-toggle" type="button" data-bs-toggle="dropdown"
             aria-expanded="false" id="profile-dropdown">
-            <img src="<?= BASE_URL ?>/admin/assets/images/avatar.png" alt="Profile Image" class="navbar-profile-img">
+            <img src="<?= htmlspecialchars(foto_admin_url(idLogin()), ENT_QUOTES, 'UTF-8') ?>" alt="Foto profil" class="navbar-profile-img">
             <span class="navbar-profile-name d-none d-md-inline"><?= htmlspecialchars((string) ($_SESSION['nama'] ?? 'Admin'), ENT_QUOTES, 'UTF-8') ?></span>
             <i class="bi bi-chevron-down navbar-profile-caret"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-profile" aria-labelledby="profile-dropdown">
             <li class="dropdown-header">Selamat datang!</li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Akun Saya</a></li>
-            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Pengaturan</a></li>
+            <li><a class="dropdown-item" href="<?= BASE_URL ?>/admin/index.php?page=akun"><i class="bi bi-person"></i> Akun Saya</a></li>
             <li>
               <hr class="dropdown-divider">
             </li>

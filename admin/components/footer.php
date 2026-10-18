@@ -6,16 +6,15 @@
           <i class="bi bi-bus-front"></i> E-Ticket Bus
         </span>
         <span class="footer-separator">|</span>
-        <span class="footer-copy">&copy; 2026 Made with <i class="bi bi-heart-fill text-danger footer-heart"></i> by<a
-            href="https://sparkadminpro.gumroad.com/" target="_blank">Spark Admin</a>• Distributed by <a
-            href="https://www.themewagon.com/" target="_blank">ThemeWagon</a> </span>
+        <span class="footer-copy">&copy; <?= date('Y') ?> E-Ticket Bus &bull; Sistem Pemesanan Tiket Bus Online</span>
       </div>
       <div class="footer-right">
         <ul class="footer-links">
-          <li><a href="#" class="footer-link">Overview</a></li>
-          <li><a href="#" class="footer-link">Statistics</a></li>
-          <li><a href="#" class="footer-link">Help & Documentation</a></li>
-          <li><a href="#" class="footer-link">Status <span class="status-dot"></span></a></li>
+          <li><a href="<?= BASE_URL ?>/admin/index.php" class="footer-link">Dashboard</a></li>
+          <li><a href="<?= BASE_URL ?>/admin/index.php?page=bus" class="footer-link">Data Bus</a></li>
+          <li><a href="<?= BASE_URL ?>/admin/index.php?page=data_pemesanan" class="footer-link">Data Pemesanan</a></li>
+          <li><a href="<?= BASE_URL ?>/admin/index.php?page=verifikasi_pembayaran" class="footer-link">Verifikasi Pembayaran</a></li>
+          <li><span class="footer-link">Sistem Aktif <span class="status-dot"></span></span></li>
         </ul>
       </div>
     </footer>

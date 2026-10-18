@@ -5,16 +5,16 @@
  ========================================================== */
 
 :root {
-  --tv-blue: #0194f3;
-  --tv-blue-dark: #0770cd;
-  --tv-blue-soft: #e5f2fc;
-  --tv-orange: #ff5e1f;
-  --tv-orange-dark: #e0480a;
-  --tv-text: #03121a;
-  --tv-muted: #687176;
-  --tv-line: #e3e5e6;
-  --tv-line-strong: #cdd0d2;
-  --tv-bg: #f2f3f3;
+  --tv-blue: #E0558A;
+  --tv-blue-dark: #C23D74;
+  --tv-blue-soft: #FFE9F2;
+  --tv-orange: #F4846B;
+  --tv-orange-dark: #DC6A51;
+  --tv-text: #3B2233;
+  --tv-muted: #8B6F80;
+  --tv-line: #F7DCE8;
+  --tv-line-strong: #F0C6D8;
+  --tv-bg: #FFF6FA;
 }
 
 /* ---------- Navbar putih ---------- */
@@ -25,7 +25,7 @@
   background: #fff !important;
   height: 68px;
   padding: 0 !important;
-  box-shadow: 0 1px 6px rgba(3, 18, 26, .12);
+  box-shadow: 0 1px 6px rgba(107, 47, 77, .12);
 }
 .header .logo h1 { font-size: 22px; font-weight: 700; color: var(--tv-blue); }
 .header .navmenu a.active { color: var(--tv-blue) !important; font-weight: 600; }
@@ -55,7 +55,7 @@
   overflow: hidden;
   padding: 56px 0 120px;
   color: #fff;
-  background: linear-gradient(135deg, #0770cd 0%, #0194f3 55%, #3fb6f7 100%);
+  background: #FFD3E4;
 }
 .tv-hero::before,
 .tv-hero::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .08); }
@@ -71,7 +71,7 @@
   background: #fff;
   border-radius: 16px;
   padding: 20px 24px 24px;
-  box-shadow: 0 8px 30px rgba(3, 18, 26, .14);
+  box-shadow: 0 8px 30px rgba(107, 47, 77, .14);
 }
 .tv-tabs { display: flex; gap: 8px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--tv-line); }
 .tv-tab {
@@ -89,13 +89,13 @@
   border: 1px solid var(--tv-line-strong); border-radius: 12px; background: #fff;
   transition: border-color .15s, box-shadow .15s;
 }
-.tv-input:focus-within { border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(1, 148, 243, .15); }
+.tv-input:focus-within { border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(224, 85, 138, .15); }
 .tv-input > i { color: var(--tv-blue); font-size: 20px; margin-right: 10px; }
 .tv-input input {
   border: 0; outline: 0; width: 100%; height: 100%; background: transparent;
   font-size: 16px; font-weight: 500; color: var(--tv-text);
 }
-.tv-input input::placeholder { color: #9aa3a8; font-weight: 400; }
+.tv-input input::placeholder { color: #C4A3B3; font-weight: 400; }
 .tv-swap {
   position: absolute; right: -26px; bottom: 10px; z-index: 3;
   width: 40px; height: 40px; border-radius: 50%;
@@ -140,8 +140,12 @@
 .tv-btn-outline:hover { background: var(--tv-blue-soft); color: var(--tv-blue-dark); }
 
 /* ---------- Halaman hasil: banner biru + tab tanggal ---------- */
-.tv-result-head { background: var(--tv-blue); color: #fff; padding: 22px 0 0; }
-.tv-result-head h1 { color: #fff; font-size: 24px; font-weight: 700; margin: 0; }
+.tv-result-head {
+  color: #fff; padding: 22px 0 0;
+  background:
+    linear-gradient(90deg, rgba(200, 55, 110, .50) 0%, rgba(224, 85, 138, .55) 40%, rgba(224, 85, 138, .12) 100%),
+    url("../img/banner-bus.jpg") center / cover no-repeat;
+}.tv-result-head h1 { color: #fff; font-size: 24px; font-weight: 700; margin: 0; }
 .tv-result-head h1 i { margin: 0 6px; font-size: 20px; }
 .tv-result-head .tv-meta { color: rgba(255, 255, 255, .9); font-size: 14px; margin-top: 4px; }
 .tv-edit {
@@ -170,7 +174,7 @@
 .tv-page { background: var(--tv-bg); padding: 24px 0 56px; min-height: 60vh; }
 
 /* ---------- Filter samping ---------- */
-.tv-filter { background: #fff; border-radius: 14px; box-shadow: 0 1px 6px rgba(3, 18, 26, .08); overflow: hidden; }
+.tv-filter { background: #fff; border-radius: 14px; box-shadow: 0 1px 6px rgba(107, 47, 77, .08); overflow: hidden; }
 .tv-filter-head { padding: 18px 20px; border-bottom: 1px solid var(--tv-line); }
 .tv-filter-head .judul { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .tv-filter-head h5 { margin: 0; font-size: 18px; font-weight: 700; color: var(--tv-text); }
@@ -199,7 +203,7 @@
 .tv-sortbar {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
   background: #fff; border-radius: 14px; padding: 14px 20px; margin-bottom: 16px;
-  box-shadow: 0 1px 6px rgba(3, 18, 26, .08);
+  box-shadow: 0 1px 6px rgba(107, 47, 77, .08);
 }
 .tv-sortbar select {
   border: 1px solid var(--tv-line-strong); border-radius: 999px;
@@ -209,9 +213,9 @@
 /* ---------- Kartu hasil jadwal ---------- */
 .tv-card {
   background: #fff; border-radius: 14px; margin-bottom: 16px;
-  box-shadow: 0 1px 6px rgba(3, 18, 26, .08); transition: box-shadow .2s;
+  box-shadow: 0 1px 6px rgba(107, 47, 77, .08); transition: box-shadow .2s;
 }
-.tv-card:hover { box-shadow: 0 6px 20px rgba(3, 18, 26, .14); }
+.tv-card:hover { box-shadow: 0 6px 20px rgba(107, 47, 77, .14); }
 .tv-card-body { display: flex; }
 .tv-card-info { flex: 1; min-width: 0; padding: 20px 24px; }
 .tv-card-price {
@@ -227,7 +231,7 @@
   background: var(--tv-blue-soft); color: var(--tv-blue-dark);
 }
 .tv-kelas.ekonomi { background: #dcfce7; color: #15803d; }
-.tv-kelas.bisnis { background: #dbeafe; color: #1d4ed8; }
+.tv-kelas.bisnis { background: #FDE4F0; color: #B03B6B; }
 .tv-kelas.eksekutif { background: #fef3c7; color: #b45309; }
 .tv-trip { display: flex; align-items: center; gap: 22px; margin: 18px 0 14px; }
 .tv-trip .waktu strong { display: block; font-size: 22px; font-weight: 700; color: var(--tv-text); font-family: var(--heading-font); line-height: 1.2; }
@@ -281,7 +285,7 @@
 .tv-trip .durasi { font-size: 13px; font-weight: 700; color: var(--tv-text); }
 .tv-trip .tengah .panah { line-height: 1; }
 .tv-trip .waktu strong small { font-size: 12px; font-weight: 700; color: var(--tv-orange); margin-left: 2px; vertical-align: super; }
-.tv-trip .waktu strong.belum { color: #9aa3a8; }
+.tv-trip .waktu strong.belum { color: #C4A3B3; }
 /* ---------- Foto, fasilitas & tombol detail di kartu ---------- */
 .tv-card-foto {
   width: 220px; flex-shrink: 0; overflow: hidden;
@@ -392,7 +396,7 @@
   background: #fff; border: 2px solid var(--tv-line-strong); color: var(--tv-muted); font-size: 13px; font-weight: 700;
 }
 .tv-stepper li.aktif { color: var(--tv-text); }
-.tv-stepper li.aktif .bulat { background: var(--tv-blue); border-color: var(--tv-blue); color: #fff; box-shadow: 0 0 0 4px rgba(1, 148, 243, .16); }
+.tv-stepper li.aktif .bulat { background: var(--tv-blue); border-color: var(--tv-blue); color: #fff; box-shadow: 0 0 0 4px rgba(224, 85, 138, .16); }
 .tv-stepper li.selesai { color: var(--tv-blue-dark); }
 .tv-stepper li.selesai .bulat { background: var(--tv-blue); border-color: var(--tv-blue); color: #fff; }
 
@@ -403,7 +407,7 @@
 
 .tv-bcard {
   background: #fff; border-radius: 16px; padding: 22px 24px; margin-bottom: 16px;
-  box-shadow: 0 1px 6px rgba(3, 18, 26, .08);
+  box-shadow: 0 1px 6px rgba(107, 47, 77, .08);
 }
 .tv-bcard-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
 .tv-bicon {
@@ -440,7 +444,7 @@
   padding: 14px 16px; background: #fff; border: 1.5px solid var(--tv-line-strong); border-radius: 14px;
   transition: border-color .15s, background .15s, box-shadow .15s;
 }
-.tv-kursi-btn:hover { border-color: var(--tv-blue); background: #f5fbff; box-shadow: 0 0 0 3px rgba(1, 148, 243, .1); }
+.tv-kursi-btn:hover { border-color: var(--tv-blue); background: #FFF3F8; box-shadow: 0 0 0 3px rgba(224, 85, 138, .1); }
 .tv-kursi-btn .ikon {
   width: 46px; height: 46px; flex-shrink: 0; border-radius: 12px;
   background: var(--tv-blue-soft); color: var(--tv-blue); font-size: 20px;
@@ -468,7 +472,7 @@
 /* ---------- Ringkasan di kanan ---------- */
 .tv-side, .tv-rincian-tiket {
   position: sticky; top: 88px; background: #fff; border-radius: 16px; overflow: hidden;
-  box-shadow: 0 1px 6px rgba(3, 18, 26, .08);
+  box-shadow: 0 1px 6px rgba(107, 47, 77, .08);
 }
 .tv-side-head { display: flex; align-items: center; gap: 8px; padding: 18px 22px; border-bottom: 1px solid var(--tv-line); font-size: 16px; color: var(--tv-text); }
 .tv-side-head .fa-bus { color: #16a34a; font-size: 20px; margin-right: 4px; }
@@ -498,7 +502,7 @@
 .tv-cta {
   display: block; width: 100%; border: 0; border-radius: 12px; padding: 15px 20px;
   background: var(--tv-orange); color: #fff; font-weight: 700; font-size: 16px; text-align: center;
-  box-shadow: 0 6px 16px rgba(255, 94, 31, .28);
+  box-shadow: 0 6px 16px rgba(244, 132, 107, .28);
   transition: background .15s, transform .15s, box-shadow .15s;
 }
 .tv-cta:hover:not(:disabled) { background: var(--tv-orange-dark); color: #fff; transform: translateY(-1px); }
@@ -522,15 +526,15 @@
 .tv-legend .kotak { display: inline-block; width: 20px; height: 20px; border-radius: 6px; vertical-align: -5px; margin-right: 8px; border: 1.5px solid var(--tv-blue); }
 .tv-legend .kotak.bebas { background: #fff; }
 .tv-legend .kotak.dipilih { background: var(--tv-blue); }
-.tv-legend .kotak.terisi { background: #e3e5e6; border-color: #e3e5e6; }
+.tv-legend .kotak.terisi { background: #F7DCE8; border-color: #F7DCE8; }
 
-.tv-denah { background: #f2f3f3; border-radius: 16px; padding: 24px 12px; display: flex; justify-content: center; }
+.tv-denah { background: #FFF6FA; border-radius: 16px; padding: 24px 12px; display: flex; justify-content: center; }
 .tv-seat-modal .bus-body {
   width: max-content; max-width: 100%; margin: 0; padding: 16px 20px 22px;
-  background: #fff; border: 2px solid #e3e5e6; border-radius: 44px 44px 14px 14px;
-  box-shadow: 0 4px 14px rgba(3, 18, 26, .06);
+  background: #fff; border: 2px solid #F7DCE8; border-radius: 44px 44px 14px 14px;
+  box-shadow: 0 4px 14px rgba(107, 47, 77, .06);
 }
-.tv-seat-modal .bus-depan { display: flex; justify-content: flex-end; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 2px dashed #e3e5e6; }
+.tv-seat-modal .bus-depan { display: flex; justify-content: flex-end; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 2px dashed #F7DCE8; }
 .tv-seat-modal .bus-depan .sopir {
   width: 52px; height: 52px; border-radius: 10px; background: #d9dde0; color: #6b7378; font-size: 20px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -546,20 +550,20 @@
   transition: background .15s, transform .15s, box-shadow .15s, color .15s;
 }
 .tv-seat-modal .seat:hover:not(:disabled) { background: var(--tv-blue-soft); border-color: var(--tv-blue); transform: translateY(-2px); }
-.tv-seat-modal .seat.dipilih, .tv-seat-modal .seat.dipilih:hover:not(:disabled) { background: var(--tv-blue); border-color: var(--tv-blue); color: #fff; box-shadow: 0 6px 14px rgba(1, 148, 243, .35); transform: scale(1.05); }
+.tv-seat-modal .seat.dipilih, .tv-seat-modal .seat.dipilih:hover:not(:disabled) { background: var(--tv-blue); border-color: var(--tv-blue); color: #fff; box-shadow: 0 6px 14px rgba(224, 85, 138, .35); transform: scale(1.05); }
 .tv-seat-modal .seat.terisi, .tv-seat-modal .seat:disabled {
-  background: #e3e5e6; border-color: #e3e5e6; color: #8b9399; cursor: not-allowed; transform: none; box-shadow: none;
+  background: #F7DCE8; border-color: #F7DCE8; color: #B79BAA; cursor: not-allowed; transform: none; box-shadow: none;
 }
 
 /* ---------- Pembayaran: hitung mundur ---------- */
 .tv-timer {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 20px 28px; margin-bottom: 20px; border-radius: 16px; color: #fff;
-  background: linear-gradient(120deg, #0770cd 0%, #0194f3 100%);
-  box-shadow: 0 8px 22px rgba(1, 148, 243, .28);
+  background: #E0558A;
+  box-shadow: 0 8px 22px rgba(224, 85, 138, .28);
 }
 .tv-timer .teks { font-size: 16px; font-weight: 500; line-height: 1.5; }
-.tv-timer .angka { font-size: 20px; font-weight: 700; color: #b8f34a; font-variant-numeric: tabular-nums; margin-left: 4px; white-space: nowrap; }
+.tv-timer .angka { font-size: 20px; font-weight: 700; color: #FFF3A8; font-variant-numeric: tabular-nums; margin-left: 4px; white-space: nowrap; }
 .tv-timer .jam {
   width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%; background: #84cc16; color: #fff; font-size: 22px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -578,8 +582,8 @@
 }
 .tv-metode:hover { border-color: var(--tv-line-strong); }
 .tv-metode > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.tv-metode:has(input:checked) { border-color: var(--tv-blue); background: #fcfeff; box-shadow: 0 0 0 3px rgba(1, 148, 243, .12); }
-.tv-metode:has(input:focus-visible) { outline: 3px solid rgba(1, 148, 243, .45); outline-offset: 2px; }
+.tv-metode:has(input:checked) { border-color: var(--tv-blue); background: #FFF9FC; box-shadow: 0 0 0 3px rgba(224, 85, 138, .12); }
+.tv-metode:has(input:focus-visible) { outline: 3px solid rgba(224, 85, 138, .45); outline-offset: 2px; }
 .tv-metode-baris { display: flex; align-items: center; gap: 14px; padding: 15px 18px; }
 .tv-metode-ikon {
   width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%; color: #fff; font-size: 19px;
@@ -600,13 +604,13 @@
 .tv-metode input:checked ~ .tv-metode-baris .tv-radio { border-color: var(--tv-blue); }
 .tv-metode input:checked ~ .tv-metode-baris .tv-radio::after { transform: scale(1); }
 
-.tv-metode-panel { display: none; padding: 16px 18px 18px; background: #f5fbff; border-top: 1px solid #d6ebfb; cursor: default; }
+.tv-metode-panel { display: none; padding: 16px 18px 18px; background: #FFF3F8; border-top: 1px solid #F9D5E4; cursor: default; }
 .tv-metode input:checked ~ .tv-metode-panel { display: block; animation: tvBuka .22s ease-out; }
 @keyframes tvBuka { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
 .tv-panel-isi { display: block; margin-bottom: 12px; }
 .tv-panel-isi:last-child { margin-bottom: 0; }
 
-.tv-kv { display: block; background: #fff; border: 1px solid #d6ebfb; border-radius: 12px; padding: 12px 16px; }
+.tv-kv { display: block; background: #fff; border: 1px solid #F9D5E4; border-radius: 12px; padding: 12px 16px; }
 .tv-kv small { display: block; font-size: 13px; color: var(--tv-muted); }
 .tv-kv .nilai { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0; flex-wrap: wrap; }
 .tv-kv .mono { font-family: "Roboto Mono", ui-monospace, Consolas, monospace; font-size: 21px; letter-spacing: 1.2px; color: var(--tv-text); }
@@ -621,7 +625,7 @@
 .tv-salin:hover { background: var(--tv-blue-soft); }
 
 .tv-qris { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.tv-qris img { width: 100%; max-width: 210px; padding: 8px; background: #fff; border: 1px solid #d6ebfb; border-radius: 14px; }
+.tv-qris img { width: 100%; max-width: 210px; padding: 8px; background: #fff; border: 1px solid #F9D5E4; border-radius: 14px; }
 .tv-qris-kosong {
   display: block; max-width: 210px; padding: 24px 14px; text-align: center; font-size: 13px; color: var(--tv-muted);
   background: #fff; border: 2px dashed var(--tv-line-strong); border-radius: 14px;
@@ -642,7 +646,7 @@
 /* ---------- Unggah bukti ---------- */
 .tv-drop {
   position: relative; display: block; padding: 26px 18px; text-align: center; cursor: pointer;
-  background: #fafcfd; border: 2px dashed var(--tv-line-strong); border-radius: 14px;
+  background: #FFF9FC; border: 2px dashed var(--tv-line-strong); border-radius: 14px;
   transition: border-color .15s, background .15s;
 }
 .tv-drop:hover, .tv-drop.melayang { border-color: var(--tv-blue); background: var(--tv-blue-soft); }
@@ -681,14 +685,14 @@
 /* ---------- Rincian tiket (kanan, halaman bayar) ---------- */
 .tv-rt-head {
   display: flex; align-items: center; gap: 12px; padding: 18px 20px; flex-wrap: wrap;
-  background: linear-gradient(120deg, #cfe9fb 0%, #eaf6ff 100%);
+  background: #FFE9F2;
 }
 .tv-rt-head .ikon {
   width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; background: var(--tv-blue); color: #fff; font-size: 19px;
   display: inline-flex; align-items: center; justify-content: center;
 }
 .tv-rt-head strong { display: block; font-size: 18px; color: var(--tv-text); line-height: 1.25; }
-.tv-rt-head small { display: block; font-size: 13px; color: #3c5566; }
+.tv-rt-head small { display: block; font-size: 13px; color: #7A3A58; }
 .tv-rt-head small b { color: var(--tv-text); letter-spacing: .3px; }
 .tv-rt-sec { padding: 16px 20px; border-top: 1px solid var(--tv-line); }
 .tv-rt-sec .label { font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--tv-muted); margin-bottom: 8px; }
@@ -696,7 +700,7 @@
 .tv-rt-sec .rute { font-size: 17px; font-weight: 700; color: var(--tv-text); margin: 4px 0; }
 .tv-rt-sec .rute i { color: var(--tv-blue); margin: 0 4px; }
 .tv-rt-sec .tgl, .tv-rt-sec .jam { font-size: 15px; color: var(--tv-text); }
-.tv-rt-pax { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 8px; border-radius: 10px; background: #f7f9fa; font-size: 15px; color: var(--tv-text); }
+.tv-rt-pax { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; margin-bottom: 8px; border-radius: 10px; background: #FFF6FA; font-size: 15px; color: var(--tv-text); }
 .tv-rt-pax:last-child { margin-bottom: 0; }
 .tv-rt-pax .jenis { color: var(--tv-muted); }
 .tv-rt-pax .kursi { font-weight: 700; color: var(--tv-blue-dark); }
@@ -751,7 +755,7 @@
 .tv-pax-pop {
   position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; width: 330px; max-width: 92vw;
   background: #fff; border: 1px solid var(--tv-line); border-radius: 14px; padding: 8px 18px 16px;
-  box-shadow: 0 14px 34px rgba(3, 18, 26, .2);
+  box-shadow: 0 14px 34px rgba(107, 47, 77, .2);
 }
 .tv-pax-pop[hidden] { display: none; }
 .tv-pax-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--tv-line); }
@@ -782,7 +786,7 @@
   width: 100%; height: 46px; padding: 0 12px; border: 1px solid var(--tv-line-strong); border-radius: 10px;
   background: #fff; font-weight: 600; color: var(--tv-text);
 }
-.tv-jml select:focus { outline: 0; border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(1, 148, 243, .15); }
+.tv-jml select:focus { outline: 0; border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(224, 85, 138, .15); }
 .tv-jml-btn { height: 46px; padding: 0 22px; }
 
 .tv-pax-form { display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; border-top: 1px solid var(--tv-line); }
@@ -797,7 +801,7 @@
 .tv-pax-form label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; color: var(--tv-text); }
 .tv-pax-form label small { font-weight: 400; color: var(--tv-muted); }
 .tv-pax-form .form-control { height: 46px; border-radius: 10px; border-color: var(--tv-line-strong); }
-.tv-pax-form .form-control:focus { border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(1, 148, 243, .15); }
+.tv-pax-form .form-control:focus { border-color: var(--tv-blue); box-shadow: 0 0 0 3px rgba(224, 85, 138, .15); }
 
 .tv-slots { display: flex; flex-direction: column; gap: 8px; }
 
@@ -814,4 +818,218 @@
 /* Dropdown penumpang terpotong: main.css memberi overflow: clip ke semua <section> */
 .tv-search-wrap {
   overflow: visible;
+}
+
+/* ==========================================================
+ TEMA PINK SOFT (paling akhir supaya menimpa gaya sebelumnya)
+ Palet: pink #E0558A, pink tua #C23D74, pink muda #FFD3E4, blush #FFF6FA, plum #3B2233
+ ========================================================== */
+:root {
+  --bs-primary: #E0558A; --bs-primary-rgb: 224, 85, 138;
+  --bs-link-color: #C23D74; --bs-link-hover-color: #A63060;
+  --bs-link-color-rgb: 194, 61, 116; --bs-link-hover-color-rgb: 166, 48, 96;
+  --bs-body-color: #3B2233; --bs-border-color: #F7DCE8;
+  --bs-focus-ring-color: rgba(224, 85, 138, .25);
+}
+body { background-color: #FFF6FA; color: #3B2233; }
+::selection { background: #FFD3E4; color: #5A1F3E; }
+a { color: var(--bs-link-color); }
+
+/* tombol bootstrap */
+.btn-primary {
+  --bs-btn-bg: #E0558A; --bs-btn-border-color: #E0558A; --bs-btn-color: #fff;
+  --bs-btn-hover-bg: #C23D74; --bs-btn-hover-border-color: #C23D74; --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: #B03568; --bs-btn-active-border-color: #B03568; --bs-btn-active-color: #fff;
+  --bs-btn-disabled-bg: #E0558A; --bs-btn-disabled-border-color: #E0558A;
+  --bs-btn-focus-shadow-rgb: 224, 85, 138;
+  border-radius: 12px; font-weight: 600; box-shadow: 0 6px 16px rgba(224, 85, 138, .25);
+}
+.btn-outline-primary {
+  --bs-btn-color: #C23D74; --bs-btn-border-color: #E0558A;
+  --bs-btn-hover-bg: #E0558A; --bs-btn-hover-border-color: #E0558A; --bs-btn-hover-color: #fff;
+  --bs-btn-active-bg: #C23D74; --bs-btn-active-border-color: #C23D74; --bs-btn-active-color: #fff;
+  --bs-btn-focus-shadow-rgb: 224, 85, 138; border-radius: 12px; font-weight: 600;
+}
+.btn-outline-secondary {
+  --bs-btn-color: #8B6F80; --bs-btn-border-color: #F0C6D8;
+  --bs-btn-hover-bg: #FFE9F2; --bs-btn-hover-color: #6B2F4D; --bs-btn-hover-border-color: #F0C6D8;
+  --bs-btn-active-bg: #FFD3E4; --bs-btn-active-color: #6B2F4D; --bs-btn-active-border-color: #F0C6D8;
+  border-radius: 12px;
+}
+.btn-warning { border-radius: 12px; font-weight: 600; }
+.alert { border-radius: 14px; border: 0; }
+.alert-info { --bs-alert-bg: #FFE9F2; --bs-alert-color: #7A3A58; --bs-alert-border-color: #F9D5E4; }
+.form-control, .form-select { border-color: #F0C6D8; border-radius: 12px; }
+.form-control:focus, .form-select:focus { border-color: #E27AA0; box-shadow: 0 0 0 4px rgba(246, 169, 199, .35); }
+.form-check-input:checked { background-color: #E0558A; border-color: #E0558A; }
+.form-check-input:focus { border-color: #E27AA0; box-shadow: 0 0 0 .25rem rgba(224, 85, 138, .25); }
+.modal-content { border: 0; border-radius: 22px; box-shadow: 0 24px 60px rgba(185, 78, 119, .25); }
+.page-link { color: #C23D74; }
+.page-item.active .page-link { background: #E0558A; border-color: #E0558A; }
+
+/* hero beranda: pink muda polos + maskot bus */
+   .tv-hero {
+     color: #5A1F3E; padding: 52px 0 124px;
+     background:
+       linear-gradient(90deg, rgba(255, 211, 228, .30) 0%, rgba(255, 211, 228, .78) 55%, rgba(255, 196, 220, .50) 100%),
+       url("../img/banner-bus.jpg") center / cover no-repeat;
+   }.tv-hero::before { background: rgba(255, 255, 255, .42); }
+.tv-hero::after { background: rgba(255, 255, 255, .30); }
+.tv-hero h2 { color: #5A1F3E; max-width: 62%; }
+.tv-hero h2 { text-shadow: 0 0 12px rgba(255, 235, 244, .9); }
+.tv-hero p {
+  color: #4A1634; font-weight: 500;
+  text-shadow: 0 0 10px rgba(255, 235, 244, .95), 0 0 3px rgba(255, 235, 244, .95);
+}.tv-hero .container::after {
+  content: ""; position: absolute; right: 12px; top: -44px; width: 210px; height: 176px; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20300%20250%22%3E%3Cpath%20d=%22M10%2052h62a16%2016%200%200%200-5-30%2023%2023%200%200%200-43-3%2018%2018%200%200%200-14%2033z%22%20fill=%22%23fff%22%20opacity=%22.85%22/%3E%3Cpath%20d=%22M214%2078h66a13%2013%200%200%200-4-25%2019%2019%200%200%200-37-3%2015%2015%200%200%200-25%2028z%22%20fill=%22%23fff%22%20opacity=%22.7%22/%3E%3Cpath%20d=%22M262%2014l4%2011%2011%204-11%204-4%2011-4-11-11-4%2011-4z%22%20fill=%22%23FFF3A8%22/%3E%3Cpath%20d=%22M30%20112l3%208%208%203-8%203-3%208-3-8-8-3%208-3z%22%20fill=%22%23fff%22/%3E%3Cpath%20d=%22M278%20142c-8-6-8-14-3-14%202%200%203%201%203%202%200-1%201-2%203-2%205%200%205%208-3%2014z%22%20fill=%22%23fff%22/%3E%3Cellipse%20cx=%22150%22%20cy=%22238%22%20rx=%2296%22%20ry=%228%22%20fill=%22%23B94E77%22%20opacity=%22.16%22/%3E%3Crect%20x=%22116%22%20y=%2226%22%20width=%2268%22%20height=%2226%22%20rx=%2213%22%20fill=%22%23fff%22/%3E%3Crect%20x=%2262%22%20y=%2244%22%20width=%22176%22%20height=%22184%22%20rx=%2244%22%20fill=%22%23fff%22/%3E%3Crect%20x=%2284%22%20y=%2268%22%20width=%22132%22%20height=%2266%22%20rx=%2223%22%20fill=%22%23FFB8D2%22/%3E%3Cpath%20d=%22M100%2086h30%22%20stroke=%22%23fff%22%20stroke-width=%226%22%20stroke-linecap=%22round%22%20opacity=%22.9%22/%3E%3Ccircle%20cx=%22102%22%20cy=%22172%22%20r=%2214%22%20fill=%22%23F47FAA%22/%3E%3Ccircle%20cx=%22198%22%20cy=%22172%22%20r=%2214%22%20fill=%22%23F47FAA%22/%3E%3Ccircle%20cx=%22106%22%20cy=%22168%22%20r=%223.5%22%20fill=%22%23fff%22/%3E%3Ccircle%20cx=%22202%22%20cy=%22168%22%20r=%223.5%22%20fill=%22%23fff%22/%3E%3Cpath%20d=%22M133%20176q17%2019%2034%200%22%20fill=%22none%22%20stroke=%22%23F47FAA%22%20stroke-width=%226%22%20stroke-linecap=%22round%22/%3E%3Cellipse%20cx=%2276%22%20cy=%22190%22%20rx=%229%22%20ry=%226%22%20fill=%22%23FFB3CE%22%20opacity=%22.85%22/%3E%3Cellipse%20cx=%22224%22%20cy=%22190%22%20rx=%229%22%20ry=%226%22%20fill=%22%23FFB3CE%22%20opacity=%22.85%22/%3E%3Crect%20x=%2280%22%20y=%22212%22%20width=%2240%22%20height=%2230%22%20rx=%2214%22%20fill=%22%236B2F4D%22/%3E%3Crect%20x=%22180%22%20y=%22212%22%20width=%2240%22%20height=%2230%22%20rx=%2214%22%20fill=%22%236B2F4D%22/%3E%3Ccircle%20cx=%22100%22%20cy=%22227%22%20r=%226%22%20fill=%22%23FFD3E4%22/%3E%3Ccircle%20cx=%22200%22%20cy=%22227%22%20r=%226%22%20fill=%22%23FFD3E4%22/%3E%3C/svg%3E") no-repeat center / contain;
+  animation: tv-bob 3.4s ease-in-out infinite;
+}
+@keyframes tv-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (max-width: 991px) { .tv-hero h2 { max-width: 100%; font-size: 28px; } .tv-hero .container::after { display: none; } }
+@media (prefers-reduced-motion: reduce) { .tv-hero .container::after { animation: none; } }
+
+/* judul halaman dalam & footer: pink muda polos, teks plum */
+.page-title.dark-background {
+  background-color: #FFD3E4; color: #5A1F3E;
+  background-image:
+    linear-gradient(rgba(255, 211, 228, .30), rgba(255, 196, 220, .70)),
+    url("../img/banner-bus.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+}.page-title:before { display: none; }
+.page-title h1 { color: #5A1F3E; }
+.page-title .breadcrumbs ol a { color: #C23D74; }
+.page-title .breadcrumbs ol li.current { color: #7A3A58; }
+.footer.dark-background { background-color: #FFE0EC; color: #6B2F4D; }
+.footer .footer-top { border-top-color: #F9C4D9; }
+.footer h4, .footer .sitename { color: #5A1F3E; }
+
+/* navbar */
+.header { border-bottom: 1px solid #FBDDE9; box-shadow: 0 4px 18px rgba(224, 85, 138, .10) !important; }
+.header .navmenu a { border-radius: 999px; }
+.header .btn-getstarted, .header .btn-getstarted:focus { border-radius: 999px; box-shadow: 0 6px 14px rgba(224, 85, 138, .28); }
+
+/* kartu & elemen: lebih bulat dan lembut */
+.tv-search-card { border-radius: 24px; box-shadow: 0 16px 40px rgba(224, 85, 138, .16); border: 1px solid #FBDDE9; }
+.tv-tab.active { box-shadow: 0 6px 14px rgba(224, 85, 138, .28); }
+.tv-input { border-radius: 14px; }
+.card-jadwal, .card-tiket, .panel, .box-cari, .kosong { border-radius: 20px; }
+.card-jadwal:hover, .card-tiket:hover { box-shadow: 0 12px 30px rgba(224, 85, 138, .18); }
+.tv-kelas { border-radius: 999px; padding: 3px 12px; }
+.tv-kelas.bisnis { background: #FDE4F0; color: #B03B6B; }
+.tv-kelas.ekonomi { background: #DDF5EC; color: #1E7A5A; }
+.tv-kelas.eksekutif { background: #FFF0C9; color: #A86A00; }
+
+/* scrollbar */
+html { scrollbar-color: #F4A3C2 #FFF0F6; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #FFF0F6; }
+::-webkit-scrollbar-thumb { background: #F4A3C2; border-radius: 999px; }
+
+/* ---------- Foto profil ---------- */
+.avatar-nav { width: 40px; height: 40px; border-radius: 50%; margin-left: 14px; flex: none; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #F4A3C2, var(--tv-blue)); color: #fff; font-weight: 700; font-size: 14px; border: 2px solid #fff; box-shadow: 0 0 0 2px var(--tv-line-strong); transition: box-shadow .15s; }
+.avatar-nav:hover { box-shadow: 0 0 0 3px var(--tv-blue); color: #fff; }
+.avatar-nav img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.profil-kartu { padding: 32px 26px 26px; }
+.avatar-besar {
+  width: 124px; height: 124px; margin: 0 auto 16px; border-radius: 50%; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #F7B7CF, var(--tv-blue)); color: #fff; font-size: 40px; font-weight: 700; letter-spacing: 1px;
+  border: 5px solid #fff; box-shadow: 0 0 0 3px var(--tv-line-strong), 0 6px 20px rgba(224, 85, 138, .18);
+}
+.avatar-besar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-besar img[hidden], .avatar-besar span[hidden] { display: none; }
+.profil-nama { font-weight: 700; font-size: 20px; color: var(--tv-text); margin-bottom: 6px; }
+.profil-email { font-size: 13.5px; color: var(--tv-muted); word-break: break-all; }
+.profil-email i { color: var(--tv-blue); margin-right: 6px; }
+
+/* ---------- Banner Cari Jadwal: disamakan dengan banner lain ---------- */
+.tv-result-head {
+  color: #5A1F3E;
+  background:
+linear-gradient(90deg, rgba(255, 211, 228, .96) 0%, rgba(255, 211, 228, .93) 60%, rgba(255, 205, 224, .88) 100%),    url("../img/banner-bus.jpg") center / cover no-repeat;
+}
+.tv-result-head h1 {
+  color: #5A1F3E;
+  text-shadow: 0 0 12px rgba(255, 235, 244, .9);
+}
+.tv-result-head .tv-meta {
+  color: #4A1634; font-weight: 500;
+  text-shadow: 0 0 10px rgba(255, 235, 244, .95), 0 0 3px rgba(255, 235, 244, .95);
+}
+.tv-edit { background: #fff; color: var(--tv-blue-dark); box-shadow: 0 2px 10px rgba(194, 61, 116, .18); }
+.tv-edit:hover { background: var(--tv-blue-soft); color: var(--tv-blue-dark); }
+.tv-date { color: #5A1F3E; text-shadow: 0 0 8px rgba(255, 235, 244, .9); }
+.tv-date:hover { background: rgba(255, 255, 255, .6); color: var(--tv-blue-dark); }
+.tv-date.active { background: var(--tv-blue-dark); color: #fff; text-shadow: none; }
+
+
+/* ---------- Perbaikan banner Cari Jadwal ---------- */
+.tv-result-head {
+  background:
+linear-gradient(90deg, rgba(255, 211, 228, .92) 0%, rgba(255, 211, 228, .80) 55%, rgba(255, 205, 224, .68) 100%),    url("../img/banner-bus.jpg") center / cover no-repeat;
+}
+.tv-date { color: #5A1F3E; background: rgba(255, 255, 255, .55); text-shadow: none; }
+.tv-date:hover { background: rgba(255, 255, 255, .85); color: var(--tv-blue-dark); }
+.tv-date.active { background: var(--tv-blue-dark); color: #fff; }
+
+/* ---------- Banner Cari Jadwal: foto bus jelas ---------- */
+.tv-result-head {
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(60, 20, 45, .38) 0%, rgba(60, 20, 45, .16) 55%, rgba(60, 20, 45, .04) 100%),
+    url("../img/banner-bus.jpg") center / cover no-repeat;
+}
+.tv-result-head h1 {
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(40, 10, 30, .85), 0 0 3px rgba(40, 10, 30, .7);
+}
+.tv-result-head .tv-meta {
+  color: #fff; font-weight: 600;
+  text-shadow: 0 1px 6px rgba(40, 10, 30, .9), 0 0 3px rgba(40, 10, 30, .8);
+}
+.tv-date { color: #5A1F3E; background: rgba(255, 255, 255, .82); text-shadow: none; }
+.tv-date:hover { background: #fff; color: var(--tv-blue-dark); }
+.tv-date.active { background: var(--tv-blue-dark); color: #fff; }
+
+/* ---------- Banner Beranda: foto bus jelas ---------- */
+.tv-hero {
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(60, 20, 45, .38) 0%, rgba(60, 20, 45, .16) 55%, rgba(60, 20, 45, .04) 100%),
+    url("../img/banner-bus.jpg") center / cover no-repeat;
+}
+.tv-hero::before, .tv-hero::after { display: none; }
+.tv-hero h2 {
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(40, 10, 30, .85), 0 0 3px rgba(40, 10, 30, .7);
+}
+.tv-hero p {
+  color: #fff; font-weight: 600;
+  text-shadow: 0 1px 6px rgba(40, 10, 30, .9), 0 0 3px rgba(40, 10, 30, .8);
+}
+
+/* ---------- Banner halaman dalam (Tiket Saya, Profil, dll): foto bus jelas ---------- */
+.page-title.dark-background {
+  color: #fff;
+  background-image:
+    linear-gradient(90deg, rgba(60, 20, 45, .38) 0%, rgba(60, 20, 45, .20) 55%, rgba(60, 20, 45, .08) 100%),
+    url("../img/banner-bus.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+.page-title h1 {
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(40, 10, 30, .85), 0 0 3px rgba(40, 10, 30, .7);
+}
+.page-title p {
+  color: #fff; font-weight: 600;
+  text-shadow: 0 1px 6px rgba(40, 10, 30, .9), 0 0 3px rgba(40, 10, 30, .8);
+}
+.page-title .breadcrumbs ol a,
+.page-title .breadcrumbs ol li.current,
+.page-title .breadcrumbs ol li + li::before {
+  color: #fff; font-weight: 600;
+  text-shadow: 0 1px 5px rgba(40, 10, 30, .9);
 }

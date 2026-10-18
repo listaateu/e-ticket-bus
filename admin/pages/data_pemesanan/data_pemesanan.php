@@ -5,6 +5,7 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
+include_once __DIR__ . '/../../components/pencarian.php';
 
 // ===== Status pembayaran (sama dengan payments.status). 'belum' = booking belum punya data pembayaran =====
 $STATUS = [
@@ -16,7 +17,7 @@ $STATUS = [
 // ================================================================================
 
 $filter = param_enum('status', array_keys($STATUS));   // hanya nilai dari daftar resmi
-$cari   = param_str('q', '', 'GET', 100);               // teks biasa, maksimal 100 karakter
+$cari   = param_cari();                                 // dari kotak cari di topbar (?q=), teks biasa, maksimal 100 karakter
 
 // Bagian FROM dipakai bersama oleh ringkasan & tabel.
 // Ambil pembayaran TERBARU per booking supaya satu booking tidak muncul dobel.
@@ -26,6 +27,12 @@ $dari = "FROM bookings b
          JOIN buses    bs ON bs.id = s.bus_id
          LEFT JOIN payments p ON p.id = (SELECT MAX(id) FROM payments WHERE booking_id = b.id)";
 $status_sql = "COALESCE(p.status, 'belum')";
+
+// Kolom yang dicari: kode booking, penumpang, rute, bus, plat, kelas, sopir, kursi, metode, status, total, jam berangkat
+$label_sql = 'CASE ' . $status_sql;                            // tulisan status yang tampil: "Belum Bayar", "Menunggu", dst.
+foreach ($STATUS as $kode => $x) { $label_sql .= " WHEN '$kode' THEN '" . $x['label'] . "'"; }
+$label_sql .= ' END';
+$kolom_cari = ['b.kode_booking', 'u.nama', 'u.email', 's.kota_asal', 's.kota_tujuan', 'bs.nama_bus', 'bs.plat_nomor', "REPLACE(bs.plat_nomor, ' ', '')", 'bs.kelas', 's.sopir', 'b.nomor_kursi', 'p.metode_pembayaran', $status_sql, $label_sql, 'CAST(s.harga * b.jumlah_dewasa AS CHAR)', "DATE_FORMAT(s.jam_berangkat, '%d %b %Y, %H:%i')", "DATE_FORMAT(s.jam_berangkat, '%Y-%m-%d %H:%i')"];
 
 // ---------- Ringkasan ----------
 $hitung = ['' => 0, 'belum' => 0, 'pending' => 0, 'lunas' => 0, 'ditolak' => 0];
@@ -37,6 +44,20 @@ while ($r = $q->fetch_assoc()) {
     if ($r['st'] === 'lunas') { $pendapatan = (int) $r['rupiah']; }
 }
 
+// ---------- Jumlah di tombol filter (ikut pencarian; kartu ringkasan di atas tetap total keseluruhan) ----------
+$hitung_tab = ['' => 0, 'belum' => 0, 'pending' => 0, 'lunas' => 0, 'ditolak' => 0];
+$tipe_t  = '';
+$param_t = [];
+$syarat_t = syarat_cari($kolom_cari, $cari, $tipe_t, $param_t);
+$st_tab = $koneksi->prepare("SELECT $status_sql AS st, COUNT(*) AS jml $dari WHERE 1=1 $syarat_t GROUP BY st");
+if ($tipe_t !== '') { $st_tab->bind_param($tipe_t, ...$param_t); }
+$st_tab->execute();
+$q_tab = $st_tab->get_result();
+while ($r = $q_tab->fetch_assoc()) {
+    if (isset($hitung_tab[$r['st']])) { $hitung_tab[$r['st']] = (int) $r['jml']; }
+    $hitung_tab[''] += (int) $r['jml'];
+}
+
 // ---------- Syarat filter + cari (dipakai untuk COUNT dan untuk tabel) ----------
 $where = " WHERE 1=1";
 $tipe  = '';
@@ -45,12 +66,7 @@ if ($filter !== '') {
     $where .= " AND $status_sql = ?";
     $tipe .= 's'; $param[] = $filter;
 }
-if ($cari !== '') {
-    $where .= " AND (b.kode_booking LIKE ? OR u.nama LIKE ? OR s.kota_asal LIKE ? OR s.kota_tujuan LIKE ?)";
-    // % _ \ yang diketik user dianggap huruf biasa (bukan karakter pencarian khusus)
-    $like = '%' . addcslashes($cari, '%_\\') . '%';
-    $tipe .= 'ssss'; array_push($param, $like, $like, $like, $like);
-}
+$where .= syarat_cari($kolom_cari, $cari, $tipe, $param);   // pencarian (?q=): tiap kata harus cocok dengan salah satu kolom
 
 // ---------- Hitung total hasil (ikut filter & cari) untuk pagination ----------
 $stmt_total = $koneksi->prepare("SELECT COUNT(*) AS t $dari $where");
@@ -77,7 +93,18 @@ $hasil = $stmt->get_result();
 $pesan = $_GET['pesan'] ?? '';
 $url   = BASE_URL . '/admin/index.php?page=data_pemesanan';
 $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
+$url_reset = $url . ($filter !== '' ? '&status=' . $filter : '');   // alamat tanpa pencarian
 ?>
+<!-- style tombol filter aktif (boleh dipindah ke file CSS admin nanti) -->
+<style>
+  .table-filter-group .btn-table-action.active {
+    background: #B94E77;      /* samakan dengan warna tombol "Tambah" */
+    border-color: #B94E77;
+    color: #fff;
+    font-weight: 600;
+  }
+</style>
+
 <!-- page header -->
 <div class="page-header">
   <div>
@@ -134,27 +161,19 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
 <!-- kartu tabel -->
 <div class="table-card-custom">
 
-  <!-- bar atas tabel: filter status + cari -->
+  <!-- bar atas tabel: filter status -->
   <div class="table-header-control">
     <div class="table-pagination-info">Menampilkan: <strong><?= $total ?></strong> pemesanan</div>
     <div class="table-filter-group">
-      <a href="<?= $url . $url_q ?>" class="btn-table-action"<?= $filter === '' ? ' style="font-weight:700"' : '' ?>>Semua (<?= $hitung[''] ?>)</a>
+      <a href="<?= $url . $url_q ?>" class="btn-table-action<?= $filter === '' ? ' active' : '' ?>">Semua (<?= $hitung_tab[''] ?>)</a>
       <?php foreach ($STATUS as $kode => $info) : ?>
-        <a href="<?= $url ?>&status=<?= $kode ?><?= $url_q ?>" class="btn-table-action"<?= $filter === $kode ? ' style="font-weight:700"' : '' ?>><?= $info['label'] ?> (<?= $hitung[$kode] ?>)</a>
+        <a href="<?= $url ?>&status=<?= $kode ?><?= $url_q ?>" class="btn-table-action<?= $filter === $kode ? ' active' : '' ?>"><?= $info['label'] ?> (<?= $hitung_tab[$kode] ?>)</a>
       <?php endforeach; ?>
     </div>
   </div>
 
-  <form method="get" action="<?= BASE_URL ?>/admin/index.php" class="d-flex gap-2 px-3 pb-3">
-    <input type="hidden" name="page" value="data_pemesanan">
-    <?php if ($filter !== '') : ?><input type="hidden" name="status" value="<?= htmlspecialchars($filter) ?>"><?php endif; ?>
-    <input type="text" name="q" value="<?= htmlspecialchars($cari) ?>" class="form-control-custom"
-           placeholder="Cari kode booking, nama penumpang, atau kota..." style="max-width:420px">
-    <button type="submit" class="btn-custom btn-custom-primary"><i class="bi bi-search"></i> Cari</button>
-    <?php if ($cari !== '') : ?>
-      <a href="<?= $url ?><?= $filter !== '' ? '&status=' . $filter : '' ?>" class="btn-custom btn-custom-light">Reset</a>
-    <?php endif; ?>
-  </form>
+  <!-- info pencarian (kotak cari ada di topbar, sama seperti halaman lain) -->
+  <?php render_info_cari($cari, $total, $url_reset); ?>
 
   <!-- tabel -->
   <div class="table-responsive">
@@ -176,7 +195,7 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="10" class="text-center">Belum ada data pemesanan.</td>
+            <td colspan="10" class="text-center"><?= $cari !== '' ? 'Tidak ada pemesanan yang cocok dengan pencarian.' : 'Belum ada data pemesanan.' ?></td>
           </tr>
         <?php endif; ?>
 
@@ -205,7 +224,7 @@ $url_q = $cari !== '' ? '&q=' . urlencode($cari) : '';
                   <form action="<?= BASE_URL ?>/admin/function/data_pemesanan.php?aksi=hapus" method="post" class="d-inline"
                         onsubmit="return confirm('Batalkan pemesanan <?= htmlspecialchars($b['kode_booking'], ENT_QUOTES) ?>?')">
                     <?= csrf_field() ?>
-            <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
+                    <input type="hidden" name="id" value="<?= (int) $b['id'] ?>">
                     <button type="submit" class="table-btn-action delete" title="Batalkan pemesanan"><i class="bi bi-trash"></i></button>
                   </form>
                 <?php endif; ?>

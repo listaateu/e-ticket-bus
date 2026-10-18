@@ -19,7 +19,7 @@
   gaya.textContent =
     '.notif-count{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#ef4444;color:#fff;font-size:.72rem;font-weight:700;display:none;align-items:center;justify-content:center}' +
     '.notif-toast-area{position:fixed;top:80px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:10px;max-width:340px}' +
-    '.notif-toast{background:#fff;border-left:4px solid #16a34a;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px 14px;font-size:.88rem;animation:notifMasuk .25s ease}' +
+    '.notif-toast{background:#fff;border-left:4px solid #E2749D;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:12px 14px;font-size:.88rem;animation:notifMasuk .25s ease}' +
     '.notif-toast strong{display:block;margin-bottom:2px}.notif-toast a{font-weight:600;text-decoration:none}' +
     '.notif-kosong{padding:22px 16px;text-align:center;color:#6b7280;font-size:.88rem}' +
     '@keyframes notifMasuk{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}';

@@ -9,7 +9,7 @@
  * ============================================================
  */
 
-function e($teks): string
+function e(mixed $teks): string
 {
     return htmlspecialchars((string) $teks, ENT_QUOTES, 'UTF-8');
 }
@@ -47,6 +47,7 @@ function url(string $halaman = 'beranda', array $param = []): string
         'ubah-naik' => ['jadwal', 'toggle'],
         'scan'      => ['scan', ''],
         'validasi'  => ['scan', 'validasi'],
+        'profil'    => ['profil', ''],
     ];
     [$page, $aksi] = $peta[$halaman] ?? ['beranda', ''];
     $q = ['page' => $page];
@@ -79,6 +80,8 @@ function get_flash(): ?array
 }
 
 /* ---------- CSRF ---------- */
+require_once __DIR__ . '/../../includes/session_aman.php';   // permintaan_satu_situs()
+
 function csrf_token(): string
 {
     if (empty($_SESSION['csrf'])) {
@@ -94,5 +97,8 @@ function csrf_field(): string
 
 function csrf_valid(): bool
 {
-    return isset($_POST['csrf'], $_SESSION['csrf']) && hash_equals($_SESSION['csrf'], (string) $_POST['csrf']);
+    return isset($_POST['csrf'], $_SESSION['csrf'])
+        && is_string($_POST['csrf']) && is_string($_SESSION['csrf'])
+        && hash_equals($_SESSION['csrf'], $_POST['csrf'])
+        && permintaan_satu_situs();   // lapis kedua: Origin/Referer harus dari situs ini sendiri
 }

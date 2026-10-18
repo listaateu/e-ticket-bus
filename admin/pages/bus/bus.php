@@ -5,39 +5,42 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
+include_once __DIR__ . '/../../components/pencarian.php';
 
 // Filter kelas dari alamat (?kelas=Bisnis). Nilai di luar daftar dianggap "semua".
 $daftar_kelas = ['Eksekutif', 'Bisnis', 'Ekonomi'];
 $kelas = param_enum('kelas', $daftar_kelas);
 
-// Hitung total bus (sesuai filter)
+// Pencarian dari kotak cari di topbar (?q=): nama bus, plat nomor (boleh tanpa spasi), kapasitas, atau kelas
+$cari  = param_cari();
+$tipe  = '';
+$param = [];
+$where = ' WHERE 1=1';
 if ($kelas !== '') {
-    $stmt = $koneksi->prepare("SELECT COUNT(*) AS t FROM buses WHERE kelas = ?");
-    $stmt->bind_param('s', $kelas);
-    $stmt->execute();
-    $total = (int) $stmt->get_result()->fetch_assoc()['t'];
-} else {
-    $total = (int) $koneksi->query("SELECT COUNT(*) AS t FROM buses")->fetch_assoc()['t'];
+    $where .= ' AND kelas = ?';
+    $tipe .= 's'; $param[] = $kelas;
 }
+$where .= syarat_cari(['nama_bus', 'plat_nomor', "REPLACE(plat_nomor, ' ', '')", 'CAST(kapasitas_kursi AS CHAR)', 'kelas'], $cari, $tipe, $param);
+
+// Hitung total bus (sesuai filter + pencarian)
+$stmt = $koneksi->prepare("SELECT COUNT(*) AS t FROM buses $where");
+if ($tipe !== '') { $stmt->bind_param($tipe, ...$param); }
+$stmt->execute();
+$total = (int) $stmt->get_result()->fetch_assoc()['t'];
 
 [$per_halaman, $offset] = paginasi($total);
 
 // Ambil 10 baris untuk halaman yang dibuka (terbaru di atas)
-if ($kelas !== '') {
-    $stmt = $koneksi->prepare("SELECT * FROM buses WHERE kelas = ? ORDER BY id DESC LIMIT ? OFFSET ?");
-    $stmt->bind_param('sii', $kelas, $per_halaman, $offset);
-    $stmt->execute();
-    $hasil = $stmt->get_result();
-} else {
-    $stmt = $koneksi->prepare("SELECT * FROM buses ORDER BY id DESC LIMIT ? OFFSET ?");
-    $stmt->bind_param('ii', $per_halaman, $offset);
-    $stmt->execute();
-    $hasil = $stmt->get_result();
-}
+$stmt = $koneksi->prepare("SELECT * FROM buses $where ORDER BY id DESC LIMIT ? OFFSET ?");
+$tipe .= 'ii'; $param[] = (int) $per_halaman; $param[] = (int) $offset;
+$stmt->bind_param($tipe, ...$param);
+$stmt->execute();
+$hasil = $stmt->get_result();
 
 // Judul mengikuti kelas yang dipilih
 $judul   = $kelas !== '' ? "Data Bus Kelas $kelas" : 'Data Bus';
 $q_kelas = $kelas !== '' ? '&kelas=' . urlencode($kelas) : '';
+$url_reset = BASE_URL . '/admin/index.php?page=bus' . $q_kelas;   // alamat tanpa pencarian
 
 // Pesan hasil proses (dikirim lewat alamat: ...&pesan=tambah_ok)
 $pesan = $_GET['pesan'] ?? '';
@@ -61,13 +64,13 @@ $pesan = $_GET['pesan'] ?? '';
     border-radius: 50%;
     background: currentColor;
   }
-  .kelas-ekonomi   { background: #dcfce7; color: #15803d; }
-  .kelas-bisnis    { background: #dbeafe; color: #1d4ed8; }
-  .kelas-eksekutif { background: #fef3c7; color: #b45309; }
+  .kelas-ekonomi   { background: #FFE0EC; color: #B83B6E; }
+  .kelas-bisnis    { background: #E3EFFC; color: #3B6FB6; }
+  .kelas-eksekutif { background: #EDE7FB; color: #6B4FB3; }
 
   /* penanda submenu sidebar yang sedang aktif */
-  .sidebar-submenu-link.active { color: #fff; font-weight: 600; }
-  .sidebar-submenu-link.active::before { content: "• "; color: var(--brand-lime); }
+  .sidebar-submenu-link.active { color: #B94E77; font-weight: 600; }
+  .sidebar-submenu-link.active::before { content: "• "; color: #E2749D; }
 </style>
 
 <!-- page header -->
@@ -111,6 +114,8 @@ $pesan = $_GET['pesan'] ?? '';
     </div>
   </div>
 
+  <?php render_info_cari($cari, $total, $url_reset); ?>
+
   <!-- tabel -->
   <div class="table-responsive">
     <table class="table-custom">
@@ -127,7 +132,7 @@ $pesan = $_GET['pesan'] ?? '';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="6" class="text-center">Belum ada data bus<?= $kelas !== '' ? ' untuk kelas ' . htmlspecialchars($kelas) : '' ?>.</td>
+            <td colspan="6" class="text-center"><?= $cari !== '' ? 'Tidak ada bus yang cocok dengan pencarian' : 'Belum ada data bus' . ($kelas !== '' ? ' untuk kelas ' . htmlspecialchars($kelas) : '') ?>.</td>
           </tr>
         <?php endif; ?>
 

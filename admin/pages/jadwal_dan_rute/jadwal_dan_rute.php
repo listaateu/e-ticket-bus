@@ -5,6 +5,7 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 
 include_once __DIR__ . '/../../database/koneksi.php';
 include_once __DIR__ . '/../../components/pagination.php';
+include_once __DIR__ . '/../../components/pencarian.php';
 
 // Filter kelas dari alamat (?kelas=Bisnis). Nilai di luar daftar dianggap "semua".
 $daftar_kelas = ['Eksekutif', 'Bisnis', 'Ekonomi'];
@@ -15,18 +16,26 @@ $kelas = param_enum('kelas', $daftar_kelas);   // hanya nilai dari daftar resmi,
 $daftar_tab = ['akan_datang' => 'Akan Datang', 'sudah_berangkat' => 'Sudah Berangkat', 'semua' => 'Semua'];
 $tab = param_enum('tab', array_keys($daftar_tab), 'akan_datang');   // hanya nilai dari daftar resmi
 
-// Jumlah jadwal per tab (ikut filter kelas) untuk angka di tombol tab
+// Pencarian dari kotak cari di topbar (?q=): rute, bus, plat, kelas, sopir, harga, atau tanggal/jam berangkat
+$cari       = param_cari();
+$kolom_cari = ['s.kota_asal', 's.kota_tujuan', 'b.nama_bus', 'b.plat_nomor', "REPLACE(b.plat_nomor, ' ', '')", 'b.kelas', 's.sopir', 'CAST(s.harga AS CHAR)', "DATE_FORMAT(s.jam_berangkat, '%d %b %Y, %H:%i')", "DATE_FORMAT(s.jam_berangkat, '%Y-%m-%d %H:%i')"];
+
+// Jumlah jadwal per tab (ikut filter kelas + pencarian) untuk angka di tombol tab
 $hitung = ['akan_datang' => 0, 'sudah_berangkat' => 0, 'semua' => 0];
 $sql_hitung = "SELECT SUM(s.jam_berangkat >= NOW()) AS depan, SUM(s.jam_berangkat < NOW()) AS lewat
                FROM schedules s JOIN buses b ON b.id = s.bus_id";
+$tipe_h = '';
+$param_h = [];
+$syarat_h = '';
 if ($kelas !== '') {
-    $st = $koneksi->prepare($sql_hitung . " WHERE b.kelas = ?");
-    $st->bind_param('s', $kelas);
-    $st->execute();
-    $h = $st->get_result()->fetch_assoc();
-} else {
-    $h = $koneksi->query($sql_hitung)->fetch_assoc();
+    $syarat_h .= ' AND b.kelas = ?';
+    $tipe_h .= 's'; $param_h[] = $kelas;
 }
+$syarat_h .= syarat_cari($kolom_cari, $cari, $tipe_h, $param_h);
+$st = $koneksi->prepare($sql_hitung . ' WHERE 1=1' . $syarat_h);
+if ($tipe_h !== '') { $st->bind_param($tipe_h, ...$param_h); }
+$st->execute();
+$h = $st->get_result()->fetch_assoc();
 $hitung['akan_datang']     = (int) $h['depan'];
 $hitung['sudah_berangkat'] = (int) $h['lewat'];
 $hitung['semua']           = $hitung['akan_datang'] + $hitung['sudah_berangkat'];
@@ -39,6 +48,7 @@ if ($kelas !== '') {
     $where .= ' AND b.kelas = ?';
     $tipe .= 's'; $param[] = $kelas;
 }
+$where .= syarat_cari($kolom_cari, $cari, $tipe, $param);   // pencarian (?q=)
 if ($tab === 'akan_datang') {
     $where .= ' AND s.jam_berangkat >= NOW()';
 } elseif ($tab === 'sudah_berangkat') {
@@ -79,7 +89,9 @@ $hasil = $stmt->get_result();
 // Judul mengikuti kelas yang dipilih
 $judul   = $kelas !== '' ? "Jadwal & Rute Kelas $kelas" : 'Jadwal & Rute';
 $q_kelas = $kelas !== '' ? '&kelas=' . urlencode($kelas) : '';
-$url_tab = BASE_URL . '/admin/index.php?page=jadwal_dan_rute' . $q_kelas;
+$q_cari  = $cari !== '' ? '&q=' . urlencode($cari) : '';
+$url_tab = BASE_URL . '/admin/index.php?page=jadwal_dan_rute' . $q_kelas . $q_cari;   // tab ikut membawa pencarian
+$url_reset = BASE_URL . '/admin/index.php?page=jadwal_dan_rute' . $q_kelas . '&tab=' . $tab;   // alamat tanpa pencarian
 
 $pesan = $_GET['pesan'] ?? '';
 ?>
@@ -87,9 +99,9 @@ $pesan = $_GET['pesan'] ?? '';
 <style>
   /* tab waktu yang sedang dibuka: hijau tua, tulisan putih */
   .table-filter-group .btn-table-action.tab-aktif {
-    background: #0b2e22 !important;
+    background: #B94E77 !important;
     color: #fff !important;
-    border-color: #0b2e22 !important;
+    border-color: #B94E77 !important;
     font-weight: 700;
   }
   .badge-kelas {
@@ -110,9 +122,9 @@ $pesan = $_GET['pesan'] ?? '';
     border-radius: 50%;
     background: currentColor;
   }
-  .kelas-ekonomi   { background: #dcfce7; color: #15803d; } /* hijau */
-  .kelas-bisnis    { background: #dbeafe; color: #1d4ed8; } /* biru */
-  .kelas-eksekutif { background: #fef3c7; color: #b45309; } /* emas */
+  .kelas-ekonomi   { background: #FFE0EC; color: #B83B6E; } /* hijau */
+  .kelas-bisnis    { background: #E3EFFC; color: #3B6FB6; } /* biru */
+  .kelas-eksekutif { background: #EDE7FB; color: #6B4FB3; } /* emas */
 </style>
 <!-- page header -->
 <div class="page-header">
@@ -164,6 +176,8 @@ $pesan = $_GET['pesan'] ?? '';
     <?php endif; ?>
   </div>
 
+  <?php render_info_cari($cari, $total, $url_reset); ?>
+
   <!-- tabel -->
   <div class="table-responsive">
     <table class="table-custom">
@@ -181,7 +195,7 @@ $pesan = $_GET['pesan'] ?? '';
       <tbody>
         <?php if ($total === 0) : ?>
           <tr>
-            <td colspan="7" class="text-center"><?= $tab === 'sudah_berangkat' ? 'Belum ada jadwal yang sudah berangkat' : ($tab === 'akan_datang' ? 'Tidak ada jadwal yang akan datang' : 'Belum ada data jadwal') ?><?= $kelas !== '' ? ' untuk kelas ' . htmlspecialchars($kelas) : '' ?>.</td>
+            <td colspan="7" class="text-center"><?= $cari !== '' ? 'Tidak ada jadwal yang cocok dengan pencarian' : ($tab === 'sudah_berangkat' ? 'Belum ada jadwal yang sudah berangkat' : ($tab === 'akan_datang' ? 'Tidak ada jadwal yang akan datang' : 'Belum ada data jadwal')) ?><?= $kelas !== '' ? ' untuk kelas ' . htmlspecialchars($kelas) : '' ?>.</td>
           </tr>
         <?php endif; ?>
 

@@ -37,6 +37,20 @@ ob_start();
 require_once __DIR__ . '/database/koneksi.php';    // membuat variabel $conn (koneksi MySQL)
 require_once __DIR__ . '/function/helpers.php';    // e(), rupiah(), url(), redirect(), flash, csrf
 require_once __DIR__ . '/function/auth.php';       // cek login & role penumpang
+
+// ---------- Endpoint kecil: cek siapa yang sedang login (JSON) ----------
+// Dipanggil otomatis oleh script di partials/script.php (tiap 5 detik & saat tab dibuka kembali).
+// Tujuannya: kalau di tab lain login berganti (mis. sopir <-> penumpang) atau sudah logout,
+// tab ini ikut refresh sendiri. Tidak menampilkan halaman, hanya mengirim JSON lalu berhenti.
+if (isset($_GET['cek_sesi'])) {
+    $sesi_sekarang = user_id_login() . '|' . role_login();
+    session_write_close();                       // lepas kunci session supaya tab lain tidak tertahan
+    ob_end_clean();
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
+    echo json_encode(['sesi' => $sesi_sekarang]);
+    exit;
+}
 require_once __DIR__ . '/function/jadwal.php';     // query jadwal & kursi
 require_once __DIR__ . '/function/booking.php';    // simpan pemesanan & daftar tiket
 require_once __DIR__ . '/function/pembayaran.php'; // simpan bukti pembayaran

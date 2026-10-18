@@ -6,6 +6,7 @@ defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya bole
 include_once __DIR__ . '/../database/koneksi.php';
 date_default_timezone_set('Asia/Jakarta');
 
+/** @param int|float|string|null $n */
 function rp($n) { return 'Rp ' . number_format((int) $n, 0, ',', '.'); }
 $hari  = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 $bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -14,10 +15,10 @@ $sapaan = $jam < 11 ? 'Selamat pagi' : ($jam < 15 ? 'Selamat siang' : ($jam < 18
 $tgl_panjang = $hari[(int) date('w')] . ', ' . date('j') . ' ' . $bulan[(int) date('n')] . ' ' . date('Y');
 
 $STATUS = [
-    'belum'   => ['label' => 'Belum Bayar', 'warna' => '#94A3B8', 'ikon' => 'bi-clock'],
-    'pending' => ['label' => 'Menunggu',    'warna' => '#F97316', 'ikon' => 'bi-hourglass-split'],
-    'lunas'   => ['label' => 'Lunas',       'warna' => '#22C55E', 'ikon' => 'bi-check-circle-fill'],
-    'ditolak' => ['label' => 'Ditolak',     'warna' => '#EF4444', 'ikon' => 'bi-x-circle-fill'],
+    'belum'   => ['label' => 'Belum Bayar', 'warna' => '#A9B8D3', 'ikon' => 'bi-clock'],
+    'pending' => ['label' => 'Menunggu',    'warna' => '#F6B26B', 'ikon' => 'bi-hourglass-split'],
+    'lunas'   => ['label' => 'Lunas',       'warna' => '#5CC4A0', 'ikon' => 'bi-check-circle-fill'],
+    'ditolak' => ['label' => 'Ditolak',     'warna' => '#EF6F8A', 'ikon' => 'bi-x-circle-fill'],
 ];
 $PAY = "LEFT JOIN payments p ON p.id = (SELECT MAX(id) FROM payments WHERE booking_id = b.id)";
 
@@ -111,9 +112,9 @@ $A = BASE_URL . '/admin/index.php';
           </a>
           <svg class="alert-green-bg-shape" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <g transform="translate(50,50)">
-              <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" />
-              <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(60)" />
-              <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(120)" />
+              <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#FFD3E3" />
+              <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#FFD3E3" transform="rotate(60)" />
+              <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#FFD3E3" transform="rotate(120)" />
             </g>
           </svg>
         </div>
@@ -272,9 +273,9 @@ $A = BASE_URL . '/admin/index.php';
       <div class="promo-banner-card">
         <svg class="promo-banner-bg-shape" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g transform="translate(50,50)">
-            <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" />
-            <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(60)" />
-            <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#B4F105" transform="rotate(120)" />
+            <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#F29AB9" />
+            <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#F29AB9" transform="rotate(60)" />
+            <rect x="-6" y="-45" width="12" height="90" rx="6" ry="6" fill="#F29AB9" transform="rotate(120)" />
           </g>
         </svg>
         <h3 class="promo-title">Tambah jadwal baru, tiket makin laris.</h3>
@@ -305,15 +306,15 @@ document.addEventListener('DOMContentLoaded', function () {
       tooltip: { y: { formatter: fmt } }
     }).render();
   }
-  spark('#spark-pendapatan', 'Pendapatan', <?= json_encode($lunas_rp) ?>, '#22C55E', rupiah);
-  spark('#spark-tiket', 'Tiket terjual', <?= json_encode($lunas_n) ?>, '#072F1F', function (v) { return v + ' tiket'; });
+  spark('#spark-pendapatan', 'Pendapatan', <?= json_encode($lunas_rp) ?>, '#E2749D', rupiah);
+  spark('#spark-tiket', 'Tiket terjual', <?= json_encode($lunas_n) ?>, '#6F9FDC', function (v) { return v + ' tiket'; });
 
   new ApexCharts(document.querySelector('#chart-pendapatan'), {
     chart: { type: 'bar', stacked: true, height: 320, toolbar: { show: false }, fontFamily: font },
     series: [{ name: 'Sudah lunas', data: <?= json_encode($lunas_rp) ?> }, { name: 'Belum lunas', data: <?= json_encode($belum_rp) ?> }],
-    xaxis: { categories: label, labels: { style: { colors: '#6C7E75', fontSize: '11px' } }, axisBorder: { show: false } },
-    yaxis: { labels: { formatter: ringkas, style: { colors: '#6C7E75' } } },
-    colors: ['#072F1F', '#B4F105'],
+    xaxis: { categories: label, labels: { style: { colors: '#8B6F80', fontSize: '11px' } }, axisBorder: { show: false } },
+    yaxis: { labels: { formatter: ringkas, style: { colors: '#8B6F80' } } },
+    colors: ['#E2749D', '#9CC4F0'],
     plotOptions: { bar: { borderRadius: 6, columnWidth: '48%', borderRadiusApplication: 'end' } },
     dataLabels: { enabled: false }, legend: { show: false },
     grid: { borderColor: '#E9EFEF', strokeDashArray: 4 },
@@ -329,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
       colors: <?= json_encode(array_column($STATUS, 'warna')) ?>,
       legend: { show: false }, dataLabels: { enabled: false },
       stroke: { width: 3, colors: ['#fff'] },
-      plotOptions: { pie: { donut: { size: '72%', labels: { show: true, total: { show: true, label: 'Total', color: '#6C7E75', fontSize: '12px' } } } } }
+      plotOptions: { pie: { donut: { size: '72%', labels: { show: true, total: { show: true, label: 'Total', color: '#8B6F80', fontSize: '12px' } } } } }
     }).render();
   }
 });

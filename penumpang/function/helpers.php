@@ -9,12 +9,12 @@
  */
 /** Fungsi bantu umum */
 
-function e($teks): string
+function e(mixed $teks): string
 {
     return htmlspecialchars((string) $teks, ENT_QUOTES, 'UTF-8');
 }
 
-function rupiah($angka): string
+function rupiah(mixed $angka): string
 {
     return 'Rp ' . number_format((float) $angka, 0, ',', '.');
 }
@@ -82,6 +82,8 @@ function get_flash(): ?array
 }
 
 /* ---------- CSRF ---------- */
+require_once __DIR__ . '/../../includes/session_aman.php';   // permintaan_satu_situs()
+
 function csrf_token(): string
 {
     if (empty($_SESSION['csrf'])) {
@@ -99,7 +101,8 @@ function csrf_valid(): bool
 {
     return isset($_POST['csrf'], $_SESSION['csrf'])
         && is_string($_POST['csrf']) && is_string($_SESSION['csrf'])
-        && hash_equals($_SESSION['csrf'], $_POST['csrf']);
+        && hash_equals($_SESSION['csrf'], $_POST['csrf'])
+        && permintaan_satu_situs();   // lapis kedua: Origin/Referer harus dari situs ini sendiri
 }
 
 /**
@@ -112,8 +115,18 @@ function csrf_valid(): bool
 function normalisasi_no_hp(string $no): ?string
 {
     $no = preg_replace('/[\s\-]/', '', trim($no));
-    if (!preg_match('/^(?:\+62|62|0)8[0-9]{8,12}$/D', $no)) {
+    // Format: 08[1-9]... (awalan 080x bukan nomor seluler), 10-14 digit. 62/+62 diubah jadi 0.
+    if (!preg_match('/^(?:\+62|62|0)(8[1-9][0-9]{7,11})$/D', $no, $m)) {
         return null;
     }
-    return preg_replace('/^(?:\+62|62)/', '0', $no);
+    $rapi = '0' . $m[1];
+    // Tolak nomor "asal-asalan": 7 digit sama berturut-turut (08111111111, 081000000000, dst.)
+    if (preg_match('/(\d)\1{6,}/', $rapi)) {
+        return null;
+    }
+    // ... atau isi nomor (setelah 4 digit awalan operator) hanya terdiri dari 1-2 jenis angka (mis. 0812-12121212)
+    if (count(array_unique(str_split(substr($rapi, 4)))) < 3) {
+        return null;
+    }
+    return $rapi;
 }

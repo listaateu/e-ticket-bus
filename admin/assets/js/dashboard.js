@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 fontFamily: 'Plus Jakarta Sans, sans-serif'
             },
-            colors: ['#072F1F', '#B4F105'], // Dark Green (Income), Lime Green (Expenses)
+            colors: ['#E2749D', '#9CC4F0'], // Pink (pemasukan), Biru soft (pembanding)
             states: {
                 hover: {
                     filter: {
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
                 labels: {
                     style: {
-                        colors: '#6C7E75',
+                        colors: '#8B6F80',
                         fontSize: '11px',
                         fontWeight: 500
                     }
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 fontFamily: 'Plus Jakarta Sans, sans-serif'
             },
             labels: ['View Count', 'Percentage', 'Sales'],
-            colors: ['#B4F105', '#051C12', '#F97316'], // Lime, Forest Dark, Orange
+            colors: ['#F29AB9', '#8DB8EA', '#F6B26B'], // Pink, Biru, Peach
             states: {
                 hover: {
                     filter: {
@@ -189,14 +189,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                 show: true,
                                 fontSize: '12px',
                                 fontWeight: 500,
-                                color: '#6C7E75',
+                                color: '#8B6F80',
                                 offsetY: -8
                             },
                             value: {
                                 show: true,
                                 fontSize: '26px',
                                 fontWeight: 800,
-                                color: '#0B130F',
+                                color: '#3B2233',
                                 offsetY: 8,
                                 formatter: function (val) {
                                     return val + "%";
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 label: 'Total Count',
                                 fontSize: '11px',
                                 fontWeight: 500,
-                                color: '#6C7E75',
+                                color: '#8B6F80',
                                 formatter: function (w) {
                                     return '565K';
                                 }
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function () {
             opacity: 0.1,
             type: 'solid'
         },
-        colors: ['#22C55E'], // Green color matching trend-up
+        colors: ['#E2749D'], // Pink
         tooltip: {
             fixed: {
                 enabled: false

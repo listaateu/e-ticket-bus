@@ -24,6 +24,7 @@ header('Cache-Control: no-store');
 // (sama seperti di sisi penumpang), supaya daftar & hitungan selalu terbaru.
 require_once __DIR__ . '/database/koneksi.php';
 require_once __DIR__ . '/../includes/batas_bayar.php';
+require_once __DIR__ . '/function/akun.php';   // foto profil & data admin yang sedang login
 batalkan_pesanan_kedaluwarsa($koneksi);
 
 // DAFTAR PUTIH menu dan aksi yang diizinkan. Menu/aksi baru tinggal ditambah di sini.
@@ -31,6 +32,7 @@ batalkan_pesanan_kedaluwarsa($koneksi);
 // dipakai sebagai kunci untuk mencari di daftar ini, jadi "../" dan sejenisnya tidak berguna.
 $menu_boleh = [
     'dashboard'             => [],
+    'akun'                  => [],   // Akun Saya (foto, data diri, password)
     'bus'                   => ['tambah', 'update'],
     'jadwal_dan_rute'       => ['tambah', 'update'],
     'user'                  => ['tambah', 'update'],
@@ -96,7 +98,9 @@ $file_isi = $nyata;
         <!-- topbar -->
 
         <!-- isi halaman -->
+        <div id="isi-halaman" style="display:contents">
         <?php include $file_isi ?>
+        </div>
         <!-- isi halaman -->
 
         <!-- footer -->

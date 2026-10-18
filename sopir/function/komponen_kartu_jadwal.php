@@ -39,30 +39,36 @@ function komponen_kartu_jadwal(array $j): void
     // Tidak ada penumpang LUNAS sama sekali. Kalau bus sudah berangkat, tidak akan ada lagi yang bisa membayar
     // (admin tidak bisa menyetujui pembayaran setelah berangkat), jadi manifest & scan tidak ada gunanya.
     $tanpa_penumpang = jadwal_dibatalkan($j);
+    $kode_st = $tanpa_penumpang ? 'batal' : (!empty($j['sudah_tiba']) ? 'selesai' : (!empty($j['sudah_berangkat']) ? 'jalan' : 'akan'));
     ?>
-    <div class="kartu-jadwal<?= ($selesai || $tanpa_penumpang) ? ' selesai' : '' ?>">
+    <div class="kartu-jadwal st-<?= $kode_st ?><?= ($selesai || $tanpa_penumpang) ? ' selesai' : '' ?>">
       <div class="row align-items-center gy-3">
         <div class="col-lg-4">
-          <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="d-flex align-items-center gap-2 mb-2">
             <span class="badge bg-<?= $kelas_status ?> status-badge"><?= e($label_status) ?></span>
             <small class="text-muted">Jadwal #<?= (int) $j['id'] ?></small>
           </div>
           <div class="rute"><?= e($j['kota_asal']) ?> <i class="bi bi-arrow-right mx-1"></i> <?= e($j['kota_tujuan']) ?></div>
-          <small class="text-muted">
-            <?= e(tanggal_indo($j['jam_berangkat'])) ?>
-            <?php if (!empty($j['jam_tiba'])): ?> &middot; tiba <?= e(jam($j['jam_tiba'])) ?><?php endif; ?>
-          </small>
+          <div class="waktu">
+            <i class="bi bi-calendar-event"></i><?= e(tanggal_indo($j['jam_berangkat'])) ?>
+            <?php if (!empty($j['jam_tiba'])): ?><span>&middot; tiba <?= e(jam($j['jam_tiba'])) ?></span><?php endif; ?>
+          </div>
         </div>
         <div class="col-lg-3 col-6">
-          <div class="small text-muted">Bus</div>
-          <div class="fw-semibold"><?= e($j['nama_bus']) ?> &middot; <?= e($j['kelas']) ?></div>
-          <small class="text-muted"><?= e($j['plat_nomor']) ?> &middot; <?= (int) $j['kapasitas_kursi'] ?> kursi</small>
+          <div class="bus-wrap">
+            <div class="bus-ikon"><i class="fa-solid fa-bus"></i></div>
+            <div>
+              <div class="bus-nama"><?= e($j['nama_bus']) ?> &middot; <?= e($j['kelas']) ?></div>
+              <div class="bus-meta"><?= e($j['plat_nomor']) ?> &middot; <?= (int) $j['kapasitas_kursi'] ?> kursi</div>
+            </div>
+          </div>
         </div>
         <div class="col-lg-3 col-6">
           <?php if ($tanpa_penumpang): ?>
-            <div class="small text-muted">Penumpang naik</div>
-            <div class="fw-semibold text-muted">Tidak ada penumpang</div>
-            <small class="text-muted">Tidak ada pemesanan lunas sampai jam berangkat, jadwal dibatalkan.</small>
+            <div class="tanpa-penumpang">
+              <strong>Tidak ada penumpang</strong>
+              Tidak ada pemesanan lunas sampai jam berangkat, jadwal dibatalkan.
+            </div>
           <?php else: ?>
             <?php komponen_progress_naik((int) $j['total_naik'], (int) $j['total_dewasa']); ?>
           <?php endif; ?>

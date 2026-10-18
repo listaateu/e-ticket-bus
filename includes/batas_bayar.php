@@ -21,7 +21,7 @@
  * ============================================================
  */
 
-const BATAS_BAYAR_MENIT = 1;   // 120 menit = 2 jam
+const BATAS_BAYAR_MENIT = 120;   // 120 menit = 2 jam
 
 // Folder bukti transfer (sama dengan FOLDER_BUKTI di penumpang/function/pembayaran.php)
 const DIR_BUKTI_BATAS = __DIR__ . '/../uploads/bukti/';

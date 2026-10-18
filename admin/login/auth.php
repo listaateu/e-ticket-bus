@@ -14,6 +14,7 @@
 
 // Jangan tampilkan pesan error PHP ke pengunjung (bisa membocorkan path & isi query). Error tetap dicatat di log server.
 require_once __DIR__ . '/../../includes/base_url.php';
+require_once __DIR__ . '/../../includes/session_aman.php';   // permintaan_satu_situs()
 
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
@@ -22,6 +23,7 @@ ini_set('session.use_only_cookies', '1');  // session ID tidak boleh lewat alama
 
 if (session_status() === PHP_SESSION_NONE) {
     // Cookie session tidak bisa dibaca JavaScript dan tidak ikut terkirim dari situs lain (membantu melawan CSRF)
+    session_name('ETB_ADMIN');   // terpisah dari session penumpang/sopir (ETB_USER)
     session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
@@ -232,7 +234,8 @@ if (!function_exists('csrf_valid')) {
     {
         $kirim = $_POST['csrf_token'] ?? '';
         $asli  = $_SESSION['csrf_token'] ?? '';
-        return is_string($kirim) && is_string($asli) && $kirim !== '' && hash_equals($asli, $kirim);
+        return is_string($kirim) && is_string($asli) && $kirim !== '' && hash_equals($asli, $kirim)
+            && permintaan_satu_situs();   // lapis kedua: Origin/Referer harus dari situs ini sendiri
     }
 }
 

@@ -7,6 +7,8 @@
  * CATATAN      : Judul tab dari $judul_halaman.
  * ============================================================
  */
+/** @var string $judul_halaman Judul halaman, diisi di index.php */
+/** @var string $page Nama halaman aktif, diisi di index.php */
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -16,11 +18,12 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title><?= e($judul_halaman) ?> - E-Ticket Bus</title>
   <meta name="description" content="Pesan tiket bus interkota online dengan mudah">
-  <meta name="theme-color" content="#0194f3">
+  <meta name="theme-color" content="#F47FAA">
 
   <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+  <link href="assets/img/favicon.svg?v=2" rel="icon" type="image/svg+xml">
+  <link href="assets/img/favicon.png?v=2" rel="icon" type="image/png" sizes="32x32">
+  <link href="assets/img/apple-touch-icon.png?v=2" rel="apple-touch-icon">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">

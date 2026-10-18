@@ -21,17 +21,17 @@ $sapaan = $jam_sekarang < 11 ? 'Selamat pagi' : ($jam_sekarang < 15 ? 'Selamat s
 ?>
     <section class="sp-hero">
       <div class="container position-relative">
-        <p class="mb-1 opacity-75"><?= e(tanggal_indo(date('Y-m-d H:i:s'), false)) ?></p>
+        <div class="tanggal"><i class="bi bi-calendar3"></i><?= e(tanggal_indo(date('Y-m-d H:i:s'), false)) ?></div>
         <h2><?= e($sapaan) ?>, <?= e($sopir['nama']) ?></h2>
         <p>Periksa manifest penumpang, pindai e-ticket sebelum berangkat, dan pastikan semua penumpang sudah naik.</p>
         <div class="d-flex flex-wrap gap-2 mt-3">
-          <a href="<?= url('scan', $terdekat ? ['id' => $terdekat['id']] : []) ?>" class="btn btn-light fw-semibold"><i class="bi bi-qr-code-scan me-1"></i>Scan Tiket</a>
-          <a href="<?= url('jadwal') ?>" class="btn btn-outline-light"><i class="bi bi-calendar3 me-1"></i>Semua Jadwal</a>
+          <a href="<?= url('scan', $terdekat ? ['id' => $terdekat['id']] : []) ?>" class="btn btn-primary"><i class="bi bi-qr-code-scan me-1"></i>Scan Tiket</a>
+          <a href="<?= url('jadwal') ?>" class="btn btn-outline-primary"><i class="bi bi-calendar3 me-1"></i>Semua Jadwal</a>
         </div>
       </div>
     </section>
 
-    <section class="section pt-4">
+    <section class="section">
       <div class="container">
 
         <!-- Ringkasan hari ini -->

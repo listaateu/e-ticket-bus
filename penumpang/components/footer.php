@@ -66,7 +66,7 @@
   <!-- Modal konfirmasi keluar -->
   <style>
     #modalKeluar .modal-content { border: 0; border-radius: 16px; }
-    #modalKeluar .ikon-keluar { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; background: #e8f4fe; color: #0194f3; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+    #modalKeluar .ikon-keluar { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; background: #FFE9F2; color: #E0558A; display: flex; align-items: center; justify-content: center; font-size: 30px; }
     #modalKeluar .btn { border-radius: 10px; font-weight: 600; padding: 9px 22px; }
   </style>
   <div class="modal fade" id="modalKeluar" tabindex="-1" aria-labelledby="judulKeluar" aria-hidden="true">
@@ -78,26 +78,30 @@
           <p class="text-muted mb-4">Kamu akan keluar dari akunmu dan perlu masuk lagi untuk melanjutkan.</p>
           <div class="d-flex gap-2 justify-content-center">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-            <a href="#" id="tombolKeluarYa" class="btn btn-primary">Ya, Keluar</a>
+            <button type="button" id="tombolKeluarYa" class="btn btn-primary">Ya, Keluar</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <!-- Keluar wajib lewat POST + token CSRF (link biasa tidak bisa memaksa pengguna keluar) -->
+  <form id="formKeluar" method="post" action="<?= e(LOGOUT_URL) ?>" class="d-none">
+    <?= csrf_field() ?>
+  </form>
   <script>
     // Dipasang setelah semua script (termasuk Bootstrap) selesai dimuat
     document.addEventListener('DOMContentLoaded', function () {
       var modalEl = document.getElementById('modalKeluar');
       var tombolYa = document.getElementById('tombolKeluarYa');
+      var formKeluar = document.getElementById('formKeluar');
+      tombolYa.addEventListener('click', function () { formKeluar.submit(); });
       document.querySelectorAll('.js-logout').forEach(function (link) {
         link.addEventListener('click', function (ev) {
-          var tujuan = link.getAttribute('href');
+          ev.preventDefault();   // jangan membuka alamat logout lewat GET
           if (window.bootstrap && bootstrap.Modal && modalEl) {
-            ev.preventDefault();
-            tombolYa.setAttribute('href', tujuan);
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
-          } else if (!window.confirm('Yakin ingin keluar?')) {   // cadangan kalau Bootstrap tidak termuat
-            ev.preventDefault();
+          } else if (window.confirm('Yakin ingin keluar?')) {   // cadangan kalau Bootstrap tidak termuat
+            formKeluar.submit();
           }
         });
       });

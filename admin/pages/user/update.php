@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrf_valid()) {
 
         <div class="mb-3">
           <label for="no_hp" class="form-label-custom">No. HP</label>
-          <input class="form-control-custom" id="no_hp" name="no_hp" type="tel" inputmode="numeric" autocomplete="tel" pattern="(08|62)[0-9]{8,12}" maxlength="14"
+          <input class="form-control-custom" id="no_hp" name="no_hp" type="tel" inputmode="numeric" autocomplete="tel" pattern="(08|628)[1-9][0-9]{7,11}" maxlength="14"
             title="Angka saja, diawali 08, 10-14 digit" oninput="this.value = this.value.replace(/\D/g, '')"
             value="<?= htmlspecialchars($user['no_hp'] ?? '') ?>" required>
         </div>

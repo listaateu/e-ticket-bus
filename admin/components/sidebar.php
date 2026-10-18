@@ -1,5 +1,6 @@
 <?php
 defined('ADMIN_APP') || exit('Akses langsung tidak diizinkan.');   // hanya boleh dibuka lewat index.php
+/** @var mysqli $koneksi Koneksi database, dibuat di admin/index.php */
 $kelas_aktif  = param_enum('kelas', ['Eksekutif', 'Bisnis', 'Ekonomi']);
 $jadwal_aktif = ($menu_aktif ?? '') === 'jadwal_dan_rute';
 $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
@@ -36,18 +37,19 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
     transition: transform 0.15s ease, background-color 0.2s ease, color 0.2s ease;
   }
   .sidebar-submenu-link:hover {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.05);
+    color: #B94E77;
+    background-color: rgba(255, 255, 255, 0.7);
     transform: translateX(3px);
   }
   .sidebar-submenu-link.active {
-    color: #fff;
+    color: #B94E77;
     font-weight: 600;
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(226, 116, 157, 0.15);
   }
   .sidebar-submenu-link.active::before {
     content: "• ";
-    color: var(--brand-lime);
+    color: #E2749D;
   }
 </style>
 
@@ -174,11 +176,12 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
 
     <!-- Sidebar Profile Card (Dynamic Footer) -->
     <div class="sidebar-profile">
-      <img src="<?= BASE_URL ?>/admin/assets/images/avatar.png" alt="Administrator" class="sidebar-profile-img"
-        onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop'">
+      <?php $admin_sidebar = data_admin($koneksi); ?>
+      <img src="<?= htmlspecialchars(foto_admin_url(idLogin()), ENT_QUOTES, 'UTF-8') ?>" alt="Foto profil" class="sidebar-profile-img"
+        onerror="this.onerror=null;this.src='<?= BASE_URL ?>/admin/assets/images/avatar.png'">
       <div class="sidebar-profile-info">
-        <div class="sidebar-profile-name">Administrator</div>
-        <div class="sidebar-profile-email">admin@eticketbus.com</div>
+        <div class="sidebar-profile-name"><?= htmlspecialchars((string) ($admin_sidebar['nama'] ?? 'Administrator'), ENT_QUOTES, 'UTF-8') ?></div>
+        <div class="sidebar-profile-email"><?= htmlspecialchars((string) ($admin_sidebar['email'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
       </div>
     </div>
 </div>

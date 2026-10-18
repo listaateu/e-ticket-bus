@@ -52,31 +52,33 @@
 --------------------------------------------------------------------- */
 :root {
     /* Colors */
-    --bs-body-bg: #F4F6F5; /* Canvas background: light, warm grayish-green */
+    --bs-body-bg: #FFF6FA; /* Canvas: blush pink sangat lembut */
     --bs-body-font-family: 'Plus Jakarta Sans', sans-serif;
     
-    --brand-forest-dark: #051C12;     /* Core sidebar/brand background */
-    --brand-forest-medium: #072F1F;   /* Alert banner / dark card BG */
-    --brand-forest-light: #1A3E30;    /* Interactive elements in dark mode */
-    --brand-lime: #B4F105;            /* Lime-yellow accent highlight */
-    --brand-lime-hover: #c1f824;      
-    --brand-lime-translucent: rgba(180, 241, 5, 0.15);
+    --brand-forest-dark: #6B2F4D;     /* Plum tua: teks tegas & hover tombol */
+    --brand-forest-medium: #B94E77;   /* Dusty rose: tombol utama, link, kartu */
+    --brand-forest-light: #D98BAA;    /* Rose muda */
+    --brand-lime: #F6A9C7;            /* Aksen pink soft */
+    --brand-lime-hover: #F28FB6;
+    --brand-lime-translucent: rgba(246, 169, 199, 0.28);
     
-    --text-main: #0B130F;             /* Dark headers, main labels */
-    --text-muted-green: #6C7E75;      /* Secondary labels, muted details */
-    --text-sidebar-muted: #879A91;    /* Sidebar inactive link labels */
+    --text-main: #3B2233;             /* Judul & teks utama (plum gelap) */
+    --text-muted-green: #8B6F80;      /* Teks sekunder (mauve) */
+    --text-sidebar-muted: #9C7A8E;    /* Teks menu sidebar tidak aktif */
     
     --card-background: #FFFFFF;
-    --border-light: #E9EFEF;
-    --border-dark-green: rgba(255, 255, 255, 0.1);
+    --brand-blue: #9CC4F0;            /* Biru soft pendamping */
+    --brand-blue-soft: #E7F1FE;
+    --border-light: #F7DCE8;
+    --border-dark-green: rgba(226, 116, 157, 0.18);
     
     /* System Colors */
-    --sys-green: #22C55E;
-    --sys-green-bg: #DCFCE7;
-    --sys-red: #EF4444;
-    --sys-red-bg: #FEE2E2;
-    --sys-orange: #F97316;
-    --sys-orange-bg: #FFEDD5;
+    --sys-green: #4FBF9A;
+    --sys-green-bg: #DDF5EC;
+    --sys-red: #E5546B;
+    --sys-red-bg: #FDE2E7;
+    --sys-orange: #F59E5B;
+    --sys-orange-bg: #FFE9D6;
     
     /* Layout Configurations */
     --sidebar-width: 280px;
@@ -90,9 +92,9 @@
     --radius-sm: 6px;
     
     /* Box Shadows */
-    --shadow-sm: 0 2px 8px rgba(11, 19, 15, 0.02);
-    --shadow-md: 0 10px 30px rgba(11, 19, 15, 0.04);
-    --shadow-lg: 0 20px 50px rgba(11, 19, 15, 0.08);
+    --shadow-sm: 0 2px 8px rgba(185, 78, 119, 0.05);
+    --shadow-md: 0 10px 30px rgba(185, 78, 119, 0.08);
+    --shadow-lg: 0 20px 50px rgba(185, 78, 119, 0.14);
 }
 
 /* ---------------------------------------------------------------------
@@ -131,11 +133,11 @@ a:hover {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: #CBD5E1;
+    background: #F3C6D8;
     border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #94A3B8;
+    background: #E9A3BF;
 }
 
 /* ---------------------------------------------------------------------
@@ -406,7 +408,7 @@ body.sidebar-minimized .sidebar-profile {
     position: sticky;
     top: 0;
     z-index: 1000;
-    background-color: rgba(244, 246, 245, 0.85);
+    background-color: rgba(255, 246, 250, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     margin-top: -2rem;
@@ -556,8 +558,8 @@ body.sidebar-minimized .sidebar-profile {
 }
 
 .navbar-search-input:focus {
-    border-color: rgba(5, 28, 18, 0.25);
-    box-shadow: 0 4px 12px rgba(11, 19, 15, 0.05);
+    border-color: rgba(107, 47, 77, 0.25);
+    box-shadow: 0 4px 12px rgba(150, 70, 105, 0.05);
 }
 
 .navbar-search-btn {
@@ -610,7 +612,7 @@ body.sidebar-minimized .sidebar-profile {
     background-color: var(--sys-green);
     border-radius: 50rem;
     border: 2px solid #FFFFFF;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+    box-shadow: 0 0 8px rgba(79, 191, 154, 0.6);
     animation: statusPulse 2s infinite;
 }
 
@@ -1211,7 +1213,7 @@ body.sidebar-minimized .sidebar-profile {
 
 /* Promo Banner Card */
 .promo-banner-card {
-    background-color: #E2E8DF; /* Soft light olive-sage */
+    background: linear-gradient(135deg, #E6F0FC 0%, #FDE8F1 100%); /* biru & pink soft */
     border-radius: var(--radius-xxl);
     padding: 1.75rem;
     position: relative;
@@ -1492,7 +1494,7 @@ span.flatpickr-weekday {
 .flatpickr-day.endRange {
     background-color: var(--brand-forest-medium) !important;
     color: #FFFFFF !important;
-    box-shadow: 0 4px 10px rgba(5, 28, 18, 0.25) !important;
+    box-shadow: 0 4px 10px rgba(107, 47, 77, 0.25) !important;
 }
 
 .flatpickr-day.startRange {
@@ -1514,7 +1516,7 @@ span.flatpickr-weekday {
 .flatpickr-day.today.inRange,
 .flatpickr-day.prevMonthDay.today.inRange,
 .flatpickr-day.nextMonthDay.today.inRange {
-    background-color: #E1FCD2 !important;
+    background-color: #FFE3EE !important;
     color: var(--brand-forest-medium) !important;
     border-radius: 0 !important;
 }
@@ -1524,7 +1526,7 @@ span.flatpickr-weekday {
 .flatpickr-day.flatpickr-disabled:hover,
 .flatpickr-day.prevMonthDay,
 .flatpickr-day.nextMonthDay {
-    color: #CBD5E1 !important;
+    color: #F3C6D8 !important;
     background: transparent !important;
 }
 
@@ -1533,7 +1535,7 @@ span.flatpickr-weekday {
 --------------------------------------------------------------------- */
 .dropdown-menu-custom {
     background: #FFFFFF !important;
-    border: 1px solid rgba(11, 19, 15, 0.05) !important;
+    border: 1px solid rgba(150, 70, 105, 0.05) !important;
     border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-lg) !important;
     padding: 8px 6px !important;
@@ -1578,12 +1580,12 @@ span.flatpickr-weekday {
     opacity: 1 !important;
 }
 
-/* Custom ApexCharts Hover Overrides for Lime-Yellow Color (#B4F105) */
-.apexcharts-bar-area[fill="#B4F105"]:hover,
-.apexcharts-bar-area[fill="#b4f105"]:hover,
-.apexcharts-pie-area[fill="#B4F105"]:hover,
-.apexcharts-pie-area[fill="#b4f105"]:hover {
-    fill: #c1f824 !important;
+/* Custom ApexCharts Hover Overrides for Lime-Yellow Color (#F6A9C7) */
+.apexcharts-bar-area[fill="#F6A9C7"]:hover,
+.apexcharts-bar-area[fill="#F6A9C7"]:hover,
+.apexcharts-pie-area[fill="#F6A9C7"]:hover,
+.apexcharts-pie-area[fill="#F6A9C7"]:hover {
+    fill: #F28FB6 !important;
 }
 
 /* ---------------------------------------------------------------------
@@ -1592,7 +1594,7 @@ span.flatpickr-weekday {
 .footer-custom {
     margin-top: auto;
     padding-top: 1.25rem;
-    border-top: 1px solid rgba(11, 19, 15, 0.06);
+    border-top: 1px solid rgba(150, 70, 105, 0.06);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1694,13 +1696,13 @@ span.flatpickr-weekday {
 
 @keyframes statusPulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 0 0 rgba(79, 191, 154, 0.4);
     }
     70% {
-        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+        box-shadow: 0 0 0 6px rgba(79, 191, 154, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+        box-shadow: 0 0 0 0 rgba(79, 191, 154, 0);
     }
 }
 
@@ -1749,7 +1751,7 @@ span.flatpickr-weekday {
     position: absolute;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, var(--brand-lime-translucent) 0%, rgba(180, 241, 5, 0) 70%);
+    background: radial-gradient(circle, var(--brand-lime-translucent) 0%, rgba(246, 169, 199, 0) 70%);
     border-radius: 50%;
     pointer-events: none;
     z-index: 0;
@@ -1780,7 +1782,7 @@ span.flatpickr-weekday {
 
 .login-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 30px 60px rgba(11, 19, 15, 0.12);
+    box-shadow: 0 30px 60px rgba(150, 70, 105, 0.12);
 }
 
 .login-brand {
@@ -2193,7 +2195,7 @@ span.flatpickr-weekday {
 .table-card-custom {
     background-color: #FFFFFF;
     border-radius: var(--radius-xl);
-    border: 1px solid rgba(11, 19, 15, 0.06) !important;
+    border: 1px solid rgba(150, 70, 105, 0.06) !important;
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     margin-bottom: 1.25rem !important; /* Pushes the main footer down to create breathing space */
@@ -2210,18 +2212,18 @@ span.flatpickr-weekday {
 .table-custom th,
 .table-custom td {
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid rgba(11, 19, 15, 0.05);
+    border-bottom: 1px solid rgba(150, 70, 105, 0.05);
     white-space: nowrap;
 }
 
 .table-custom th {
-    background-color: #F8FAF9;
+    background-color: #FFF4F9;
     color: var(--text-muted-green);
     font-size: 0.75rem;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.05em;
-    border-bottom: 1px solid rgba(11, 19, 15, 0.08);
+    border-bottom: 1px solid rgba(150, 70, 105, 0.08);
 }
 
 .table-custom tbody tr {
@@ -2229,7 +2231,7 @@ span.flatpickr-weekday {
 }
 
 .table-custom tbody tr:hover {
-    background-color: rgba(180, 241, 5, 0.03); /* Soft brand-lime-glow transparent hover */
+    background-color: rgba(246, 169, 199, 0.03); /* Soft brand-lime-glow transparent hover */
 }
 
 .table-custom tbody tr:last-child td {
@@ -2282,7 +2284,7 @@ span.flatpickr-weekday {
 }
 
 .badge-table.success {
-    background-color: rgba(34, 197, 94, 0.1);
+    background-color: rgba(79, 191, 154, 0.1);
     color: var(--sys-green);
 }
 .badge-table.success::before {
@@ -2309,7 +2311,7 @@ span.flatpickr-weekday {
 .table-header-control {
     background-color: #FFFFFF;
     padding: 1.25rem;
-    border-bottom: 1px solid rgba(11, 19, 15, 0.06);
+    border-bottom: 1px solid rgba(150, 70, 105, 0.06);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2328,15 +2330,15 @@ span.flatpickr-weekday {
     padding: 0.5rem 1rem 0.5rem 2.25rem;
     font-size: 0.85rem;
     border-radius: var(--radius-lg);
-    border: 1px solid rgba(11, 19, 15, 0.1);
-    background-color: #FDFDFD;
+    border: 1px solid rgba(150, 70, 105, 0.1);
+    background-color: #FFFBFD;
     transition: all 0.2s ease-in-out;
 }
 
 .table-search-input:focus {
     outline: none;
     border-color: var(--brand-forest-medium);
-    box-shadow: 0 0 0 3px rgba(7, 47, 31, 0.08);
+    box-shadow: 0 0 0 3px rgba(185, 78, 119, 0.08);
 }
 
 .table-search-icon {
@@ -2357,7 +2359,7 @@ span.flatpickr-weekday {
 
 .btn-table-action {
     background-color: #FFFFFF;
-    border: 1px solid rgba(11, 19, 15, 0.1);
+    border: 1px solid rgba(150, 70, 105, 0.1);
     color: var(--brand-forest-dark);
     font-size: 0.85rem;
     font-weight: 600;
@@ -2370,7 +2372,7 @@ span.flatpickr-weekday {
 }
 
 .btn-table-action:hover {
-    background-color: #F8FAF9;
+    background-color: #FFF4F9;
     border-color: var(--brand-forest-medium);
 }
 
@@ -2379,7 +2381,7 @@ span.flatpickr-weekday {
     width: 32px;
     height: 32px;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(11, 19, 15, 0.08);
+    border: 1px solid rgba(150, 70, 105, 0.08);
     background-color: #FFFFFF;
     color: var(--brand-forest-dark);
     display: inline-flex;
@@ -2406,7 +2408,7 @@ span.flatpickr-weekday {
 .table-footer-control {
     background-color: #FFFFFF;
     padding: 1.25rem;
-    border-top: 1px solid rgba(11, 19, 15, 0.06);
+    border-top: 1px solid rgba(150, 70, 105, 0.06);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2444,7 +2446,7 @@ span.flatpickr-weekday {
 }
 
 .table-footer-control .pagination .page-link:hover {
-    background-color: #F8FAF9;
+    background-color: #FFF4F9;
     color: var(--brand-forest-medium);
 }
 
@@ -2480,7 +2482,7 @@ span.flatpickr-weekday {
     color: var(--text-main);
     background-color: #FFFFFF;
     background-clip: padding-box;
-    border: 1px solid rgba(11, 19, 15, 0.12);
+    border: 1px solid rgba(150, 70, 105, 0.12);
     border-radius: var(--radius-lg);
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
@@ -2490,7 +2492,7 @@ span.flatpickr-weekday {
     background-color: #FFFFFF;
     border-color: var(--brand-forest-medium);
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(7, 47, 31, 0.08);
+    box-shadow: 0 0 0 3px rgba(185, 78, 119, 0.08);
 }
 
 .form-control-custom::placeholder {
@@ -2500,8 +2502,8 @@ span.flatpickr-weekday {
 
 .form-control-custom:disabled,
 .form-control-custom[readonly] {
-    background-color: #F8FAF9;
-    border-color: rgba(11, 19, 15, 0.06);
+    background-color: #FFF4F9;
+    border-color: rgba(150, 70, 105, 0.06);
     color: var(--text-muted-green);
     opacity: 0.8;
     cursor: not-allowed;
@@ -2534,7 +2536,7 @@ span.flatpickr-weekday {
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 12px 10px;
-    border: 1px solid rgba(11, 19, 15, 0.12);
+    border: 1px solid rgba(150, 70, 105, 0.12);
     border-radius: var(--radius-lg);
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     appearance: none;
@@ -2543,12 +2545,12 @@ span.flatpickr-weekday {
 .form-select-custom:focus {
     border-color: var(--brand-forest-medium);
     outline: 0;
-    box-shadow: 0 0 0 3px rgba(7, 47, 31, 0.08);
+    box-shadow: 0 0 0 3px rgba(185, 78, 119, 0.08);
 }
 
 .form-select-custom:disabled {
-    background-color: #F8FAF9;
-    border-color: rgba(11, 19, 15, 0.06);
+    background-color: #FFF4F9;
+    border-color: rgba(150, 70, 105, 0.06);
     color: var(--text-muted-green);
     opacity: 0.8;
     cursor: not-allowed;
@@ -2575,7 +2577,7 @@ span.flatpickr-weekday {
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    border: 1px solid rgba(11, 19, 15, 0.15);
+    border: 1px solid rgba(150, 70, 105, 0.15);
     transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
 }
@@ -2608,8 +2610,8 @@ span.flatpickr-weekday {
 }
 
 .form-check-input-custom:disabled {
-    background-color: #F8FAF9;
-    border-color: rgba(11, 19, 15, 0.06);
+    background-color: #FFF4F9;
+    border-color: rgba(150, 70, 105, 0.06);
     opacity: 0.8;
     cursor: not-allowed;
 }
@@ -2627,9 +2629,9 @@ span.flatpickr-weekday {
     width: 38px;
     height: 20px;
     border-radius: 50rem;
-    background-color: rgba(11, 19, 15, 0.1);
+    background-color: rgba(150, 70, 105, 0.1);
     position: relative;
-    border: 1px solid rgba(11, 19, 15, 0.08);
+    border: 1px solid rgba(150, 70, 105, 0.08);
     transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     appearance: none;
@@ -2645,7 +2647,7 @@ span.flatpickr-weekday {
     left: 1px;
     top: 1px;
     background-color: #FFFFFF;
-    box-shadow: 0 2px 4px rgba(11, 19, 15, 0.15);
+    box-shadow: 0 2px 4px rgba(150, 70, 105, 0.15);
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -2659,12 +2661,12 @@ span.flatpickr-weekday {
 }
 
 .form-switch-input-custom:focus {
-    box-shadow: 0 0 0 3px rgba(7, 47, 31, 0.08);
+    box-shadow: 0 0 0 3px rgba(185, 78, 119, 0.08);
 }
 
 .form-switch-input-custom:disabled {
-    background-color: #F8FAF9;
-    border-color: rgba(11, 19, 15, 0.06);
+    background-color: #FFF4F9;
+    border-color: rgba(150, 70, 105, 0.06);
     opacity: 0.8;
     cursor: not-allowed;
 }
@@ -2677,7 +2679,7 @@ span.flatpickr-weekday {
     align-items: stretch;
     width: 100%;
     border-radius: var(--radius-lg);
-    border: 1px solid rgba(11, 19, 15, 0.12);
+    border: 1px solid rgba(150, 70, 105, 0.12);
     background-color: #FFFFFF;
     overflow: hidden;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -2685,7 +2687,7 @@ span.flatpickr-weekday {
 
 .input-group-custom:focus-within {
     border-color: var(--brand-forest-medium);
-    box-shadow: 0 0 0 3px rgba(7, 47, 31, 0.08);
+    box-shadow: 0 0 0 3px rgba(185, 78, 119, 0.08);
 }
 
 .input-group-text-custom {
@@ -2698,7 +2700,7 @@ span.flatpickr-weekday {
     color: var(--text-muted-green);
     text-align: center;
     white-space: nowrap;
-    background-color: #F8FAF9;
+    background-color: #FFF4F9;
 }
 
 .input-group-custom .form-control-custom {
@@ -2728,7 +2730,7 @@ span.flatpickr-weekday {
 }
 
 .form-control-custom.is-valid-custom:focus {
-    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.08) !important;
+    box-shadow: 0 0 0 3px rgba(79, 191, 154, 0.08) !important;
 }
 
 .form-feedback-custom {
@@ -2773,7 +2775,7 @@ span.flatpickr-weekday {
 
 .btn-custom:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(7, 47, 31, 0.15);
+    box-shadow: 0 0 0 3px rgba(185, 78, 119, 0.15);
 }
 
 /* Custom Buttons sizing variants */
@@ -2805,24 +2807,24 @@ span.flatpickr-weekday {
 .btn-custom-secondary {
     background-color: var(--brand-lime);
     border-color: var(--brand-lime);
-    color: #072F1F;
+    color: #B94E77;
 }
 
 .btn-custom-secondary:hover {
     background-color: var(--brand-lime-hover);
     border-color: var(--brand-lime-hover);
-    color: #072F1F;
+    color: #B94E77;
 }
 
 .btn-custom-light {
-    background-color: #F8FAF9;
-    border-color: rgba(11, 19, 15, 0.08);
+    background-color: #FFF4F9;
+    border-color: rgba(150, 70, 105, 0.08);
     color: var(--brand-forest-dark);
 }
 
 .btn-custom-light:hover {
-    background-color: #EEF2F0;
-    border-color: rgba(11, 19, 15, 0.12);
+    background-color: #FCE6EF;
+    border-color: rgba(150, 70, 105, 0.12);
     color: var(--brand-forest-dark);
 }
 
@@ -2871,7 +2873,7 @@ span.flatpickr-weekday {
 .btn-custom-outline-secondary:hover {
     background-color: var(--brand-lime);
     border-color: var(--brand-lime);
-    color: #072F1F;
+    color: #B94E77;
 }
 
 .btn-custom-outline-danger {
@@ -2924,19 +2926,19 @@ span.flatpickr-weekday {
 
 .alert-custom-close:hover {
     opacity: 1;
-    background-color: rgba(11, 19, 15, 0.05);
+    background-color: rgba(150, 70, 105, 0.05);
 }
 
 /* Alert theme variations */
 .alert-custom-primary {
-    background-color: rgba(7, 47, 31, 0.04);
-    border-color: rgba(7, 47, 31, 0.08);
+    background-color: rgba(185, 78, 119, 0.04);
+    border-color: rgba(185, 78, 119, 0.08);
     color: var(--brand-forest-dark);
 }
 
 .alert-custom-success {
-    background-color: #f0fdf4;
-    border-color: #bbf7d0;
+    background-color: #EEFAF5;
+    border-color: #BDE8D6;
     color: #166534;
 }
 
@@ -2971,7 +2973,7 @@ span.flatpickr-weekday {
     min-height: 480px;
     background-color: #FFFFFF;
     border-radius: var(--radius-xl);
-    border: 1px solid rgba(11, 19, 15, 0.06) !important;
+    border: 1px solid rgba(150, 70, 105, 0.06) !important;
     box-shadow: var(--shadow-sm);
     margin-bottom: 2rem;
 }
@@ -3098,7 +3100,7 @@ span.flatpickr-weekday {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(5, 28, 18, 0.4);
+    background-color: rgba(107, 47, 77, 0.4);
     backdrop-filter: blur(4px);
     z-index: 1025;
     opacity: 0;
@@ -3131,7 +3133,7 @@ span.flatpickr-weekday {
 }
 
 .transaction-item:hover {
-    background-color: rgba(5, 28, 18, 0.06);
+    background-color: rgba(107, 47, 77, 0.06);
 }
 
 .transaction-icon {
@@ -3184,4 +3186,55 @@ span.flatpickr-weekday {
 }
 
 
+/* ---------------------------------------------------------------------
+   TEMA SOFT PINK & SOFT BLUE (override, sengaja di paling bawah)
+--------------------------------------------------------------------- */
+::selection { background: #FAD2E2; color: #6B2F4D; }
 
+body {
+    background: linear-gradient(135deg, #FFF3F8 0%, #FFF8FB 45%, #F1F7FF 100%) fixed;
+}
+
+/* Sidebar terang: gradasi pink -> biru soft */
+.sidebar-wrapper {
+    background: linear-gradient(180deg, #FFE6F0 0%, #FFEEF5 52%, #E7F1FE 100%);
+    border-right: 1px solid rgba(226, 116, 157, 0.18);
+    box-shadow: 4px 0 30px rgba(226, 116, 157, 0.10);
+}
+.sidebar-brand, .sidebar-brand:hover { color: #7A3556; }
+.sidebar-brand i { color: #E2749D; }
+.sidebar-brand:hover i { color: #D9668F; }
+.sidebar-menu-title { color: #B07C96; opacity: 0.9; }
+.sidebar-menu-link { color: #8F6A7E; }
+.sidebar-menu-link:hover { color: #B94E77; background-color: rgba(255, 255, 255, 0.65); }
+.sidebar-menu-link.active {
+    color: #B94E77;
+    background-color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(226, 116, 157, 0.18);
+}
+.sidebar-menu-link.active::before { background-color: #E2749D; }
+.sidebar-menu-link.active i { color: #E2749D; }
+.sidebar-menu-badge { background-color: #E2749D; color: #FFFFFF; }
+.sidebar-submenu-link { color: #8F6A7E; }
+.sidebar-submenu-link:hover, .sidebar-submenu-link.active { color: #B94E77; }
+.sidebar-profile {
+    background-color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(226, 116, 157, 0.2);
+    color: #5B2A43;
+}
+.sidebar-profile-name { color: #5B2A43; }
+.sidebar-profile-email { color: #9C7A8E; opacity: 1; }
+
+/* Kartu "Perlu Dikerjakan" di dashboard */
+.alert-green-card {
+    background: linear-gradient(135deg, #EA86A5 0%, #D2628D 68%, #A9BDE8 150%);
+    box-shadow: 0 14px 30px rgba(198, 90, 134, 0.25);
+}
+.alert-green-date { color: rgba(255, 255, 255, 0.88); opacity: 1; }
+.alert-green-link { color: #FFFFFF; }
+
+/* Penanda warna di grafik & progress: pink + biru soft */
+.bg-forest-medium { background-color: #E2749D; }
+.bg-lime-accent { background-color: #9CC4F0; }
+.bg-forest-light { background-color: #E2749D !important; }
+.text-lime { color: #F6A9C7 !important; }

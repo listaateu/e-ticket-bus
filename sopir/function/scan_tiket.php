@@ -16,12 +16,12 @@
  *   6. sudah pernah naik?               -> sudah_naik
  *   7. semua lolos                      -> berhasil (dicatat naik)
  *
- * CATATAN      : Untuk demo/presentasi pemeriksaan waktu (langkah 5) dimatikan.
- *                Nyalakan dengan CEK_WAKTU_NAIK = true: boarding baru dibuka
+ * CATATAN      : Pemeriksaan waktu (langkah 5) AKTIF (CEK_WAKTU_NAIK = true): boarding baru dibuka
  *                BOARDING_BUKA_MENIT menit sebelum berangkat dan ditutup setelah jam tiba.
+ *                Untuk demo yang butuh scan kapan saja, ubah CEK_WAKTU_NAIK menjadi false.
  * ============================================================
  */
-const CEK_WAKTU_NAIK      = false;
+const CEK_WAKTU_NAIK      = true;    // true = scan hanya boleh mendekati jam berangkat
 const BOARDING_BUKA_MENIT = 180;   // 3 jam sebelum berangkat
 
 /** Hasil pemeriksaan waktu: 'terlalu_awal' | 'selesai' | null (boleh) */
@@ -134,7 +134,8 @@ function validasi_tiket(mysqli $conn, int $sopir_id, string $sopir_nama, int $ja
     // 5. waktu boarding (hanya bila CEK_WAKTU_NAIK = true)
     $waktu = cek_waktu_boarding((int) $r['menit_ke_berangkat'], (bool) (int) $r['sudah_tiba']);
     if ($waktu === 'terlalu_awal') {
-        return hasil_scan('terlalu_awal', 'Boarding dibuka ' . (BOARDING_BUKA_MENIT / 60) . ' jam sebelum jam berangkat.', $pax);
+        $jam_buka = date('H:i', strtotime((string) $r['jam_berangkat']) - BOARDING_BUKA_MENIT * 60);
+        return hasil_scan('terlalu_awal', 'Boarding baru dibuka pukul ' . $jam_buka . ' WIB (' . (BOARDING_BUKA_MENIT / 60) . ' jam sebelum berangkat).', $pax);
     }
     if ($waktu === 'selesai') {
         return hasil_scan('selesai', '', $pax);

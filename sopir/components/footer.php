@@ -10,7 +10,7 @@
 ?>
   </main>
 
-  <footer id="footer" class="footer dark-background">
+  <footer id="footer" class="footer footer-soft">
 
     <div class="container footer-top">
       <div class="row gy-4">
@@ -27,6 +27,7 @@
             <li><a href="<?= url('beranda') ?>">Beranda</a></li>
             <li><a href="<?= url('jadwal') ?>">Jadwal Saya</a></li>
             <li><a href="<?= url('scan') ?>">Scan Tiket</a></li>
+            <li><a href="<?= url('profil') ?>">Profil</a></li>
           </ul>
         </div>
 
@@ -55,8 +56,8 @@
 
   <!-- Modal konfirmasi keluar -->
   <style>
-    #modalKeluar .modal-content { border: 0; border-radius: 16px; }
-    #modalKeluar .ikon-keluar { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; background: #e8f4fe; color: #0194f3; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+    #modalKeluar .modal-content { border: 0; border-radius: 22px; box-shadow: 0 20px 50px rgba(63,127,196,.25); }
+    #modalKeluar .ikon-keluar { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; background: #e7f0fb; color: #3f7fc4; display: flex; align-items: center; justify-content: center; font-size: 30px; }
     #modalKeluar .btn { border-radius: 10px; font-weight: 600; padding: 9px 22px; }
   </style>
   <div class="modal fade" id="modalKeluar" tabindex="-1" aria-labelledby="judulKeluar" aria-hidden="true">
@@ -68,26 +69,30 @@
           <p class="text-muted mb-4">Kamu akan keluar dari akunmu dan perlu masuk lagi untuk melanjutkan.</p>
           <div class="d-flex gap-2 justify-content-center">
             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-            <a href="#" id="tombolKeluarYa" class="btn btn-primary">Ya, Keluar</a>
+            <button type="button" id="tombolKeluarYa" class="btn btn-primary">Ya, Keluar</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+  <!-- Keluar wajib lewat POST + token CSRF (link biasa tidak bisa memaksa pengguna keluar) -->
+  <form id="formKeluar" method="post" action="<?= e(LOGOUT_URL) ?>" class="d-none">
+    <?= csrf_field() ?>
+  </form>
   <script>
     // Dipasang setelah semua script (termasuk Bootstrap) selesai dimuat
     document.addEventListener('DOMContentLoaded', function () {
       var modalEl = document.getElementById('modalKeluar');
       var tombolYa = document.getElementById('tombolKeluarYa');
+      var formKeluar = document.getElementById('formKeluar');
+      tombolYa.addEventListener('click', function () { formKeluar.submit(); });
       document.querySelectorAll('.js-logout').forEach(function (link) {
         link.addEventListener('click', function (ev) {
-          var tujuan = link.getAttribute('href');
+          ev.preventDefault();   // jangan membuka alamat logout lewat GET
           if (window.bootstrap && bootstrap.Modal && modalEl) {
-            ev.preventDefault();
-            tombolYa.setAttribute('href', tujuan);
             bootstrap.Modal.getOrCreateInstance(modalEl).show();
-          } else if (!window.confirm('Yakin ingin keluar?')) {   // cadangan kalau Bootstrap tidak termuat
-            ev.preventDefault();
+          } else if (window.confirm('Yakin ingin keluar?')) {   // cadangan kalau Bootstrap tidak termuat
+            formKeluar.submit();
           }
         });
       });
