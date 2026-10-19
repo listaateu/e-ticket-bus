@@ -170,6 +170,12 @@ $user_aktif   = in_array($menu_aktif ?? '', ['user', 'sopir'], true);
               <span>Data Pemesanan</span>
             </a>
           </li>
+          <li class="sidebar-menu-item">
+            <a href="<?= BASE_URL ?>/admin/index.php?page=laporan" class="sidebar-menu-link<?= ($menu_aktif ?? '') === 'laporan' ? ' active' : '' ?>" title="Laporan">
+              <i class="bi bi-file-earmark-bar-graph-fill"></i>
+              <span>Laporan</span>
+            </a>
+          </li>
         </ul>
       </div>
     </div>

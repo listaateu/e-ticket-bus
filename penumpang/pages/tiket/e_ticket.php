@@ -18,10 +18,8 @@ if (status_tiket($booking) !== 'lunas') {
     set_flash('info', 'E-ticket tersedia setelah pembayaran diverifikasi admin.');
     redirect(url('pembayaran', ['id' => $id]));
 }
-if (tiket_selesai($booking)) {
-    set_flash('info', 'Perjalanan ini sudah selesai, e-ticket tidak berlaku lagi.');
-    redirect(url('tiket-saya'));
-}
+// Bus sudah berangkat: QR tidak ditampilkan lagi. Penumpang yang belum naik diberi peringatan "tertinggal bus".
+$sudah_jalan = tiket_selesai($booking);
 $pakai_qr = true;
 $penumpang = daftar_penumpang_booking($conn, (int) $booking['id']);
 
@@ -87,7 +85,7 @@ $bayi_qr   = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'bay
           <div class="ticket-atas">
             <div class="d-flex justify-content-between align-items-center">
               <span class="merek"><i class="fa-solid fa-bus me-2"></i>E-Ticket Bus</span>
-              <span class="badge bg-success">LUNAS</span>
+              <?php if ($sudah_jalan): ?><span class="badge bg-secondary">BUS SUDAH BERANGKAT</span><?php else: ?><span class="badge bg-success">LUNAS</span><?php endif; ?>
             </div>
             <div class="rute-besar mt-3">
               <div><small>Dari</small><strong><?= e($booking['kota_asal']) ?></strong></div>
@@ -127,7 +125,28 @@ $bayi_qr   = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'bay
               <small class="text-muted">Kode pemesanan</small>
             </div>
 
-            <?php if ($dewasa_qr): ?>
+            <?php if ($sudah_jalan): ?>
+              <?php if (tiket_tertinggal($booking)): ?>
+                <div class="alert alert-danger text-start">
+                  <strong><i class="bi bi-exclamation-triangle-fill me-1"></i> Anda tertinggal bus.</strong>
+                  Bus berangkat pukul <?= e(jam($booking['jam_berangkat'])) ?> WIB, jadi QR tidak ditampilkan lagi dan e-ticket ini tidak berlaku.
+                  Hubungi admin bila perlu bantuan.
+                </div>
+              <?php else: ?>
+                <div class="alert alert-secondary text-start">Bus sudah berangkat, e-ticket ini tidak berlaku lagi. Terima kasih sudah memilih kami.</div>
+              <?php endif; ?>
+              <?php foreach ($dewasa_qr as $px): ?>
+                <div class="qr-kartu<?= !empty($px['status_naik']) ? ' sudah-naik' : '' ?>">
+                  <div class="nm"><?= e($px['nama']) ?></div>
+                  <div class="ks">Kursi <?= e($px['nomor_kursi']) ?></div>
+                  <?php if (!empty($px['status_naik'])): ?>
+                    <div class="text-success fw-semibold mt-2"><i class="bi bi-check-circle-fill"></i> Sudah naik</div>
+                  <?php else: ?>
+                    <div class="text-danger fw-semibold mt-2"><i class="bi bi-x-circle-fill"></i> Tertinggal bus</div>
+                  <?php endif; ?>
+                </div>
+              <?php endforeach; ?>
+            <?php elseif ($dewasa_qr): ?>
               <?php foreach ($dewasa_qr as $px): ?>
                 <div class="qr-kartu<?= !empty($px['status_naik']) ? ' sudah-naik' : '' ?>">
                   <div class="nm"><?= e($px['nama']) ?></div>

@@ -213,10 +213,12 @@ function daftar_penumpang_booking(mysqli $conn, int $booking_id): array
 // kode_unik    = angka tambahan di nominal transfer (0 untuk pemesanan lama)
 // batas_bayar  = batas akhir pembayaran (kosong = tidak ada batas)
 // sisa_detik   = sisa waktu sampai batas_bayar, dihitung MySQL supaya tidak terpengaruh beda zona waktu PHP
-// sudah_berangkat = 1 bila jam berangkat sudah lewat (tiket lunas yang sudah lewat tampil "Selesai")
+// sudah_berangkat = 1 bila jam berangkat sudah lewat (tiket lunas yang sudah lewat tampil "Selesai" dan QR-nya tidak ditampilkan lagi)
+// belum_naik      = jumlah penumpang dewasa di pemesanan ini yang belum discan naik (dipakai untuk peringatan "tertinggal bus")
 const SQL_BOOKING = "SELECT bk.id, bk.user_id, bk.schedule_id, bk.nomor_kursi, bk.jumlah_dewasa, bk.jumlah_bayi, bk.kode_unik, bk.kode_booking,
                             bk.batas_bayar, TIMESTAMPDIFF(SECOND, NOW(), bk.batas_bayar) AS sisa_detik,
                             (s.jam_berangkat < NOW()) AS sudah_berangkat,
+                            (SELECT COUNT(*) FROM booking_penumpang bpx WHERE bpx.booking_id = bk.id AND bpx.tipe = 'dewasa' AND bpx.status_naik = 0) AS belum_naik,
                             s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.jam_tiba, s.harga, s.sopir,
                             b.nama_bus, b.plat_nomor, b.kelas,
                             u.nama AS nama_penumpang,
@@ -262,10 +264,16 @@ function status_tiket(array $b): string
     return $status === 'ditolak' ? 'gagal' : $status;
 }
 
-/** true bila tiket sudah lunas tetapi bus sudah berangkat (perjalanan selesai) */
+/** true bila tiket sudah lunas tetapi bus sudah berangkat (QR tidak berlaku lagi) */
 function tiket_selesai(array $b): bool
 {
     return status_tiket($b) === 'lunas' && !empty($b['sudah_berangkat']);
+}
+
+/** true bila bus sudah berangkat padahal masih ada penumpang dewasa di pemesanan ini yang belum naik (tertinggal bus) */
+function tiket_tertinggal(array $b): bool
+{
+    return tiket_selesai($b) && (int) ($b['belum_naik'] ?? 0) > 0;
 }
 
 /**

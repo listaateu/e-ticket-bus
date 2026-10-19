@@ -72,6 +72,8 @@ $total = $hitung[$tab];
 
 $stmt = $koneksi->prepare(
     "SELECT s.*, b.nama_bus, b.plat_nomor, b.kelas, (s.jam_berangkat < NOW()) AS sudah_lewat,
+            (s.jam_berangkat <= NOW() AND COALESCE(s.jam_tiba, s.jam_berangkat) > NOW()) AS sedang_jalan,
+            (SELECT COUNT(*) FROM bookings bk3 WHERE bk3.schedule_id = s.id) AS jml_booking,
             (SELECT COUNT(*) FROM bookings bk JOIN payments py ON py.booking_id = bk.id
               WHERE bk.schedule_id = s.id AND py.status = 'lunas') AS jml_lunas
      FROM schedules s
@@ -150,6 +152,10 @@ $pesan = $_GET['pesan'] ?? '';
   <div class="alert alert-success">Jadwal berhasil dihapus.</div>
 <?php elseif ($pesan === 'jadwal_lewat') : ?>
   <div class="alert alert-warning">Jadwal yang sudah berangkat tidak bisa diubah. Kalau perlu jadwal baru, pakai tombol Tambah Jadwal.</div>
+<?php elseif ($pesan === 'hapus_lewat') : ?>
+  <div class="alert alert-warning">Jadwal yang sudah berangkat tidak bisa dihapus karena datanya dipakai untuk riwayat dan laporan.</div>
+<?php elseif ($pesan === 'ubah_ada_tiket') : ?>
+  <div class="alert alert-warning">Jadwal yang sudah ada tiket terjualnya tidak bisa diubah supaya data tiket dan laporan tetap aman.</div>
 <?php elseif ($pesan === 'jadwal_dipakai') : ?>
   <div class="alert alert-danger">Jadwal tidak bisa dihapus karena sudah ada pemesanan tiket.</div>
 <?php endif; ?>
@@ -199,7 +205,7 @@ $pesan = $_GET['pesan'] ?? '';
           </tr>
         <?php endif; ?>
 
-        <?php $no = $offset + 1; while ($j = $hasil->fetch_assoc()) : $lewat = (bool) $j['sudah_lewat']; ?>
+        <?php $no = $offset + 1; while ($j = $hasil->fetch_assoc()) : $lewat = (bool) $j['sudah_lewat']; $ada_tiket = (int) $j['jml_booking'] > 0; $terkunci = $lewat || $ada_tiket; ?>
           <tr<?= $lewat ? ' style="opacity:.7"' : '' ?>>
             <td><?= $no++ ?></td>
             <td class="table-order-id">
@@ -215,21 +221,29 @@ $pesan = $_GET['pesan'] ?? '';
             <td><?= $j['sopir'] !== '' ? htmlspecialchars($j['sopir']) : '-' ?></td>
             <td>
               <?= date('d M Y, H:i', strtotime($j['jam_berangkat'])) ?>
-              <?php if ($lewat && (int) $j['jml_lunas'] === 0) : ?>
+              <?php if (!$lewat) : ?>
+                <span class="badge-kelas" style="background:#dcfce7;color:#15803d">Akan Datang</span>
+              <?php elseif ((int) $j['jml_lunas'] === 0) : ?>
                 <span class="badge-kelas" style="background:#fee2e2;color:#b91c1c" title="Sudah lewat jam berangkat dan tidak ada pemesanan lunas">Dibatalkan</span>
-              <?php elseif ($lewat) : ?>
+              <?php elseif ((int) $j['sedang_jalan'] === 1) : ?>
+                <span class="badge-kelas" style="background:#fef3c7;color:#b45309">Sedang Berjalan</span>
+              <?php else : ?>
                 <span class="badge-kelas" style="background:#e5e7eb;color:#4b5563">Selesai</span>
               <?php endif; ?>
             </td>
             <td>Rp <?= number_format((int) $j['harga'], 0, ',', '.') ?></td>
             <td>
               <div class="d-flex justify-content-center gap-1">
-                <?php if ($lewat) : ?>
-                  <span class="table-btn-action" title="Jadwal yang sudah berangkat tidak bisa diubah" style="opacity:.35;cursor:not-allowed"><i class="bi bi-pencil"></i></span>
+                <?php if ($terkunci) : ?>
+                  <span class="table-btn-action" title="<?= $lewat ? 'Jadwal yang sudah berangkat tidak bisa diubah' : 'Sudah ada tiket terjual, jadwal tidak bisa diubah' ?>" style="opacity:.35;cursor:not-allowed"><i class="bi bi-pencil"></i></span>
                 <?php else : ?>
                   <a href="<?= BASE_URL ?>/admin/index.php?page=jadwal_dan_rute&aksi=update&id=<?= (int) $j['id'] ?>" class="table-btn-action" title="Ubah"><i class="bi bi-pencil"></i></a>
                 <?php endif; ?>
+                <?php if ($terkunci) : ?>
+                  <span class="table-btn-action delete" title="<?= $lewat ? 'Jadwal yang sudah berangkat tidak bisa dihapus' : 'Sudah ada tiket terjual, jadwal tidak bisa dihapus' ?>" style="opacity:.35;cursor:not-allowed"><i class="bi bi-trash"></i></span>
+                <?php else : ?>
                 <form action="<?= BASE_URL ?>/admin/function/jadwal_dan_rute.php?aksi=hapus" method="post" class="d-inline" onsubmit="return confirm('Yakin hapus jadwal ini?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= (int) $j['id'] ?>"><?php if ($kelas !== '') : ?><input type="hidden" name="kelas" value="<?= htmlspecialchars($kelas) ?>"><?php endif; ?><input type="hidden" name="tab" value="<?= htmlspecialchars($tab) ?>"><button type="submit" class="table-btn-action delete" title="Hapus"><i class="bi bi-trash"></i></button></form>
+                <?php endif; ?>
               </div>
             </td>
           </tr>

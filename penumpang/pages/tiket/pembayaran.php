@@ -62,7 +62,9 @@ $tiba_valid = !empty($booking['jam_tiba'] ?? '') && strtotime($booking['jam_tiba
               <div class="tv-bcard tv-status ok">
                 <span class="ikon"><i class="fa-solid fa-circle-check"></i></span>
                 <h4>Pembayaran Lunas</h4>
-                <?php if (tiket_selesai($booking)): ?>
+                <?php if (tiket_tertinggal($booking)): ?>
+                  <p><strong>Anda tertinggal bus.</strong> Bus sudah berangkat pukul <?= e(jam($booking['jam_berangkat'])) ?> WIB dan e-ticket tidak berlaku lagi. Hubungi admin bila perlu bantuan.</p>
+                <?php elseif (tiket_selesai($booking)): ?>
                   <p>Perjalanan ini sudah selesai, jadi e-ticket tidak berlaku lagi. Terima kasih sudah memilih kami.</p>
                 <?php else: ?>
                   <p>Tiketmu sudah aktif. Tunjukkan e-ticket kepada kondektur sebelum naik bus.</p>

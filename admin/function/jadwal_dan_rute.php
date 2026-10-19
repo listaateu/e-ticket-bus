@@ -97,6 +97,17 @@ if ($aksi === 'simpan' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($aksi === 'hapus') {
     $id = param_id('id', 'POST');
 
+    // 0. Jadwal yang sudah berangkat TIDAK boleh dihapus: datanya dipakai untuk riwayat & laporan.
+    //    Dicek di server (bukan hanya tombol disembunyikan) dan dibandingkan dengan jam MySQL (NOW()).
+    $cek_lewat = $koneksi->prepare("SELECT (jam_berangkat < NOW()) AS lewat FROM schedules WHERE id = ?");
+    $cek_lewat->bind_param('i', $id);
+    $cek_lewat->execute();
+    $baris = $cek_lewat->get_result()->fetch_assoc();
+    if ($baris && (int) $baris['lewat'] === 1) {
+        header("Location: $kembali&pesan=hapus_lewat");
+        exit;
+    }
+
     // 1. Hitung ada berapa pemesanan di jadwal ini
     $cek = $koneksi->prepare("SELECT COUNT(*) AS total FROM bookings WHERE schedule_id = ?");
     $cek->bind_param('i', $id);

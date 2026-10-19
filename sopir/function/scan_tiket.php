@@ -17,7 +17,8 @@
  *   7. semua lolos                      -> berhasil (dicatat naik)
  *
  * CATATAN      : Pemeriksaan waktu (langkah 5) AKTIF (CEK_WAKTU_NAIK = true): boarding baru dibuka
- *                BOARDING_BUKA_MENIT menit sebelum berangkat dan ditutup setelah jam tiba.
+ *                BOARDING_BUKA_MENIT menit sebelum berangkat. Setelah bus berangkat, penumpang yang belum naik
+ *                dianggap tertinggal: QR-nya disembunyikan di halaman penumpang (bukan ditolak di sini).
  *                Untuk demo yang butuh scan kapan saja, ubah CEK_WAKTU_NAIK menjadi false.
  * ============================================================
  */

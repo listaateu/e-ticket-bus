@@ -30,6 +30,9 @@ function komponen_card_tiket(array $b): void
         </div>
         <div class="col-lg-2 col-6">
           <?= $selesai ? komponen_badge_status('selesai') : komponen_badge_status($status) ?>
+          <?php if (tiket_tertinggal($b)): ?>
+            <small class="d-block text-danger mt-1"><i class="bi bi-exclamation-triangle-fill"></i> Anda tertinggal bus</small>
+          <?php endif; ?>
           <?php if (batas_bayar_aktif($b)): ?>
             <small class="d-block text-danger mt-1"><i class="bi bi-clock-history"></i> Bayar sebelum <?= e(teks_batas_bayar($b['batas_bayar'])) ?></small>
           <?php endif; ?>

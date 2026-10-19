@@ -28,6 +28,15 @@ if ((int) $jadwal['sudah_lewat'] === 1) {   // dibandingkan dengan jam MySQL, sa
     return;
 }
 
+// Jadwal yang sudah ada tiket terjualnya juga tidak boleh diubah (rute/jam/harga bisa merusak tiket & laporan)
+$cek_tiket = $koneksi->prepare("SELECT COUNT(*) AS total FROM bookings WHERE schedule_id = ?");
+$cek_tiket->bind_param('i', $id);
+$cek_tiket->execute();
+if ((int) $cek_tiket->get_result()->fetch_assoc()['total'] > 0) {
+    echo '<script>window.location.href = "' . $kembali . '&pesan=ubah_ada_tiket";</script>';
+    return;
+}
+
 // Daftar bus untuk dropdown (ikut ambil nama_bus)
 $daftar_bus = $koneksi->query("SELECT id, nama_bus, plat_nomor, kelas FROM buses ORDER BY nama_bus");
 

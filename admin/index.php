@@ -39,6 +39,7 @@ $menu_boleh = [
     'sopir'                 => ['tambah', 'update'],
     'verifikasi_pembayaran' => ['detail'],
     'data_pemesanan'        => ['detail'],
+    'laporan'               => [],   // Laporan penjualan per jadwal (filter tanggal)
 ];
 
 $page = param_str('page', 'dashboard', 'GET', 50);
