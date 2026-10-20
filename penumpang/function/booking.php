@@ -214,10 +214,12 @@ function daftar_penumpang_booking(mysqli $conn, int $booking_id): array
 // batas_bayar  = batas akhir pembayaran (kosong = tidak ada batas)
 // sisa_detik   = sisa waktu sampai batas_bayar, dihitung MySQL supaya tidak terpengaruh beda zona waktu PHP
 // sudah_berangkat = 1 bila jam berangkat sudah lewat (tiket lunas yang sudah lewat tampil "Selesai" dan QR-nya tidak ditampilkan lagi)
+// menit_ke_berangkat = selisih menit dari sekarang ke jam berangkat (dipakai untuk menentukan kapan QR e-ticket muncul)
 // belum_naik      = jumlah penumpang dewasa di pemesanan ini yang belum discan naik (dipakai untuk peringatan "tertinggal bus")
 const SQL_BOOKING = "SELECT bk.id, bk.user_id, bk.schedule_id, bk.nomor_kursi, bk.jumlah_dewasa, bk.jumlah_bayi, bk.kode_unik, bk.kode_booking,
                             bk.batas_bayar, TIMESTAMPDIFF(SECOND, NOW(), bk.batas_bayar) AS sisa_detik,
                             (s.jam_berangkat < NOW()) AS sudah_berangkat,
+                            TIMESTAMPDIFF(MINUTE, NOW(), s.jam_berangkat) AS menit_ke_berangkat,
                             (SELECT COUNT(*) FROM booking_penumpang bpx WHERE bpx.booking_id = bk.id AND bpx.tipe = 'dewasa' AND bpx.status_naik = 0) AS belum_naik,
                             s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.jam_tiba, s.harga, s.sopir,
                             b.nama_bus, b.plat_nomor, b.kelas,
@@ -268,6 +270,32 @@ function status_tiket(array $b): string
 function tiket_selesai(array $b): bool
 {
     return status_tiket($b) === 'lunas' && !empty($b['sudah_berangkat']);
+}
+
+/**
+ * QR e-ticket baru muncul QR_MUNCUL_JAM jam sebelum berangkat (seperti KAI Access).
+ * Catatan: scan sopir/kondektur baru dibuka BOARDING_BUKA_MENIT (180 menit = 3 jam) sebelum berangkat,
+ * jadi QR sudah tampil lebih dulu daripada jendela scan. Dua angka ini sengaja dibuat berbeda.
+ */
+const QR_MUNCUL_JAM = 5;
+
+/** Hanya untuk teks info di e-ticket. Samakan dengan BOARDING_BUKA_MENIT di sopir/function/scan_tiket.php (180 menit = 3 jam). */
+const SCAN_BUKA_JAM = 3;
+
+/** true bila QR sudah boleh ditampilkan: tiket lunas, bus belum berangkat, dan sudah masuk jendela QR_MUNCUL_JAM jam */
+function tiket_qr_terbuka(array $b): bool
+{
+    if (status_tiket($b) !== 'lunas' || !empty($b['sudah_berangkat'])) {
+        return false;
+    }
+    return (int) ($b['menit_ke_berangkat'] ?? PHP_INT_MAX) <= QR_MUNCUL_JAM * 60;
+}
+
+/** Jam QR akan muncul, mis. "14/10 01:00 WIB" atau "01:00 WIB" kalau hari ini */
+function teks_qr_muncul(string $jam_berangkat): string
+{
+    $t = strtotime($jam_berangkat) - QR_MUNCUL_JAM * 3600;
+    return (date('Y-m-d', $t) === date('Y-m-d') ? date('H:i', $t) : date('d/m H:i', $t)) . ' WIB';
 }
 
 /** true bila bus sudah berangkat padahal masih ada penumpang dewasa di pemesanan ini yang belum naik (tertinggal bus) */

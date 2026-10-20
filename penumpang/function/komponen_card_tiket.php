@@ -45,6 +45,9 @@ function komponen_card_tiket(array $b): void
             <a href="<?= url('pembayaran', ['id' => $b['id']]) ?>" class="btn btn-outline-secondary btn-sm">Lihat Detail</a>
           <?php elseif ($status === 'lunas'): ?>
             <a href="<?= url('e-ticket', ['id' => $b['id']]) ?>" class="btn btn-primary btn-sm"><i class="bi bi-qr-code me-1"></i>E-Ticket</a>
+            <?php if (!tiket_qr_terbuka($b)): ?>
+              <small class="text-muted text-center mt-1"><i class="bi bi-lock-fill"></i> QR muncul <?= e(teks_qr_muncul($b['jam_berangkat'])) ?></small>
+            <?php endif; ?>
           <?php elseif ($status === 'pending'): ?>
             <a href="<?= url('pembayaran', ['id' => $b['id']]) ?>" class="btn btn-outline-secondary btn-sm">Lihat Status</a>
           <?php else: ?>

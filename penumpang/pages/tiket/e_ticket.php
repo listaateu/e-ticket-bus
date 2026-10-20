@@ -20,7 +20,9 @@ if (status_tiket($booking) !== 'lunas') {
 }
 // Bus sudah berangkat: QR tidak ditampilkan lagi. Penumpang yang belum naik diberi peringatan "tertinggal bus".
 $sudah_jalan = tiket_selesai($booking);
-$pakai_qr = true;
+// QR baru muncul QR_MUNCUL_JAM (5) jam sebelum berangkat, seperti KAI Access. Sebelum itu hanya info jadwal.
+$qr_terbuka  = tiket_qr_terbuka($booking);
+$pakai_qr    = $qr_terbuka;
 $penumpang = daftar_penumpang_booking($conn, (int) $booking['id']);
 
 // ---- Nama sopir/kondektur (kolom `sopir` di tabel schedules, dipilih admin) ----
@@ -66,7 +68,7 @@ $daftar_qr = $ambil->get_result()->fetch_all(MYSQLI_ASSOC);
 $dewasa_qr = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'dewasa' && !empty($p['kode_tiket'])));
 $bayi_qr   = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'bayi'));
 ?>
-    <?php komponen_page_title('E-Ticket', 'Tunjukkan QR masing-masing penumpang kepada kondektur.', ['Tiket Saya' => url('tiket-saya'), 'E-Ticket' => null]); ?>
+    <?php komponen_page_title('E-Ticket', $qr_terbuka ? 'Tunjukkan QR masing-masing penumpang kepada kondektur.' : 'QR muncul ' . QR_MUNCUL_JAM . ' jam sebelum berangkat.', ['Tiket Saya' => url('tiket-saya'), 'E-Ticket' => null]); ?>
 
     <style>
       .qr-kartu { border: 1px solid #F7DCE8; border-radius: 14px; padding: 16px; margin-bottom: 14px; text-align: center; }
@@ -146,6 +148,16 @@ $bayi_qr   = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'bay
                   <?php endif; ?>
                 </div>
               <?php endforeach; ?>
+            <?php elseif (!$qr_terbuka): ?>
+              <div class="alert alert-info text-center">
+                <i class="bi bi-clock-history me-1"></i> QR muncul pukul <strong><?= e(teks_qr_muncul($booking['jam_berangkat'])) ?></strong> (<?= (int) QR_MUNCUL_JAM ?> jam sebelum berangkat)
+              </div>
+              <?php foreach ($dewasa_qr as $px): ?>
+                <div class="qr-kartu">
+                  <div class="nm"><?= e($px['nama']) ?></div>
+                  <div class="ks">Kursi <?= e($px['nomor_kursi']) ?></div>
+                </div>
+              <?php endforeach; ?>
             <?php elseif ($dewasa_qr): ?>
               <?php foreach ($dewasa_qr as $px): ?>
                 <div class="qr-kartu<?= !empty($px['status_naik']) ? ' sudah-naik' : '' ?>">
@@ -171,7 +183,7 @@ $bayi_qr   = array_values(array_filter($daftar_qr, fn($p) => $p['tipe'] === 'bay
             <?php endif; ?>
 
             <!-- Penampung lama (disembunyikan) supaya script QR bawaan template tidak error -->
-            <div id="qrcode" data-kode="<?= e($booking['kode_booking']) ?>" hidden></div>
+            <?php if ($qr_terbuka): ?><div id="qrcode" data-kode="<?= e($booking['kode_booking']) ?>" hidden></div><?php endif; ?>
           </div>
         </div>
 

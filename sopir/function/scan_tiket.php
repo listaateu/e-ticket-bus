@@ -12,8 +12,8 @@
  *   2. tiket untuk bus milik sopir ini? -> bukan_jadwal_anda
  *   3. tiket untuk jadwal yang dipilih? -> jadwal_lain
  *   4. pembayaran sudah lunas?          -> belum_lunas
- *   5. (opsional) waktu boarding        -> terlalu_awal / selesai
- *   6. sudah pernah naik?               -> sudah_naik
+ *   5. sudah pernah naik?               -> sudah_naik
+ *   6. (opsional) waktu boarding        -> terlalu_awal / selesai (selesai = jam berangkat sudah lewat)
  *   7. semua lolos                      -> berhasil (dicatat naik)
  *
  * CATATAN      : Pemeriksaan waktu (langkah 5) AKTIF (CEK_WAKTU_NAIK = true): boarding baru dibuka
@@ -25,6 +25,7 @@
 const CEK_WAKTU_NAIK      = true;    // true = scan hanya boleh mendekati jam berangkat
 const BOARDING_BUKA_MENIT = 180;   // 3 jam sebelum berangkat
 
+// CATATAN: kolom `sudah_tiba` di query validasi_tiket() kini berarti "jam berangkat sudah lewat" (tiket kedaluwarsa).
 /** Hasil pemeriksaan waktu: 'terlalu_awal' | 'selesai' | null (boleh) */
 function cek_waktu_boarding(int $menit_ke_berangkat, bool $sudah_tiba): ?string
 {
@@ -51,7 +52,7 @@ function hasil_scan(string $status, string $pesan = '', ?array $pax = null): arr
         'jadwal_lain'       => ['danger',  'Salah jadwal',            'Tiket ini untuk jadwal yang berbeda.'],
         'belum_lunas'       => ['danger',  'Belum lunas',             'Pembayaran tiket ini belum diverifikasi admin.'],
         'terlalu_awal'      => ['warning', 'Boarding belum dibuka',   'Boarding belum dibuka untuk jadwal ini.'],
-        'selesai'           => ['danger',  'Perjalanan sudah selesai', 'Jadwal ini sudah selesai.'],
+        'selesai'           => ['danger',  'Tiket kedaluwarsa',       'Bus sudah berangkat, tiket ini tidak berlaku lagi.'],
     ];
     [$tone, $judul, $bawaan] = $peta[$status] ?? $peta['tidak_ditemukan'];
 
@@ -97,7 +98,7 @@ function validasi_tiket(mysqli $conn, int $sopir_id, string $sopir_nama, int $ja
                 s.kota_asal, s.kota_tujuan, s.jam_berangkat, s.sopir,
                 b.nama_bus, b.plat_nomor,
                 TIMESTAMPDIFF(MINUTE, NOW(), s.jam_berangkat) AS menit_ke_berangkat,
-                (COALESCE(s.jam_tiba, s.jam_berangkat) < NOW()) AS sudah_tiba,
+                (s.jam_berangkat < NOW()) AS sudah_tiba,
                 EXISTS (SELECT 1 FROM payments py WHERE py.booking_id = bp.booking_id AND py.status = 'lunas') AS lunas
          FROM booking_penumpang bp
          JOIN bookings bk ON bk.id = bp.booking_id
@@ -132,7 +133,13 @@ function validasi_tiket(mysqli $conn, int $sopir_id, string $sopir_nama, int $ja
         return hasil_scan('belum_lunas', '', $pax);
     }
 
-    // 5. waktu boarding (hanya bila CEK_WAKTU_NAIK = true)
+    // 5. sudah naik (dicek sebelum waktu, supaya scan ulang tetap bilang "sudah naik")
+    if ((int) $r['status_naik'] === 1) {
+        $teks = !empty($r['waktu_naik']) ? 'Penumpang ini sudah naik pukul ' . jam($r['waktu_naik']) . '.' : '';
+        return hasil_scan('sudah_naik', $teks, $pax);
+    }
+
+    // 6. waktu boarding (hanya bila CEK_WAKTU_NAIK = true)
     $waktu = cek_waktu_boarding((int) $r['menit_ke_berangkat'], (bool) (int) $r['sudah_tiba']);
     if ($waktu === 'terlalu_awal') {
         $jam_buka = date('H:i', strtotime((string) $r['jam_berangkat']) - BOARDING_BUKA_MENIT * 60);
@@ -140,12 +147,6 @@ function validasi_tiket(mysqli $conn, int $sopir_id, string $sopir_nama, int $ja
     }
     if ($waktu === 'selesai') {
         return hasil_scan('selesai', '', $pax);
-    }
-
-    // 6. sudah naik
-    if ((int) $r['status_naik'] === 1) {
-        $teks = !empty($r['waktu_naik']) ? 'Penumpang ini sudah naik pukul ' . jam($r['waktu_naik']) . '.' : '';
-        return hasil_scan('sudah_naik', $teks, $pax);
     }
 
     // 7. catat naik. "AND status_naik = 0" menjaga agar dua sopir yang memindai bersamaan tidak mencatat dobel.

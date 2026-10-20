@@ -67,7 +67,11 @@ $tiba_valid = !empty($booking['jam_tiba'] ?? '') && strtotime($booking['jam_tiba
                 <?php elseif (tiket_selesai($booking)): ?>
                   <p>Perjalanan ini sudah selesai, jadi e-ticket tidak berlaku lagi. Terima kasih sudah memilih kami.</p>
                 <?php else: ?>
-                  <p>Tiketmu sudah aktif. Tunjukkan e-ticket kepada kondektur sebelum naik bus.</p>
+                  <?php if (tiket_qr_terbuka($booking)): ?>
+                    <p>Tiketmu sudah aktif. Tunjukkan e-ticket kepada kondektur sebelum naik bus.</p>
+                  <?php else: ?>
+                    <p>Tiketmu sudah aktif. QR e-ticket muncul <?= (int) QR_MUNCUL_JAM ?> jam sebelum berangkat, mulai pukul <strong><?= e(teks_qr_muncul($booking['jam_berangkat'])) ?></strong>.</p>
+                  <?php endif; ?>
                   <a href="<?= url('e-ticket', ['id' => $id]) ?>" class="tv-cta tv-cta-inline"><i class="bi bi-qr-code me-1"></i> Lihat E-Ticket</a>
                 <?php endif; ?>
               </div>
